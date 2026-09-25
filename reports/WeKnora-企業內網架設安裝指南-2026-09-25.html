@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WeKnora 企業內網架設安裝指南｜逐步操作</title>
+  <style>
+    :root{--ink:#1b3042;--muted:#526579;--paper:#fff;--bg:#f2f5f6;--nav:#112b3a;--teal:#087a74;--line:#d7e1e5;--code:#102a39;--gold:#9a5d0b;--red:#aa3546}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.75 system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei","Segoe UI",sans-serif}a{color:#066e82;text-decoration:none}a:hover{text-decoration:underline}code,pre{font:13px/1.55 Consolas,"SFMono-Regular",monospace}code{background:#eaf0f2;border-radius:4px;padding:.12em .32em;overflow-wrap:anywhere}pre{background:var(--code);color:#e6f2f3;border-radius:10px;padding:17px;overflow:auto;white-space:pre}pre code{background:transparent;color:inherit;padding:0}.wrap{display:grid;grid-template-columns:255px minmax(0,1fr);min-height:100vh}.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--nav);color:#d8e7eb;padding:28px 17px}.brand{font-size:17px;font-weight:800;color:#fff;letter-spacing:.03em;padding:0 10px 16px;border-bottom:1px solid #355567}.side small{display:block;color:#9db9c4;margin:15px 10px 8px;text-transform:uppercase;letter-spacing:.12em}.side a{display:block;color:#d4e3e9;padding:6px 10px;border-radius:6px;font-size:13px}.side a:hover{background:#21485a;text-decoration:none}.main{max-width:1120px;width:100%;margin:auto;padding:33px 42px 90px}.hero{background:linear-gradient(125deg,#12384a,#0d675f);border-radius:20px;color:white;padding:45px 46px}.hero .kicker{font-size:12px;letter-spacing:.15em;text-transform:uppercase;opacity:.8}.hero h1{font-size:clamp(29px,3.2vw,43px);line-height:1.23;margin:10px 0}.hero p{max-width:780px;color:#dcf0ee;margin:0}.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}.chip{border:1px solid #71a6a4;border-radius:50px;padding:3px 10px;font-size:12px}.section{scroll-margin-top:20px;margin-top:36px}.section h2{font-size:24px;line-height:1.3;margin:0 0 12px}.section h3{font-size:18px;margin:23px 0 8px}.section p{margin:8px 0 14px}.lead{font-size:17px}.panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:21px 24px;margin:16px 0;box-shadow:0 9px 25px rgba(18,47,62,.045)}.note{border-left:5px solid var(--teal);padding:14px 18px;background:#e3f3f0;border-radius:0 9px 9px 0;margin:15px 0}.note.warn{border-color:var(--gold);background:#fff4df}.note.danger{border-color:var(--red);background:#fff0f2}.step{display:inline-flex;align-items:center;justify-content:center;background:#0b716d;color:white;font-weight:800;border-radius:9px;width:34px;height:34px;margin-right:10px;font-size:16px;vertical-align:2px}.label{display:inline-block;border-radius:50px;background:#e6eef1;color:#436174;padding:2px 9px;font-size:11px;font-weight:700;margin-left:5px}.check{background:#f0f7f8;border:1px solid #cfdee1;border-radius:9px;padding:11px 15px;margin:13px 0;color:#254d58}.tablebox{overflow:auto}.tablebox table{width:100%;border-collapse:collapse;min-width:570px}.tablebox th,.tablebox td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}.tablebox th{background:#eaf2f3;color:#244354;font-size:13px}.tablebox td{font-size:14px}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.flow{display:flex;gap:7px;align-items:stretch;margin:20px 0;flex-wrap:wrap}.flow div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 13px;flex:1;min-width:142px;font-size:13px}.flow b{display:block;color:#17615e}.flow span{color:var(--muted)}.fine{color:var(--muted);font-size:13px}.path{font-weight:700;color:#0f6865}.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:45px;color:var(--muted);font-size:13px}@media(max-width:850px){.wrap{display:block}.side{position:static;height:auto;padding:15px}.side nav{display:grid;grid-template-columns:repeat(2,1fr)}.side small{grid-column:1/-1}.main{padding:18px}.hero{padding:29px}.two{grid-template-columns:1fr}}@media print{body{background:white}.wrap{display:block}.side{display:none}.main{max-width:none;padding:0}.hero{color:#12384a;background:white;border-bottom:3px solid #0d675f;border-radius:0;padding:0 0 15px}.hero p{color:#334}.chip{color:#334;border-color:#999}.panel{box-shadow:none;break-inside:avoid}pre{white-space:pre-wrap;break-inside:avoid}.section{break-inside:auto}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="side"><div class="brand">WeKnora ／ 內網部署</div><nav><small>操作導覽</small><a href="#overview">部署範圍與前提</a><a href="#s1">01　準備主機與網路</a><a href="#s2">02　安裝 Docker</a><a href="#s3">03　取得固定原始碼</a><a href="#s4">04　產生環境設定與金鑰</a><a href="#s5">05　限制服務連接埠</a><a href="#s6">06　建置並檢查映像</a><a href="#s7">07　設定內網 HTTPS</a><a href="#s8">08　啟動與健康檢查</a><a href="#s9">09　建立首位管理員</a><a href="#s10">10　設定內部模型與驗收</a><a href="#s11">11　上線前安全封鎖</a><a href="#s12">12　備份、維護與升級</a><a href="#trouble">常見問題</a><a href="#local-llm">附錄 A　地端 LLM 與圖譜</a><a href="#refs">依據與限制</a></nav></aside>
+  <main class="main">
+    <header class="hero"><div class="kicker">Step-by-step installation guide · 2026-09-25</div><h1>WeKnora 企業內網架設安裝指南</h1><p>以台灣正體中文說明：在專用 Ubuntu 24.04 LTS 主機上，以 Docker Compose 部署 WeKnora、ParadeDB、Redis 與 Docreader，透過企業內網 HTTPS 提供服務，並將文件與問答留在公司核准的資料流內。</p><div class="chips"><span class="chip">原始碼：8619bdf3c5149acc8ca51263e4d485f97da39211</span><span class="chip">單機 Compose</span><span class="chip">不啟用選用 profile</span><span class="chip">需內部模型服務</span></div></header>
+
+    <section id="overview" class="section"><h2>先看部署範圍與前提</h2><p class="lead">這份手冊選擇一條可重現的路徑：使用目前已審查的 commit 自行建置三個 WeKnora 映像，使用 Compose 啟動五個核心服務，再由主機 Nginx 提供內網 HTTPS。正式機須先完成映像掃描與網路出站管制，才可匯入機密文件。</p>
+      <div class="note warn"><strong>版本差異：</strong>此 commit 的 <code>VERSION</code> 為 0.8.2，但位於 <code>v0.8.2</code> Git 標籤之後 24 個提交。直接拉取 <code>wechatopenai/weknora-*:v0.8.2</code> 無法證明與本指南及前份資安報告檢查的程式相同。本指南用 <code>internal-8619bdf</code> 作為自行建置的映像標籤。</div>
+      <div class="flow"><div><b>員工瀏覽器</b><span>僅走公司內網 HTTPS 443</span></div><div><b>主機 Nginx</b><span>TLS、初期僅允許管理員 IP</span></div><div><b>frontend + app</b><span>只發布於主機 127.0.0.1</span></div><div><b>內部服務</b><span>Docreader、ParadeDB、Redis 不發布主機埠</span></div><div><b>內部模型</b><span>核准的 Ollama 相容端點</span></div></div>
+      <div class="tablebox panel"><table><thead><tr><th>項目</th><th>本指南假設</th><th>部署前確認</th></tr></thead><tbody><tr><td>作業系統</td><td>專用 Ubuntu 24.04 LTS x86_64，Bash 指令</td><td><code>uname -m</code> 為 <code>x86_64</code>；ParadeDB CPU 支援 x86-64-v2</td></tr><tr><td>容量</td><td>執行至少 4 vCPU / 8 GB RAM；建置建議 8 vCPU / 16 GB RAM；磁碟依文件量另估</td><td>模型推理主機的 GPU／RAM 不包含在上述需求</td></tr><tr><td>名稱與憑證</td><td>內網 DNS 名稱，例如 <code>kb.corp.example</code>；企業 CA 或受信任 TLS 憑證</td><td>正式 FQDN、憑證與私鑰、管理員來源 IP</td></tr><tr><td>模型</td><td>公司核准的 Ollama 相容端點；至少一個對話模型與一個向量模型</td><td>端點可由容器連線；模型已下載並經測試</td></tr><tr><td>網路</td><td>建置期間使用核准的套件／映像來源；上線後依公司 ACL 限制對外出站</td><td>員工到主機只允許 443；管理員 SSH 限制來源</td></tr></tbody></table></div>
+      <p class="fine">所有命令均在 Ubuntu 部署主機執行。主流程假設公司已有內部 Ollama；若尚無模型主機，附錄 A 提供同機 CPU 驗證路線。若公司使用 vLLM／SGLang 等 OpenAI 相容服務，可在步驟 10 的 UI 選「自訂 API」，並改成相應內網端點。</p>
+    </section>
+
+    <section id="s1" class="section"><h2><span class="step">1</span>準備專用主機、DNS 與網路</h2><div class="panel"><p>先由網路／系統管理員建立主機與內網 DNS。初次註冊期間，僅允許管理員 IP 連到 443；正式上線後再放行員工網段。SSH 只允許管理網段。ParadeDB 5432、Redis 6379、Docreader 50051 不需對外開放。</p><pre><code>uname -m
+lsb_release -ds
+free -h
+df -h /
+getent hosts kb.corp.example</code></pre><p>將範例 FQDN 改成公司真實名稱。向模型平台取得端點，例如 <code>http://ollama.corp.internal:11434</code>；此端點只應允許 WeKnora 主機來源連線。正式環境建議在模型服務前放置 TLS 代理並讓容器信任其 CA。</p></div><div class="check"><strong>過關條件：</strong>主機資源足夠、DNS 解析正確、企業憑證已核發、模型端點與網路 ACL 已確定。</div></section>
+
+    <section id="s2" class="section"><h2><span class="step">2</span>安裝 Docker Engine 與 Compose Plugin</h2><p>下列命令適用於乾淨的 Ubuntu 24.04。已有公司核准 Docker 套件者，可跳過安裝，直接驗證版本。Docker 群組等同具備高度主機權限；本手冊使用 <code>sudo docker</code>，不把一般使用者加入 docker 群組。</p><pre><code>sudo apt update
+sudo apt install -y ca-certificates curl git python3 nginx
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+sudo tee /etc/apt/sources.list.d/docker.sources &gt;/dev/null &lt;&lt;EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release &amp;&amp; echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl enable --now docker
+sudo docker version
+sudo docker compose version</code></pre><p>本指南的 <code>!override</code> 語法要求 Docker Compose <strong>2.24.4 以上</strong>。若版本不足，先更新 Plugin；不可略過步驟 5 的連接埠檢查。</p><div class="note warn">Docker 發布的容器連接埠可能繞過主機 <code>ufw</code> 規則。企業網路 ACL 與步驟 5 的 loopback 綁定是必要控制，不能只看 <code>ufw status</code>。見 <a href="https://docs.docker.com/engine/install/ubuntu/">Docker 官方 Ubuntu 安裝說明</a>與<a href="https://docs.docker.com/engine/network/packet-filtering-firewalls/">防火牆說明</a>。</div></section>
+
+    <section id="s3" class="section"><h2><span class="step">3</span>取得已檢查的固定原始碼</h2><p>公司應先把上游儲存庫複製至內部 Git 鏡像並完成程式碼審查。以下以官方來源示意；正式機可把 URL 換成內部鏡像。不要使用浮動的 <code>main</code> 或只憑 <code>VERSION=0.8.2</code> 判斷內容。</p><pre><code>sudo install -d -m 0750 -o "$USER" -g "$USER" /srv/weknora
+git clone https://github.com/Tencent/WeKnora.git /srv/weknora/source
+cd /srv/weknora/source
+git checkout --detach 8619bdf3c5149acc8ca51263e4d485f97da39211
+git rev-parse HEAD
+git status --short</code></pre><p>輸出的 commit 必須與上面完全相同；<code>git status --short</code> 此時應為空。這份原始碼可搭配<a href="WeKnora-企業內部知識庫資安評估-2026-09-25.html">前份資安評估報告</a>交叉查閱。</p><div class="check"><strong>過關條件：</strong>commit 完全相符，且未夾帶未審核的本機程式修改。</div></section>
+
+    <section id="s4" class="section"><h2><span class="step">4</span>建立一次性的環境設定與金鑰</h2><p>先將模型服務 URL 改成公司實際端點，再執行下列指令。程式會從 <code>.env.example</code> 建立 <code>.env</code>，為資料庫、Redis、JWT、AES 與簽章產生隨機值；若 <code>.env</code> 已存在，會中止以避免重新產生金鑰。<code>SYSTEM_AES_KEY</code> 為 32 個 ASCII 字元，日後必須與備份一起保管。</p><pre><code>cd /srv/weknora/source
+export WEKNORA_MODEL_URL='http://ollama.corp.internal:11434'  # 改成真實內部端點
+umask 077
+python3 - &lt;&lt;'PY'
+from pathlib import Path
+from urllib.parse import urlparse
+import os, re, secrets
+
+target = Path('.env')
+if target.exists():
+    raise SystemExit('.env 已存在：停止，避免覆寫正式環境金鑰')
+url = os.environ.get('WEKNORA_MODEL_URL', '').rstrip('/')
+parsed = urlparse(url)
+if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.hostname.endswith('.example'):
+    raise SystemExit('請先設定真實的 WEKNORA_MODEL_URL')
+content = Path('.env.example').read_text(encoding='utf-8')
+def put(name, value):
+    global content
+    row = f'{name}={value}'
+    pattern = rf'(?m)^{re.escape(name)}=.*$'
+    content, count = re.subn(pattern, lambda _: row, content)
+    if not count:
+        content += '\n' + row + '\n'
+
+values = {
+    'WEKNORA_VERSION': 'internal-8619bdf',
+    'APK_MIRROR_ARG': '',
+    'GIN_MODE': 'release',
+    'LOG_LEVEL': 'warn',
+    'LLM_DEBUG_LOG': 'false',
+    'TZ': 'Asia/Taipei',
+    'WEKNORA_LANGUAGE': 'zh-TW',
+    'DEFAULT_LOCALE': 'en-US',
+    'FRONTEND_PORT': '8088',
+    'APP_PORT': '8080',
+    'DB_PASSWORD': secrets.token_hex(24),
+    'REDIS_PASSWORD': secrets.token_hex(24),
+    'JWT_SECRET': secrets.token_hex(32),
+    'SYSTEM_AES_KEY': secrets.token_hex(16),
+    'SYSTEM_SIGNING_KEY': secrets.token_hex(32),
+    'STORAGE_TYPE': 'local',
+    'RESOURCE_URL_MODE': 'handle',
+    'OLLAMA_BASE_URL': url,
+    'OLLAMA_OPTIONAL': 'true',
+    'SSRF_WHITELIST': parsed.hostname,
+    'SSRF_DNS_WHITELIST_ONLY': 'true',
+    'DISABLE_REGISTRATION': 'false',
+    'WEKNORA_AUTH_COMPLEX_PASSWORD_ENABLED': 'true',
+    'WEKNORA_SANDBOX_DOCKER_ENABLED': 'false',
+    'LANGFUSE_ENABLED': 'false',
+    'LANGFUSE_PUBLIC_KEY': '',
+    'LANGFUSE_SECRET_KEY': '',
+}
+for name, value in values.items():
+    put(name, value)
+target.write_text(content, encoding='utf-8')
+target.chmod(0o600)
+print('.env 已建立；金鑰未顯示。請立即納入公司機密管理與加密備份。')
+PY
+stat -c '%a %n' .env
+git status --short</code></pre><div class="note danger"><strong>請勿執行 <code>cat .env</code>、提交 .env 或把 <code>sudo docker compose config</code> 的完整輸出貼到工單。</strong>它們會洩漏密碼。遺失 <code>SYSTEM_AES_KEY</code>，已加密的憑證將無法還原。<code>.env</code> 是設定，不是金鑰保管庫；正式環境應備份至公司加密秘密管理系統。</div><p><strong>為何清空 <code>APK_MIRROR_ARG</code>：</strong><code>.env.example</code> 原本填入 <code>mirrors.tencent.com</code>；名稱和註解雖寫 APK，實際上 app 的 Dockerfile 會用它替換 Debian APT 來源主機。留空即可沿用基底映像的預設 Debian 來源；它不是 WeKnora 執行時必需的設定，也不控制 Docreader（後者另用 <code>APT_MIRROR</code>）。如果之前已用騰訊鏡像建置 app，改空值後須重新建置；想排除舊建置快取，使用 <code>build --no-cache app</code>。若使用預先建好的映像，改此值不會變更該映像已安裝的套件。</p><p>WeKnora 前端目前沒有 <code>zh-TW</code> 語系；本指南將介面預設為英文，提示詞回退語言為 <code>zh-TW</code>。若要台灣正體中文 UI，須另外完成前端在地化。</p></section>
+
+    <section id="s5" class="section"><h2><span class="step">5</span>覆寫對外連接埠並驗證</h2><p>原本的 Compose 將 80、8080 發布到所有主機介面。建立一份專用覆寫檔，<code>!override</code> 會取代原有 <code>ports</code> 清單，避免同時留下公開埠。此檔可維護於內部部署版本庫。</p><pre><code>cd /srv/weknora/source
+cat &gt; compose.internal.yml &lt;&lt;'YAML'
+services:
+  frontend:
+    ports: !override
+      - "127.0.0.1:${FRONTEND_PORT:-8088}:80"
+  app:
+    ports: !override
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+YAML
+sudo docker compose -f docker-compose.yml -f compose.internal.yml config -q
+sudo docker compose -f docker-compose.yml -f compose.internal.yml config --format json | python3 -c '
+import json,sys
+s=json.load(sys.stdin)["services"]
+for name in ("frontend","app"):
+    p=s[name].get("ports",[])
+    assert len(p)==1 and p[0].get("host_ip")=="127.0.0.1", (name,p)
+    print(name, p[0]["host_ip"], p[0]["published"], "-&gt;", p[0]["target"])
+for name in ("postgres","redis","docreader"):
+    assert not s[name].get("ports"), name
+print("連接埠檢查通過")'</code></pre><p><strong>注意：</strong>往後所有 Compose 命令都需同時帶 <code>-f docker-compose.yml -f compose.internal.yml</code>。不能只執行預設的 <code>docker compose up</code>，否則會回到原本的公開連接埠。<a href="https://docs.docker.com/reference/compose-file/merge/#replace-value">Docker 官方文件</a>確認 <code>!override</code> 需 Compose 2.24.4 以上。</p><div class="check"><strong>過關條件：</strong>輸出只顯示 frontend 127.0.0.1:8088、app 127.0.0.1:8080；另外三個核心服務沒有 <code>ports</code>。</div></section>
+
+    <section id="s6" class="section"><h2><span class="step">6</span>取得基礎映像、建置並檢查 WeKnora 映像</h2><p>在沒有業務文件與公司密碼資料的建置環境執行。建置階段會從套件庫與上游取得基底映像、Go／Python／npm／Rust 相依套件，以及 BrowserSkill 來源；應使用公司核准的建置網路、掃描產物與供應鏈審查。下列命令會從已固定的原始碼建置三個 WeKnora 服務，不拉取同名的官方 release 映像。</p><pre><code>cd /srv/weknora/source
+sudo docker compose -f docker-compose.yml -f compose.internal.yml pull postgres redis
+sudo docker compose -f docker-compose.yml -f compose.internal.yml build --pull app docreader frontend
+sudo docker image inspect \
+  wechatopenai/weknora-app:internal-8619bdf \
+  wechatopenai/weknora-docreader:internal-8619bdf \
+  wechatopenai/weknora-ui:internal-8619bdf \
+  --format '{{.RepoTags}} {{.Id}}'</code></pre><p>建置完成後，請對這五個映像做公司既有的漏洞掃描、SBOM 與許可證審查，記錄映像 digest；正式環境最好將同一批核准映像移至內部 registry。<strong>自行建置只解決「使用哪份原始碼」的可追溯性，不能取代相依套件和建置階段對外請求的審查。</strong></p><div class="check"><strong>過關條件：</strong>三個自建映像存在、建置無錯、基礎映像與產物符合公司核准政策。</div></section>
+
+    <section id="s7" class="section"><h2><span class="step">7</span>設定內網 HTTPS 入口</h2><p>先由企業 PKI 把憑證與私鑰安全交付到主機，例如 <code>/secure/transfer/weknora.crt</code> 和 <code>/secure/transfer/weknora.key</code>。以下範例為專用主機；請先填入真實 FQDN 與管理員來源 IP。首次註冊時 Nginx 僅允許此 IP，避免公開註冊視窗被其他人利用。</p><pre><code>export WEKNORA_FQDN='kb.corp.example'       # 改成公司真實 FQDN
+export WEKNORA_ADMIN_IP='10.20.30.40'      # 改成管理員的固定來源 IP
+sudo install -d -m 0700 /etc/nginx/tls
+sudo install -m 0644 /secure/transfer/weknora.crt /etc/nginx/tls/weknora.crt
+sudo install -m 0600 /secure/transfer/weknora.key /etc/nginx/tls/weknora.key
+sudo tee /etc/nginx/sites-available/weknora.conf &gt;/dev/null &lt;&lt;EOF
+server {
+    listen 443 ssl;
+    server_name ${WEKNORA_FQDN};
+    ssl_certificate /etc/nginx/tls/weknora.crt;
+    ssl_certificate_key /etc/nginx/tls/weknora.key;
+    client_max_body_size 50m;
+    allow ${WEKNORA_ADMIN_IP};
+    deny all;
+
+    location / {
+        proxy_pass http://127.0.0.1:8088;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_read_timeout 3600s;
+        proxy_buffering off;
+    }
+}
+EOF
+sudo ln -s /etc/nginx/sites-available/weknora.conf /etc/nginx/sites-enabled/weknora.conf
+# 本指南使用專用新主機；停用 Ubuntu 預設網站，避免多餘的 HTTP 入口。
+if [ -L /etc/nginx/sites-enabled/default ]; then
+    sudo unlink /etc/nginx/sites-enabled/default
+fi
+sudo nginx -t
+sudo systemctl enable --now nginx
+sudo systemctl reload nginx</code></pre><p>公司邊界防火牆仍須限制 443 來源；憑證名稱需與員工使用的 FQDN 一致。</p><div class="note warn">內網 HTTPS 只保護員工到前端的連線。若模型服務跨網段，請對該連線使用公司核准的 TLS 或等效網路加密，並把 CA 納入容器信任鏈；不要用跳過憑證驗證解決連線錯誤。</div></section>
+
+    <section id="s8" class="section"><h2><span class="step">8</span>啟動五個核心服務並做健康檢查</h2><p>不用 <code>make start-all</code>；它的行為包含額外映像拉取與自動設定兜底。以下明確使用覆寫檔，且禁止啟動時重新拉取或建置。我們未啟用 <code>full</code>、Langfuse、搜尋、MCP、MinIO 等選用 profile。</p><pre><code>cd /srv/weknora/source
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  up -d --no-build --pull never --wait --wait-timeout 600
+sudo docker compose -f docker-compose.yml -f compose.internal.yml ps
+curl -fsS http://127.0.0.1:8080/health
+curl -fsSI http://127.0.0.1:8088/</code></pre><p>健康 API 應回傳 <code>{"status":"ok"}</code>，前端應回傳 HTTP 200 或 304。再檢查實際監聽位置：</p><pre><code>sudo ss -lntp | grep -E ':443|:8088|:8080'
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  logs --tail=80 app docreader postgres redis frontend</code></pre><p>8088 與 8080 必須只顯示 <code>127.0.0.1</code>；443 由 Nginx 監聽。日誌中若看到密碼、文件或提示詞，應立即調整記錄／遮罩與存取權限。Nginx 憑證可從管理員電腦以瀏覽器開啟 <code>https://kb.corp.example</code> 驗證。</p><div class="check"><strong>過關條件：</strong>五個核心容器 running／healthy、health API 正常、外部無法直接連 8080／8088／資料庫埠。</div></section>
+
+    <section id="s9" class="section"><h2><span class="step">9</span>建立首位系統管理員，再關閉公開註冊</h2><p>WeKnora 沒有預設帳號。請先從允許的管理員 IP 開啟 HTTPS 網址，使用正式管理員信箱註冊。密碼依已啟用的複雜度規則設定，長度 8–32 字元。此帳號首先是個人工作空間 Owner，<strong>尚非全域系統管理員</strong>。</p><p>註冊完成後，在部署主機執行以下命令。把信箱改為剛才註冊的信箱；程式會設定首次管理員引導、關閉公開註冊與一般使用者自行建空間，然後重建 app 容器。引導只會提升已存在帳號，且僅在系統尚無任何系統管理員時生效。</p><pre><code>cd /srv/weknora/source
+export WEKNORA_ADMIN_EMAIL='admin@corp.example'  # 改成剛註冊的信箱
+python3 - &lt;&lt;'PY'
+from pathlib import Path
+import os, re
+p=Path('.env')
+text=p.read_text(encoding='utf-8')
+email=os.environ['WEKNORA_ADMIN_EMAIL'].strip()
+if '@' not in email or email.endswith('.example'):
+    raise SystemExit('請填寫真實且已註冊的管理員信箱')
+for key,value in {
+    'WEKNORA_BOOTSTRAP_SYSTEM_ADMIN_EMAIL': email,
+    'DISABLE_REGISTRATION': 'true',
+    'WEKNORA_TENANT_SELF_SERVICE_CREATION_ENABLED': 'false',
+}.items():
+    text,n=re.subn(rf'(?m)^{re.escape(key)}=.*$',lambda _: f'{key}={value}',text)
+    if not n: text += f'\n{key}={value}\n'
+p.write_text(text,encoding='utf-8')
+p.chmod(0o600)
+print('管理員引導與註冊限制已寫入 .env')
+PY
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  up -d --no-build --pull never app frontend
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  logs --tail=60 app</code></pre><p>重新登入後，確認「設定」內出現全域系統設定／平台管理項目，並確認註冊頁籤消失。<code>DISABLE_REGISTRATION=true</code> 會在啟動時將註冊模式設為 <code>invite_only</code>；若資料庫中已有系統設定覆蓋，請在管理介面再次確認實際值。後續由系統管理員建立使用者或發送邀請。</p><p>確認管理員權限及註冊關閉後，將 <code>/etc/nginx/sites-available/weknora.conf</code> 中的 <code>allow ...;</code> 與 <code>deny all;</code> 兩行移除，執行 <code>sudo nginx -t &amp;&amp; sudo systemctl reload nginx</code>，再依企業 ACL 放行員工網段。若公司只允許特定員工網段，也可將這兩行改成對應的 <code>allow</code> 清單與最後的 <code>deny all</code>。</p><div class="check"><strong>過關條件：</strong>首位帳號具有系統管理權限、一般員工不能自註冊、HTTPS 僅對核准的員工網段開放。</div></section>
+
+    <section id="s10" class="section"><h2><span class="step">10</span>設定內部模型並驗證第一個知識庫</h2><p>先從 app 容器測試模型主機可達；若模型在宿主機，容器內的 <code>localhost</code> 不是宿主機，應使用可路由的模型服務名稱。為避免文件與問題送到公有雲，模型設定只填公司核准的內網端點與憑證。</p><pre><code>cd /srv/weknora/source
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  exec -T app sh -c 'curl -fsS --max-time 10 "$OLLAMA_BASE_URL/api/tags"'
+</code></pre><p>在 Web UI 的「設定 → 模型」新增兩個模型：<strong>對話模型</strong>與<strong>向量模型（Embedding）</strong>，來源選 Ollama，填入已由模型平台安裝的實際模型名稱和內網 URL，按「測試連線」後儲存。不要憑空填入模型名；以 <code>/api/tags</code> 回傳清單及模型平台版本為準。若內部服務是 OpenAI 相容 API，改選「自訂（OpenAI 相容接口）」並填公司端點、模型 ID、API Key。</p><p>接著到「知識庫」建立一個測試用 <code>document</code> 類型知識庫，在初始化精靈選剛新增的對話與向量模型。先上傳一份<strong>不含機密</strong>的小型 PDF 或 Markdown；等狀態到 <code>completed</code>，發問並開啟答案引用，確認可回到原文。更換向量模型後必須重建索引，不能直接沿用舊向量。</p><div class="check"><strong>過關條件：</strong>兩種模型測試成功，測試文件完成解析，問答可顯示並開啟引用。</div></section>
+
+    <section id="s11" class="section"><h2><span class="step">11</span>正式匯入公司文件前的安全封鎖</h2><div class="tablebox panel"><table><thead><tr><th>檢查</th><th>具體做法與驗收</th></tr></thead><tbody><tr><td>主機與容器出站</td><td>建置結束後由網路團隊套用出口 ACL：只允許核准內部模型、內部 DNS、更新鏡像／備份目的地等必要流量。從 app 與 docreader 容器測試外網連線應失敗；另確認模型端點仍可達。不能只靠 <code>SSRF_DNS_WHITELIST_ONLY</code> 或 <code>ufw</code>。</td></tr><tr><td>文件解析</td><td>知識庫解析引擎選本地 Docreader／Anydoc；不要填 WeKnoraCloud、MinerU Cloud、PaddleOCR 雲端憑證。先以測試文件確認解析走內部服務。</td></tr><tr><td>模型與追蹤</td><td>所有 chat／embedding／VLM／ASR 端點逐項審核；<code>LANGFUSE_ENABLED=false</code> 且兩個 Langfuse Key 為空；<code>LLM_DEBUG_LOG=false</code>、<code>LOG_LEVEL=warn</code>。</td></tr><tr><td>工具與外部資源</td><td>保持 Docker 沙箱關閉，不掛載 <code>docker.sock</code>；不啟用網頁搜尋、MCP、外部資料來源、IM 或可公開讀取的資源 URL。瀏覽器可能讀取外部圖片／favicon，企業端再用瀏覽器政策或前端修改管制。</td></tr><tr><td>權限與發布埠</td><td>再次驗證 443、8088、8080 綁定與網路 ACL；確認系統註冊已關閉、管理員只有必要人員、空間授權與審計正常。</td></tr><tr><td>映像／相依套件</td><td>保留映像 digest、漏洞掃描報告與 SBOM；檢查 Dockerfile 建置時取得的第三方來源。正式機從核准內部 registry 取得同一 digest 的映像較佳。</td></tr></tbody></table></div><p>可做一個代表性出站測試，但它不是完整網路證明：</p><pre><code>sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  exec -T app sh -c 'curl -fsSI --max-time 5 https://example.com/'
+# 預期失敗；接著再次測試內部模型 URL 應成功。</code></pre><div class="note danger">只有完成上述控制、企業正式資安審查與實際網路封包驗證，才匯入機密文件。這份安裝指南不能證明映像或依賴絕對沒有資料外傳行為；前份資安報告列有需修補或持續監測的條件性出口。</div></section>
+
+    <section id="s12" class="section"><h2><span class="step">12</span>備份、維護與升級</h2><h3>備份基線</h3><p>至少備份 ParadeDB 資料庫、<code>data-files</code> 卷與原始碼／部署設定，並把 <code>.env</code> 的所有金鑰存放到公司加密秘密管理系統。備份含公司文件與查詢紀錄，須加密、限制讀取者並定期還原演練。Redis 在本 Compose 沒有持久化 volume，備份前應停止新寫入並等非同步佇列完成。</p><pre><code>cd /srv/weknora/source
+umask 077
+BACKUP_DIR="/srv/weknora-backups/$(date +%F-%H%M%S)"
+sudo install -d -m 0700 -o "$USER" -g "$USER" "$BACKUP_DIR"
+# 先由管理介面確認文件解析佇列已清空，暫停使用者上傳與寫入。
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' \
+  &gt; "$BACKUP_DIR/postgres.dump"
+sudo docker cp WeKnora-app:/data/files "$BACKUP_DIR/files"
+cp config/config.yaml compose.internal.yml "$BACKUP_DIR/"
+sha256sum "$BACKUP_DIR/postgres.dump" &gt; "$BACKUP_DIR/SHA256SUMS"
+# 再用公司核准的加密備份系統把整批資料移至異地。</code></pre><p>若備份時仍有背景任務寫入，資料庫與檔案卷可能時間點不一致；正式作業請安排維護窗、停止新寫入、等佇列歸零，並在測試環境演練還原。<code>docker compose down</code> 會停止服務並保留命名卷；<strong>不要使用 <code>down -v</code></strong>，它會刪除資料卷。</p><h3>日常維護與升級</h3><p>每次升級都先審查新 commit、相依套件、資料庫遷移與映像，建立可還原的備份。重新以新 commit 建置三個映像，改成新的內部標籤，更新 <code>.env</code> 中 <code>WEKNORA_VERSION</code>，重新執行步驟 5 的 Compose 埠驗證，再用 <code>up -d --no-build --pull never --wait</code> 更新。<code>APP</code> 啟動可能自動執行資料庫遷移；若需回復，應以升級前的資料庫與檔案備份在隔離環境演練，不能只把映像標籤改回舊版。</p><p>診斷命令：</p><pre><code>cd /srv/weknora/source
+sudo docker compose -f docker-compose.yml -f compose.internal.yml ps
+sudo docker compose -f docker-compose.yml -f compose.internal.yml logs --tail=100 app
+sudo docker compose -f docker-compose.yml -f compose.internal.yml logs --tail=100 docreader
+sudo docker compose -f docker-compose.yml -f compose.internal.yml down  # 保留資料卷；維護停機用</code></pre></section>
+
+    <section id="trouble" class="section"><h2>常見問題與排查順序</h2><div class="tablebox panel"><table><thead><tr><th>現象</th><th>先檢查</th><th>處理方向</th></tr></thead><tbody><tr><td>Compose 不認得 <code>!override</code></td><td><code>sudo docker compose version</code></td><td>更新到 2.24.4 以上；不要移除標籤而保留兩組埠。</td></tr><tr><td>app unhealthy</td><td><code>logs app postgres redis docreader</code> 與 <code>/health</code></td><td>核對 DB／Redis 密碼、ParadeDB CPU、磁碟與遷移錯誤；不任意重設 .env 金鑰。</td></tr><tr><td>模型測試失敗</td><td>從 app 容器 <code>curl "$OLLAMA_BASE_URL/api/tags"</code></td><td>確認 DNS、ACL、TLS CA、端點路徑、模型名稱；容器內不要填 <code>localhost</code>。</td></tr><tr><td>登入後不是系統管理員</td><td>管理員信箱及 app 啟動日誌</td><td>bootstrap 只提升已註冊使用者，且只在尚無系統管理員時生效。</td></tr><tr><td>註冊頁仍可見</td><td>實際 <code>auth.registration_mode</code></td><td>檢查 DB 中是否有高優先序設定覆蓋；由系統管理員改成 <code>invite_only</code>。</td></tr><tr><td>檔案 413／解析逾時</td><td>Nginx、frontend 與 app 的大小限制，以及 docreader 日誌</td><td>預設上限 50 MB；若調整，須一致檢查前端、應用、Docreader 與 Nginx。</td></tr><tr><td>重新部署後憑證解不開</td><td><code>SYSTEM_AES_KEY</code> 是否沿用</td><td>從安全備份還原原始 32 字元金鑰；任意換新金鑰無法解密舊值。</td></tr></tbody></table></div></section>
+
+    <section id="local-llm" class="section"><h2>附錄 A：沒有 GPU 時，如何在同機架設對話模型</h2>
+      <p>主流程採用「已有內部 Ollama 端點」作為前提。若目前沒有 GPU，也沒有內部模型服務，可先用同一台主機的 CPU 做<strong>少量、非機密文件驗證</strong>。下方示範的對話模型是阿里巴巴 Qwen 的 <a href="https://ollama.com/library/qwen3%3A4b-instruct"><code>qwen3:4b-instruct</code></a>（約 2.5 GB），向量模型是北京智源 BAAI 的 <a href="https://ollama.com/library/bge-m3"><code>bge-m3</code></a>（約 1.2 GB、1024 維）；兩者均屬中國來源模型，須先通過公司的模型來源及授權審查。這是功能驗證組合，並非已證實足以處理大量公司文件的正式容量。原本 4 vCPU／8 GB 的 WeKnora 主機規格不含模型；同機 CPU 試跑可先以 8 vCPU／32 GB RAM 與足量 SSD 為起點，實際耗時與記憶體須量測。</p>
+      <div class="tablebox panel"><table><thead><tr><th>組合</th><th>對話 LLM</th><th>向量模型</th><th>審查重點</th></tr></thead><tbody><tr><td>本附錄命令範例</td><td>阿里巴巴 <code>qwen3:4b-instruct</code>，約 2.5 GB</td><td>BAAI <code>bge-m3</code>，約 1.2 GB、1024 維</td><td>確認 <a href="https://ollama.com/library/qwen3%3A4b-instruct">Qwen 模型頁</a>的 Apache 2.0 與 <a href="https://huggingface.co/BAAI/bge-m3">BGE-M3 原始模型頁</a>的 MIT 授權，並核對實際匯入版本。</td></tr><tr><td>非中國來源替代</td><td>Google <a href="https://ollama.com/library/gemma3%3A4b"><code>gemma3:4b</code></a>，約 3.3 GB</td><td>Google <a href="https://ollama.com/library/embeddinggemma"><code>embeddinggemma</code></a>，約 622 MB、768 維</td><td>兩者受 <a href="https://ai.google.dev/gemma/terms">Gemma 使用條款</a>約束，應交法務確認；也須測試正體中文檢索與抽取品質。</td></tr></tbody></table></div>
+      <h3>GPU 顯示記憶體如何抓</h3><p>以下是以本附錄 <code>OLLAMA_CONTEXT_LENGTH=8192</code>、<code>OLLAMA_NUM_PARALLEL=1</code>、Q4 量化對話模型及一個向量模型估算的<strong>規劃值，不是廠商保證的最低規格</strong>。<a href="https://ollama.com/library/qwen3/tags">Qwen3 官方模型清單</a>列出 4B 約 2.5 GB、14B Q4 約 9.3 GB；<a href="https://ollama.com/library/bge-m3">BGE-M3</a> 約 1.2 GB。GPU 還須容納上下文 KV cache、運行框架與其他負載；<a href="https://docs.ollama.com/faq#how-does-ollama-handle-concurrent-requests">Ollama FAQ</a>指出並行數與上下文長度會增加記憶體需求。</p><div class="tablebox panel"><table><thead><tr><th>可用 VRAM</th><th>建議用途</th><th>判斷</th></tr></thead><tbody><tr><td>8 GB</td><td>Qwen3 4B + BGE-M3，單人、小量文件驗證</td><td>實務上的 GPU 試跑下限；須用 <code>ollama ps</code> 確認模型是否全載入 GPU，避免部分落在 CPU。</td></tr><tr><td>12–16 GB</td><td>Qwen3 4B + BGE-M3，較穩定的小型內部試用</td><td>若現在才採購，建議至少選 16 GB；能否承受多人同時查詢仍須壓力測試。</td></tr><tr><td>24 GB 起</td><td>評估 Qwen3 14B Q4 + BGE-M3 與圖譜抽取</td><td>保留較大模型及上下文餘裕；正式容量依文件片段數、延遲與同時使用人數量測。</td></tr></tbody></table></div><p class="small">只有 8 GB 系統 RAM 不能替代 8 GB GPU VRAM；若完全沒有 GPU，沿用本附錄的 CPU 試跑方案。模型從 GPU 溢出至 RAM 可能仍能執行，但回應速度通常會下降。部署後執行 <code>sudo docker compose -f docker-compose.yml -f compose.internal.yml exec -T ollama ollama ps</code>，查看 <code>PROCESSOR</code> 是否為 <code>100% GPU</code>。</p>
+      <div class="note warn"><strong>下載前審查關卡：</strong>將模型供應者、精確 tag 與 digest、模型檔／授權、下載網域、用途和內網保存位置登錄在公司核准清單；在隔離建置區下載並掃描映像與模型檔，保留雜湊與審查紀錄，再匯入內部 registry／模型庫。若尚未核准，先完成 A1、A2 的本地設定，暫停 A3 的下載。無論選哪個模型，模型來源國不直接等於資料外洩；真正控制點是容器出站 ACL、無公開連接埠、停用雲端功能，以及日誌和備份的權限。</div>
+      <h3>A1. 指向同一 Compose 網路中的 Ollama</h3><p>若尚未建立 <code>.env</code>，在主流程步驟 4 前改用 <code>export WEKNORA_MODEL_URL='http://ollama:11434'</code>，然後照步驟 4 執行一次性的金鑰產生程序。若 <code>.env</code> 已存在，<strong>不要重跑金鑰程序</strong>；用下列命令只調整模型端點與白名單，保留原密碼及其他已核准主機：</p><pre><code>cd /srv/weknora/source
+python3 - &lt;&lt;'PY'
+from pathlib import Path
+import re
+p=Path('.env')
+if not p.exists(): raise SystemExit('找不到 .env；先完成主流程步驟 4')
+s=p.read_text(encoding='utf-8')
+def setv(k,v):
+    global s
+    s,n=re.subn(rf'(?m)^{re.escape(k)}=.*$',lambda _: f'{k}={v}',s)
+    if not n: s += f'\n{k}={v}\n'
+m=re.search(r'(?m)^SSRF_WHITELIST=(.*)$',s)
+hosts=[h.strip() for h in m.group(1).split(',') if h.strip()] if m else []
+if 'ollama' not in hosts: hosts.append('ollama')
+setv('OLLAMA_BASE_URL','http://ollama:11434')
+setv('SSRF_WHITELIST',','.join(hosts))
+p.write_text(s,encoding='utf-8'); p.chmod(0o600)
+print('模型端點已改為內部 Ollama；原金鑰未更動')
+PY</code></pre>
+      <h3>A2. 加入不發布主機埠的 Ollama</h3><p>主流程步驟 5 建立 <code>compose.internal.yml</code> 後，且未自行改變該檔結構時，<strong>僅執行一次</strong>以下附加命令：</p><pre><code>cd /srv/weknora/source
+cat &gt;&gt; compose.internal.yml &lt;&lt;'YAML'
+  ollama:
+    image: ollama/ollama:0.34.1
+    container_name: WeKnora-ollama
+    environment:
+      - OLLAMA_NO_CLOUD=1
+      - OLLAMA_CONTEXT_LENGTH=8192
+      - OLLAMA_NUM_PARALLEL=1
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - WeKnora-network
+    restart: unless-stopped
+  neo4j:
+    ports: !override []
+volumes:
+  ollama-models:
+YAML
+sudo docker compose -f docker-compose.yml -f compose.internal.yml config -q
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  --profile neo4j config --format json | python3 -c '
+import json,sys
+s=json.load(sys.stdin)["services"]
+assert not s["ollama"].get("ports")
+assert not s["neo4j"].get("ports")
+print("Ollama 與 Neo4j 都沒有對外發布連接埠")'</code></pre><p><code>OLLAMA_NO_CLOUD=1</code> 依<a href="https://docs.ollama.com/faq#how-do-i-disable-ollama-cloud-features">官方說明</a>停用 Ollama 雲端模型與網頁搜尋；公司防火牆仍要阻擋未核准出站。這裡的 <code>0.34.1</code> 是撰文時<a href="https://hub.docker.com/r/ollama/ollama/tags">官方映像頁</a>可見的非 RC 版本，正式機應記錄 digest、掃描並匯入內部 registry。</p>
+      <h3>A3. 啟動服務並下載模型</h3><p>公司建置網路先核准 Docker 映像和模型下載來源。完成主流程步驟 6 的三個 WeKnora 映像建置後，執行：</p><pre><code>sudo docker compose -f docker-compose.yml -f compose.internal.yml pull ollama
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  up -d --no-build --pull never ollama
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  exec -T ollama ollama pull qwen3:4b-instruct
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  exec -T ollama ollama pull bge-m3
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  exec -T ollama ollama list
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  exec -T ollama ollama run qwen3:4b-instruct \
+  '請用台灣正體中文簡短回答：知識庫中的機密文件應如何保護？'</code></pre><p>然後照主流程步驟 8 啟動其餘服務。從 app 容器驗證 <code>curl -fsS "$OLLAMA_BASE_URL/api/tags"</code>，並用 <code>sudo ss -lntp</code> 確認主機沒有對外監聽 11434。Ollama 只在內部 Compose 網路可達；沒有 GPU 時，<code>ollama ps</code> 會顯示模型在 CPU 執行。<a href="https://docs.ollama.com/faq#how-can-i-tell-if-my-model-was-loaded-onto-the-gpu">官方 FAQ</a>有判讀方式。</p>
+      <h3>A4. 在 WeKnora 設定模型</h3><p>「設定 → 模型」新增來源為 Ollama 的<strong>對話模型</strong>，名稱填 <code>qwen3:4b-instruct</code>；再新增來源為 Ollama 的<strong>向量模型</strong>，名稱填 <code>bge-m3</code>，若須填維度則為 1024。兩者共用 <code>http://ollama:11434</code>。各自按「測試連線」後儲存，知識庫初始化時選用兩個模型。先上傳一份小型非機密文件測試問答與引用。</p>
+      <p>若審查改採 Google 組合，A3 的兩個 <code>ollama pull</code> 分別改成 <code>gemma3:4b</code> 與 <code>embeddinggemma</code>，對話試跑命令的模型名也改為 <code>gemma3:4b</code>；A4 的 UI 名稱分別填入這兩個 tag，向量維度填 768。<a href="https://ollama.com/library/embeddinggemma">官方模型頁</a>要求 Ollama 0.11.10 以上，本附錄採用的 0.34.1 符合版本要求。對話與向量模型可分別選擇公司核准的供應者，但中途更換既有知識庫的<strong>向量模型</strong>須重建索引並重跑文件向量化。</p>
+      <div class="note warn">WeKnora 圖譜抽取對每個文件片段都會呼叫對話 LLM；CPU 版 4B 只適合驗證流程。若佇列累積、單份文件耗時過長，或實體與關係抽取錯誤率偏高，應改用公司既有 GPU 模型服務或增設 GPU，並以人工標註文件評估品質。模型檔案大小不等於運行時 RAM／VRAM 用量。</div>
+      <h3>A5. 若要啟用真正的知識圖譜</h3><p>主流程不啟用 Neo4j。圖譜功能除了對話 LLM，還要在 <code>.env</code> 設定 <code>NEO4J_ENABLE=true</code> 與強密碼。以下腳本會保留已設定的非預設密碼；重跑不會輪替：</p><pre><code>cd /srv/weknora/source
+python3 - &lt;&lt;'PY'
+from pathlib import Path
+import re,secrets
+p=Path('.env'); s=p.read_text(encoding='utf-8')
+def setv(k,v):
+    global s
+    s,n=re.subn(rf'(?m)^{re.escape(k)}=.*$',lambda _: f'{k}={v}',s)
+    if not n: s += f'\n{k}={v}\n'
+m=re.search(r'(?m)^NEO4J_PASSWORD=(.*)$',s)
+password=m.group(1) if m else ''
+if not password or password=='password': password=secrets.token_hex(24)
+setv('NEO4J_PASSWORD',password)
+setv('NEO4J_ENABLE','true')
+p.write_text(s,encoding='utf-8'); p.chmod(0o600)
+print('Neo4j 已設定；請將密碼納入公司秘密管理與備份')
+PY
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  --profile neo4j pull neo4j
+sudo docker compose -f docker-compose.yml -f compose.internal.yml \
+  --profile neo4j up -d --no-build --pull never --wait --wait-timeout 600</code></pre><p><strong>不可沿用預設的 <code>neo4j/password</code></strong>；上述覆寫檔已把 Neo4j 的 7474／7687 主機發布埠移除。最後仍需在目標知識庫啟用圖譜抽取並設定實體、關係類型與示例；全域和知識庫兩級開關都要成立。只用一份小型非機密文件測試，等待非同步圖譜工作完成，並核對抽出的實體與關係。詳見<a href="../website-docs/03-features/09-knowledge-graph.md">專案圖譜文件</a>。啟用後要將 Neo4j 資料與 Ollama 模型卷納入備份與還原演練。</p>
+      <p class="small">純 CPU 驗收只用少量文件。<strong>A2 的 Compose 範例沒有啟用 GPU 直通</strong>；安裝 GPU 後須依<a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html">NVIDIA Container Toolkit</a>與<a href="https://docs.docker.com/compose/how-tos/gpu-support/">Docker Compose GPU 文件</a>為 <code>ollama</code> 服務加入 GPU 裝置保留，並用 <code>ollama ps</code> 驗證，才可套用上方 VRAM 規劃。之後再評估較大的 <code>qwen3:14b</code>；硬體容量、延遲與正體中文圖譜抽取品質均需實測，不能只根據模型參數量推定。</p>
+    </section>
+
+    <section id="refs" class="section"><h2>依據、適用範圍與驗證限制</h2><p>本指南依本儲存庫的<a href="../website-docs/01-getting-started/02-installation.md">安裝文件</a>、<a href="../website-docs/01-getting-started/03-quickstart.md">快速入門</a>、<a href="../website-docs/03-features/20-platform-admin.md">系統管理員文件</a>、<a href="../docker-compose.yml">Compose 設定</a>、<a href="../.env.example">環境變數範例</a>及 2026-09-25 的原始碼狀態撰寫。Docker 指令與 <code>!override</code> 另核對<a href="https://docs.docker.com/engine/install/ubuntu/">Docker 安裝文件</a>、<a href="https://docs.docker.com/reference/compose-file/merge/#replace-value">Compose 合併規則</a>與<a href="https://docs.docker.com/reference/cli/docker/compose/up/">Compose up 參數</a>。</p><p>本工作環境為 Windows 且沒有可用 Docker Engine；此 HTML 的命令根據專案設定與官方語法審核，<strong>尚未在實際 Ubuntu 主機端到端執行</strong>。模型端點、公司憑證、ACL、映像掃描與還原演練必須在目標環境完成。這份文件不涵蓋多節點 Kubernetes、高可用或公司 SSO。</p><div class="foot">WeKnora 企業內網架設安裝指南 · 台灣正體中文 · 2026-09-25 · 適用於 commit 8619bdf3c5149acc8ca51263e4d485f97da39211</div></section>
+  </main>
+</div>
+</body>
+</html>
