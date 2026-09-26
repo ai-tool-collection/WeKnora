@@ -10,15 +10,14 @@ import (
 	"strings"
 	"time"
 
-	openSearchRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/opensearch"
-	"github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	openSearchRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/opensearch"
+	"github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/go-sql-driver/mysql"   // MySQL driver for database/sql, used by Doris connection test
 	_ "github.com/jackc/pgx/v5/stdlib" // pgx driver for database/sql
 	"github.com/qdrant/go-client/qdrant"
-	"github.com/tencent/vectordatabase-sdk-go/tcvectordb"
 	"github.com/weaviate/weaviate-go-client/v5/weaviate"
 	"github.com/weaviate/weaviate-go-client/v5/weaviate/auth"
 	wgrpc "github.com/weaviate/weaviate-go-client/v5/weaviate/grpc"
@@ -43,8 +42,6 @@ func (s *vectorStoreService) TestConnection(
 		return testQdrantConnection(ctx, config)
 	case types.MilvusRetrieverEngineType:
 		return testMilvusConnection(ctx, config)
-	case types.TencentVectorDBRetrieverEngineType:
-		return testTencentVectorDBConnection(ctx, config)
 	case types.WeaviateRetrieverEngineType:
 		return testWeaviateConnection(ctx, config)
 	case types.DorisRetrieverEngineType:
@@ -195,30 +192,6 @@ func testMilvusConnection(ctx context.Context, config types.ConnectionConfig) (s
 	}
 	defer conn.Close()
 
-	return "", nil
-}
-
-func testTencentVectorDBConnection(ctx context.Context, config types.ConnectionConfig) (string, error) {
-	testCtx, cancel := context.WithTimeout(ctx, connectionTestTimeout)
-	defer cancel()
-
-	client, err := tcvectordb.NewRpcClient(config.Addr, config.Username, config.APIKey, &tcvectordb.ClientOption{
-		ReadConsistency: tcvectordb.EventualConsistency,
-		Timeout:         connectionTestTimeout,
-		Transport: &secutils.SSRFValidatingRoundTripper{
-			Base: secutils.NewSSRFSafeTransport(secutils.DefaultSSRFSafeHTTPClientConfig()),
-		},
-	})
-	if err != nil {
-		logger.Warnf(ctx, "Tencent VectorDB connection test failed: %v", err)
-		return "", errors.NewBadRequestError("failed to connect to tencent vectordb: connection refused or authentication failed")
-	}
-	defer client.Close()
-
-	if _, err := client.ListDatabase(testCtx); err != nil {
-		logger.Warnf(ctx, "Tencent VectorDB list database failed: %v", err)
-		return "", errors.NewBadRequestError("failed to connect to tencent vectordb: authentication failed or server error")
-	}
 	return "", nil
 }
 

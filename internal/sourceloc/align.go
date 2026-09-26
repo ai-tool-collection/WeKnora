@@ -6,7 +6,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Unit is one structural piece of an original file (a paragraph, a slide

@@ -17,13 +17,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/Tencent/WeKnora/internal/config"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/models/limiter"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/models/limiter"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // pubsubChannelBase is the Redis channel base for system_settings change

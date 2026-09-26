@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/infrastructure/docparser/anydoc"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/infrastructure/docparser/anydoc"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 // AnydocReader converts office documents to markdown in this process, using

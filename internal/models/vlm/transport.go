@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 func validateVLMBaseURL(baseURL string) error {

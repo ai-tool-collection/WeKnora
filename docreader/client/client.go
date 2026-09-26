@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Tencent/WeKnora/docreader/proto"
+	"github.com/ai-tool-collection/WeKnora/docreader/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/resolver"
 )

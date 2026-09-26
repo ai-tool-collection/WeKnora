@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // Client calls Mattermost REST API v4.

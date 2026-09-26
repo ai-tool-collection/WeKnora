@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/Tencent/WeKnora/internal/models/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/models/utils"
 	"github.com/panjf2000/ants/v2"
 )
 

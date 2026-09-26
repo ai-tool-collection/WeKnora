@@ -3,10 +3,10 @@ package interfaces
 import (
 	"context"
 
-	"github.com/Tencent/WeKnora/internal/event"
-	"github.com/Tencent/WeKnora/internal/models/chat"
-	"github.com/Tencent/WeKnora/internal/models/rerank"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/event"
+	"github.com/ai-tool-collection/WeKnora/internal/models/chat"
+	"github.com/ai-tool-collection/WeKnora/internal/models/rerank"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // AgentStreamEvent represents a streaming event from the agent

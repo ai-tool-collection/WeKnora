@@ -8,14 +8,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/agent/skills"
-	agenttools "github.com/Tencent/WeKnora/internal/agent/tools"
-	"github.com/Tencent/WeKnora/internal/application/service"
-	"github.com/Tencent/WeKnora/internal/event"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/skills"
+	agenttools "github.com/ai-tool-collection/WeKnora/internal/agent/tools"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service"
+	"github.com/ai-tool-collection/WeKnora/internal/event"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 // SandboxIDLookup reports the sandbox currently bound to a session without

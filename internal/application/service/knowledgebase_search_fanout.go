@@ -9,11 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/application/service/retriever"
-	apperrors "github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service/retriever"
+	apperrors "github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -183,7 +183,6 @@ func isKnownEngineType(t types.RetrieverEngineType) bool {
 		types.WeaviateRetrieverEngineType,
 		types.SQLiteRetrieverEngineType,
 		types.InfinityRetrieverEngineType,
-		types.TencentVectorDBRetrieverEngineType,
 		types.DorisRetrieverEngineType:
 		return true
 	}

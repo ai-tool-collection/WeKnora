@@ -27,12 +27,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 
-	"github.com/Tencent/WeKnora/internal/application/service"
-	"github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/middleware"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service"
+	"github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/middleware"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Terminal protocol tunables.

@@ -15,10 +15,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	apperrors "github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	apperrors "github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 // testGlobalSandboxConfig supplies built-in runtime tuning values. Named
@@ -34,31 +34,6 @@ func testGlobalSandboxConfig() *sandbox.Config {
 	return cfg
 }
 
-func TestSandboxConfigHasSecretsIncludesInjectedHeaders(t *testing.T) {
-	cfg := &types.TenantSandboxConfig{
-		Network: &types.SandboxNetworkPolicy{
-			CubeRules: []types.CubeEgressRule{{
-				Inject: []types.CubeHeaderInject{{Secret: "cube-secret"}},
-			}},
-		},
-	}
-	require.True(t, sandboxConfigHasSecrets(cfg))
-
-	cfg.Network.CubeRules = nil
-	cfg.Network.E2BHostRules = []types.E2BHostRule{{
-		Headers: map[string]string{"X-Key": "e2b-secret"},
-	}}
-	require.True(t, sandboxConfigHasSecrets(cfg))
-
-	cfg.Network = &types.SandboxNetworkPolicy{
-		DenyEgressByDefault: true,
-		CubeRules: []types.CubeEgressRule{{
-			Inject: []types.CubeHeaderInject{{Header: "X-Key"}},
-		}},
-	}
-	require.False(t, sandboxConfigHasSecrets(cfg))
-}
-
 func e2bCfg(key, url, domain, template string, ttl int) *types.TenantSandboxConfig {
 	return &types.TenantSandboxConfig{
 		SandboxType: "e2b",
@@ -69,141 +44,6 @@ func e2bCfg(key, url, domain, template string, ttl int) *types.TenantSandboxConf
 	}
 }
 
-func cubeCfg(key, apiURL, proxyURL, domain string) *types.TenantSandboxConfig {
-	return &types.TenantSandboxConfig{
-		SandboxType: "cube",
-		Cube: &types.CubeSandboxConfig{
-			APIKey: key, APIURL: apiURL, ProxyURL: proxyURL, SandboxDomain: domain,
-		},
-	}
-}
-
-func TestSandboxIdentityChanged(t *testing.T) {
-	tests := []struct {
-		name     string
-		old, new *types.TenantSandboxConfig
-		want     bool
-	}{
-		// Control plane: losing these loses the ability to clean up, and the
-		// leak bills forever.
-		{
-			name: "api key rotation changes identity",
-			old:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 300),
-			new:  e2bCfg("key-b", "https://api.e2b.app", "e2b.app", "t1", 300),
-			want: true,
-		},
-		{
-			name: "endpoint change changes identity",
-			old:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 300),
-			new:  e2bCfg("key-a", "https://self.hosted", "e2b.app", "t1", 300),
-			want: true,
-		},
-		{
-			name: "provider switch changes identity",
-			old:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 300),
-			new:  cubeCfg("key-a", "https://cube.example.com", "https://proxy.example.com", "cube.app"),
-			want: true,
-		},
-		// Data plane: the control plane still works so cleanup stays possible,
-		// but every envd request now goes to the wrong host, so every live
-		// session on this config fails at once.
-		{
-			name: "e2b sandbox domain change strands live sessions",
-			old:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 300),
-			new:  e2bCfg("key-a", "https://api.e2b.app", "e2b.dev", "t1", 300),
-			want: true,
-		},
-		{
-			name: "cube proxy url change strands live sessions",
-			old:  cubeCfg("key-a", "https://cube.example.com", "https://proxy.example.com", "cube.app"),
-			new:  cubeCfg("key-a", "https://cube.example.com", "https://proxy2.example.com", "cube.app"),
-			want: true,
-		},
-		{
-			name: "cube sandbox domain change strands live sessions",
-			old:  cubeCfg("key-a", "https://cube.example.com", "https://proxy.example.com", "cube.app"),
-			new:  cubeCfg("key-a", "https://cube.example.com", "https://proxy.example.com", "cube2.app"),
-			want: true,
-		},
-		// Not identity changes: these only shape FUTURE sandboxes, so refusing
-		// them would be pure friction.
-		{
-			name: "template change only affects future sandboxes",
-			old:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 300),
-			new:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t2", 300),
-			want: false,
-		},
-		{
-			name: "ttl change is not an identity change",
-			old:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 300),
-			new:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 900),
-			want: false,
-		},
-		{
-			name: "cube dns change only affects future templates",
-			old:  cubeCfg("key-a", "https://cube.example.com", "https://proxy.example.com", "cube.app"),
-			new: func() *types.TenantSandboxConfig {
-				cfg := cubeCfg("key-a", "https://cube.example.com", "https://proxy.example.com", "cube.app")
-				cfg.Cube.DNSServers = []string{"8.8.8.8"}
-				return cfg
-			}(),
-			want: false,
-		},
-		{
-			name: "private endpoint policy changes transport identity",
-			old:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 300),
-			new: func() *types.TenantSandboxConfig {
-				cfg := e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 300)
-				cfg.AllowPrivateEndpoints = true
-				return cfg
-			}(),
-			want: true,
-		},
-		{
-			// Nothing is inherited, so filling in an endpoint that was blank
-			// really does re-point the config at a different account.
-			name: "filling in a blank endpoint changes identity",
-			old: &types.TenantSandboxConfig{
-				SandboxType: "e2b",
-				E2B:         &types.E2BSandboxConfig{APIKey: "key-a"},
-			},
-			new:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 0),
-			want: true,
-		},
-		{
-			// Only the ACTIVE provider's fields describe where the sandboxes
-			// are; a leftover sub-struct from an earlier switch must not count.
-			name: "inactive provider fields are ignored",
-			old: &types.TenantSandboxConfig{
-				SandboxType: "e2b",
-				E2B:         &types.E2BSandboxConfig{APIKey: "key-a"},
-				Cube:        &types.CubeSandboxConfig{APIKey: "stale-a"},
-			},
-			new: &types.TenantSandboxConfig{
-				SandboxType: "e2b",
-				E2B:         &types.E2BSandboxConfig{APIKey: "key-a"},
-				Cube:        &types.CubeSandboxConfig{APIKey: "stale-b"},
-			},
-			want: false,
-		},
-		{
-			name: "no previous config means nothing to strand",
-			old:  nil,
-			new:  e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 300),
-			want: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, SandboxIdentityChanged(tt.old, tt.new))
-		})
-	}
-}
-
-// The UI never sends the real API key back - it echoes a mask. Comparing the
-// incoming payload directly would therefore report an identity change on EVERY
-// save and make the config permanently uneditable. This pins the required
-// ordering: merge first, judge second.
 func TestSandboxIdentityChangedAfterMaskMerge(t *testing.T) {
 	stored := e2bCfg("real-key", "https://api.e2b.app", "e2b.app", "t1", 300)
 	incoming := e2bCfg(types.RedactedSecretPlaceholder, "https://api.e2b.app", "e2b.app", "t1", 300)
@@ -220,8 +60,8 @@ func TestSandboxIdentityChangedAfterMaskMerge(t *testing.T) {
 // Routing this through the SSRF-guarding resolver would lock the config down at
 // the worst possible moment.
 func TestSandboxIdentityChangedJudgesUnreachableOldEndpoint(t *testing.T) {
-	dead := cubeCfg("key-a", "https://decommissioned.invalid", "https://proxy.invalid", "cube.app")
-	live := cubeCfg("key-a", "https://cube.example.com", "https://proxy.invalid", "cube.app")
+	dead := e2bCfg("key-a", "https://decommissioned.invalid", "e2b.app", "template", 300)
+	live := e2bCfg("key-a", "https://api.example.com", "e2b.app", "template", 300)
 
 	require.True(t, SandboxIdentityChanged(dead, live))
 	require.False(t, SandboxIdentityChanged(dead, dead))
@@ -1014,32 +854,6 @@ func TestQueryTemplatesEnsureAndReplaceDoNotShareSingleflight(t *testing.T) {
 	require.Equal(t, int32(1), client.replaceCalls.Load())
 }
 
-func TestUpdateRefusesDNSChangeWhenSkillSnapshotExists(t *testing.T) {
-	t.Setenv("SYSTEM_AES_KEY", strings.Repeat("k", 32))
-	stored := cubeCfg("key-a", "https://203.0.113.10", "https://203.0.113.11", "cube.app")
-	stored.Cube.TemplateID = "tpl-1"
-	stored.Cube.DNSServers = []string{"8.8.8.8"}
-	stored.SkillImage = &types.SkillImageConfig{SnapshotID: "snap-1"}
-	repo := &fakeConfigRepo{entity: &types.TenantSandboxConfigEntity{
-		ID:          "cfg-a",
-		TenantID:    7,
-		Name:        "prod",
-		SandboxType: "cube",
-		Config:      stored,
-	}}
-	svc := newTestConfigService(t, repo, &stubProviderClient{}, stubAgentRepo{})
-
-	next := cubeCfg("key-a", "https://203.0.113.10", "https://203.0.113.11", "cube.app")
-	next.Cube.TemplateID = "tpl-1"
-	next.Cube.DNSServers = []string{"1.1.1.1"}
-	_, err := svc.Update(context.Background(), 7, "cfg-a", UpdateSandboxConfigInput{
-		Name:   "prod",
-		Config: next,
-	})
-	require.ErrorIs(t, err, ErrSkillSnapshotBlocksTemplateChange)
-	require.Nil(t, repo.updated)
-}
-
 func TestUpdateRefusesPrivateEndpointChangeWhenSkillSnapshotExists(t *testing.T) {
 	t.Setenv("SYSTEM_AES_KEY", strings.Repeat("k", 32))
 	stored := e2bCfg("key-a", "https://api.e2b.app", "e2b.app", "t1", 300)
@@ -1461,20 +1275,6 @@ func TestSanitizeSandboxConfigPreservesRedactedSecret(t *testing.T) {
 	require.Equal(t, "stored-key", out.E2B.APIKey)
 }
 
-func TestSanitizeSandboxConfigRejectsDomainAllowWithoutDenyAll(t *testing.T) {
-	_, err := SanitizeSandboxConfig(&types.TenantSandboxConfig{
-		SandboxType: "cube",
-		Cube: &types.CubeSandboxConfig{
-			APIURL: "https://cube.example.com", ProxyURL: "https://cube.example.com",
-			SandboxDomain: "cube.app", TemplateID: "tpl-1",
-		},
-		Network: &types.SandboxNetworkPolicy{AllowOut: []string{"api.example.com"}},
-	}, nil)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "0.0.0.0/0")
-}
-
 func TestSanitizeSandboxConfigPreservesSkillImage(t *testing.T) {
 	t.Setenv("SYSTEM_AES_KEY", strings.Repeat("k", 32))
 	existing := &types.TenantSandboxConfig{
@@ -1519,22 +1319,6 @@ func TestSanitizeSandboxConfigRejectsUnknownSkillRollout(t *testing.T) {
 
 // Nothing is inherited from the deployment, so an incomplete config has to be
 // refused when it is saved rather than at the first sandbox allocation.
-func TestSanitizeSandboxConfigRejectsIncompleteConfig(t *testing.T) {
-	t.Setenv("SYSTEM_AES_KEY", strings.Repeat("k", 32))
-	incoming := &types.TenantSandboxConfig{
-		SandboxType: "cube",
-		Cube:        &types.CubeSandboxConfig{APIURL: "https://203.0.113.10"},
-	}
-
-	_, err := SanitizeSandboxConfig(incoming, nil)
-
-	require.ErrorIs(t, err, sandbox.ErrSandboxConfigIncomplete)
-	require.Contains(t, err.Error(), "proxy_url")
-}
-
-// A masked key must still count as present: the merge restores it before the
-// completeness check runs, otherwise every edit of a saved config would be
-// rejected for a missing credential it never stopped having.
 func TestSanitizeSandboxConfigCountsRedactedSecretAsPresent(t *testing.T) {
 	t.Setenv("SYSTEM_AES_KEY", strings.Repeat("k", 32))
 	existing := &types.TenantSandboxConfig{
@@ -1552,23 +1336,6 @@ func TestSanitizeSandboxConfigCountsRedactedSecretAsPresent(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, "t2", out.E2B.TemplateID)
-}
-
-func TestSanitizeSandboxConfigRejectsInvalidCubeDNS(t *testing.T) {
-	t.Setenv("SYSTEM_AES_KEY", strings.Repeat("k", 32))
-	incoming := &types.TenantSandboxConfig{
-		SandboxType: "cube",
-		Cube: &types.CubeSandboxConfig{
-			APIURL: "https://203.0.113.20", DNSServers: []string{"dns.google"},
-		},
-	}
-
-	_, err := SanitizeSandboxConfig(incoming, nil)
-
-	var appErr *apperrors.AppError
-	require.ErrorAs(t, err, &appErr)
-	require.Equal(t, http.StatusBadRequest, appErr.HTTPCode)
-	require.Contains(t, err.Error(), "dns.google")
 }
 
 func TestSanitizeSandboxConfigRejectsUnsafeURL(t *testing.T) {

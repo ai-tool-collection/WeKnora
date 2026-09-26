@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/browserskill"
+	"github.com/ai-tool-collection/WeKnora/internal/browserskill"
 	"github.com/stretchr/testify/require"
 )
 

@@ -3,7 +3,7 @@ package text_test
 import (
 	"testing"
 
-	"github.com/Tencent/WeKnora/cli/internal/text"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/text"
 )
 
 func TestPluralize(t *testing.T) {

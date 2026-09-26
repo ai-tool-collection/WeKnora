@@ -8,8 +8,8 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 type pinTestManager struct {
@@ -166,7 +166,7 @@ func TestResolveSandboxForExecutionDoesNotPinStatelessBackend(t *testing.T) {
 
 func TestResolveSandboxForExecutionPinsRemoteBackend(t *testing.T) {
 	pinner := NewSessionSandboxPinner(newPinTestDB(t))
-	want := &pinTestManager{typ: sandbox.SandboxTypeCube}
+	want := &pinTestManager{typ: sandbox.SandboxTypeE2B}
 
 	got, pin, err := resolveSandboxForExecution(
 		context.Background(), stubSandboxResolver{mgr: want}, nil, pinner,
@@ -225,7 +225,7 @@ func TestResolveSandboxForExecutionKeepsExistingRemotePin(t *testing.T) {
 func TestResolveSandboxForExecutionPinsTheConfigOwningWorkspace(t *testing.T) {
 	const sessionOwner, agentOwner = uint64(7), uint64(99)
 	pinner := NewSessionSandboxPinner(newPinTestDB(t))
-	resolver := &tenantRecordingResolver{mgr: &pinTestManager{typ: sandbox.SandboxTypeCube}}
+	resolver := &tenantRecordingResolver{mgr: &pinTestManager{typ: sandbox.SandboxTypeE2B}}
 
 	_, pin, err := resolveSandboxForExecution(
 		context.Background(), resolver, nil, pinner,
@@ -262,7 +262,7 @@ func TestResolveSandboxForExecutionPersistsOwnerOnLegacyPin(t *testing.T) {
 		SandboxPin{ConfigID: "cfg-owned-by-99"})
 	require.NoError(t, err)
 
-	resolver := &tenantRecordingResolver{mgr: &pinTestManager{typ: sandbox.SandboxTypeCube}}
+	resolver := &tenantRecordingResolver{mgr: &pinTestManager{typ: sandbox.SandboxTypeE2B}}
 	_, pin, err := resolveSandboxForExecution(
 		context.Background(), resolver, nil, pinner,
 		agentOwner, "s-1", "", nil,
@@ -282,7 +282,7 @@ func TestResolveSandboxForExecutionResolvesPinnedConfigInItsOwnWorkspace(t *test
 	_, err := pinner.Pin(context.Background(), "s-1",
 		SandboxPin{ConfigID: "cfg-owned-by-99", TenantID: 99})
 	require.NoError(t, err)
-	resolver := &tenantRecordingResolver{mgr: &pinTestManager{typ: sandbox.SandboxTypeCube}}
+	resolver := &tenantRecordingResolver{mgr: &pinTestManager{typ: sandbox.SandboxTypeE2B}}
 
 	_, pin, err := resolveSandboxForExecution(
 		context.Background(), resolver, nil, pinner,
@@ -346,7 +346,7 @@ func TestResolveSandboxForExecutionDoesNotPersistOwnerBehindTheKillSwitch(t *tes
 
 	// The pin is still resolvable as the session's own workspace, which is what
 	// keeps DELETE able to reclaim the MicroVM.
-	mgr := &pinTestManager{typ: sandbox.SandboxTypeCube}
+	mgr := &pinTestManager{typ: sandbox.SandboxTypeE2B}
 	recorder := &tenantRecordingResolver{mgr: mgr}
 	_, _, err = resolveSandboxForExecution(
 		context.Background(), recorder, nil, pinner, sessionOwner, "s-1", "", nil,

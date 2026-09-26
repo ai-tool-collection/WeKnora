@@ -26,7 +26,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/Tencent/WeKnora/internal/models/chat"
+	"github.com/ai-tool-collection/WeKnora/internal/models/chat"
 	"github.com/tiktoken-go/tokenizer"
 )
 

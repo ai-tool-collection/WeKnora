@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 // EngineRegistration is what every locally registered parser engine provides:
@@ -34,11 +34,6 @@ type ReaderDeps struct {
 	Overrides map[string]string
 	// Remote is the docreader client. Nil when the service is not connected.
 	Remote interfaces.DocReader
-	// WeKnoraCloudCredentials resolves the tenant's WeKnora Cloud
-	// credentials. It is a function rather than a value because resolving
-	// them can hit the database, which most engines never need. Nil, or a
-	// nil return, means the tenant has not configured them.
-	WeKnoraCloudCredentials func(ctx context.Context) *types.WeKnoraCloudCredentials
 }
 
 // localEngines holds all locally registered parser engines, in registration

@@ -10,10 +10,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Tencent/WeKnora/internal/application/service"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // --- Sandbox connectivity check ---
@@ -196,15 +196,6 @@ func sandboxConnectionCheckConfig(cfg *types.TenantSandboxConfig) *types.TenantS
 	}
 	copy := *cfg
 	switch sandbox.SandboxType(copy.SandboxType) {
-	case sandbox.SandboxTypeCube:
-		cube := types.CubeSandboxConfig{}
-		if copy.Cube != nil {
-			cube = *copy.Cube
-		}
-		if strings.TrimSpace(cube.TemplateID) == "" {
-			cube.TemplateID = "__connection_check__"
-		}
-		copy.Cube = &cube
 	case sandbox.SandboxTypeE2B:
 		e2b := types.E2BSandboxConfig{}
 		if copy.E2B != nil {
@@ -350,7 +341,6 @@ var egressProbeTargets = []struct {
 	label string
 	url   string
 }{
-	{label: "cn:baidu", url: "https://www.baidu.com"},
 	{label: "intl:1.1.1.1", url: "https://1.1.1.1"},
 }
 

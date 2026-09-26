@@ -7,11 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -446,16 +446,6 @@ func validateConnectionConfig(engineType types.RetrieverEngineType, config types
 		if config.Addr == "" {
 			return errors.NewValidationError("addr is required for milvus")
 		}
-	case types.TencentVectorDBRetrieverEngineType:
-		if config.Addr == "" {
-			return errors.NewValidationError("addr is required for tencent_vectordb")
-		}
-		if config.Username == "" {
-			return errors.NewValidationError("username is required for tencent_vectordb")
-		}
-		if config.APIKey == "" {
-			return errors.NewValidationError("api_key is required for tencent_vectordb")
-		}
 	case types.WeaviateRetrieverEngineType:
 		if config.Host == "" {
 			return errors.NewValidationError("host is required for weaviate")
@@ -505,10 +495,9 @@ func validateConnectionAddrSSRF(engineType types.RetrieverEngineType, config typ
 	case types.ElasticsearchRetrieverEngineType,
 		types.OpenSearchRetrieverEngineType,
 		types.MilvusRetrieverEngineType,
-		types.TencentVectorDBRetrieverEngineType,
 		types.DorisRetrieverEngineType:
 		// Single address field: a URL (es/opensearch) or bare host:port
-		// (milvus/tencent/doris). ValidateURLForSSRF normalises both.
+		// (milvus/doris). ValidateURLForSSRF normalises both.
 		return check(config.Addr)
 	case types.QdrantRetrieverEngineType:
 		// Host (+ optional Port) — combine so the port blocklist applies to

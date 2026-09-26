@@ -20,17 +20,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/agent/tools"
-	"github.com/Tencent/WeKnora/internal/application/repository"
-	"github.com/Tencent/WeKnora/internal/event"
-	"github.com/Tencent/WeKnora/internal/models/asr"
-	"github.com/Tencent/WeKnora/internal/models/chat"
-	"github.com/Tencent/WeKnora/internal/models/embedding"
-	"github.com/Tencent/WeKnora/internal/models/rerank"
-	"github.com/Tencent/WeKnora/internal/models/vlm"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/tools"
+	"github.com/ai-tool-collection/WeKnora/internal/application/repository"
+	"github.com/ai-tool-collection/WeKnora/internal/event"
+	"github.com/ai-tool-collection/WeKnora/internal/models/asr"
+	"github.com/ai-tool-collection/WeKnora/internal/models/chat"
+	"github.com/ai-tool-collection/WeKnora/internal/models/embedding"
+	"github.com/ai-tool-collection/WeKnora/internal/models/rerank"
+	"github.com/ai-tool-collection/WeKnora/internal/models/vlm"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -2219,10 +2219,6 @@ func (r *installConfigRepo) GetByID(
 		if r.entity.Config.E2B != nil {
 			e2b := *r.entity.Config.E2B
 			cfg.E2B = &e2b
-		}
-		if r.entity.Config.Cube != nil {
-			cube := *r.entity.Config.Cube
-			cfg.Cube = &cube
 		}
 		if r.entity.Config.SkillImage != nil {
 			image := *r.entity.Config.SkillImage

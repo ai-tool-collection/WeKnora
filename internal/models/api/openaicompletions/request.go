@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
 )
 
 // Config is everything the client needs, already resolved by the api.
@@ -166,7 +166,7 @@ func (c *Client) convertMessages(messages []api.Message) []wireMessage {
 }
 
 // contentParts flattens rich content to plain text for vendors that only
-// accept strings (WeKnora Cloud), otherwise returns the parts as-is.
+// accept strings, otherwise returns the parts as-is.
 func (c *Client) contentParts(parts []wirePart) any {
 	if c.cfg.Settings.SupportsMultiContent {
 		return parts

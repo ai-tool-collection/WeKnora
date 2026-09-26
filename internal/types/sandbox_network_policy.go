@@ -39,43 +39,9 @@ type SandboxNetworkPolicy struct {
 	// domain: denial is a pure longest-prefix match on the destination IP.
 	DenyOut []string `json:"deny_out,omitempty"`
 
-	// CubeRules are validated whenever present and consumed only by the Cube
-	// provider adapter.
-	CubeRules []CubeEgressRule `json:"cube_rules,omitempty"`
-
 	// E2BHostRules are validated whenever present and consumed only by the E2B
 	// provider adapter.
 	E2BHostRules []E2BHostRule `json:"e2b_host_rules,omitempty"`
-}
-
-// CubeEgressRule mirrors cubesandbox.Rule. Match fields are AND-ed; Methods is
-// OR-ed internally.
-type CubeEgressRule struct {
-	Name    string   `json:"name"`
-	Scheme  string   `json:"scheme,omitempty"`
-	SNI     string   `json:"sni,omitempty"`
-	Host    string   `json:"host,omitempty"`
-	Methods []string `json:"methods,omitempty"`
-	Path    string   `json:"path,omitempty"`
-
-	// Deny inverts the action, which defaults to allow. A deny rule still
-	// needs Host or SNI: the target has to reach CubeEgress for it to answer
-	// with a request-level 403 instead of the network layer dropping it.
-	Deny bool `json:"deny,omitempty"`
-
-	// Audit is none | metadata | full. Empty uses the server default.
-	Audit string `json:"audit,omitempty"`
-
-	// Inject adds credential headers on allowed HTTPS requests.
-	Inject []CubeHeaderInject `json:"inject,omitempty"`
-}
-
-// CubeHeaderInject mirrors cubesandbox.Inject. Secret is a credential and is
-// encrypted at rest; Header and Format are not.
-type CubeHeaderInject struct {
-	Header string `json:"header"`
-	Secret string `json:"secret"`
-	Format string `json:"format,omitempty"`
 }
 
 // E2BHostRule mirrors one entry of e2b.NetworkConfig.Rules. Host must also
@@ -100,24 +66,6 @@ func (p *SandboxNetworkPolicy) CloneWithSecrets(
 	out := *p
 	out.AllowOut = append([]string(nil), p.AllowOut...)
 	out.DenyOut = append([]string(nil), p.DenyOut...)
-
-	if p.CubeRules != nil {
-		rules := make([]CubeEgressRule, len(p.CubeRules))
-		for i, rule := range p.CubeRules {
-			copied := rule
-			copied.Methods = append([]string(nil), rule.Methods...)
-			if rule.Inject != nil {
-				injects := make([]CubeHeaderInject, len(rule.Inject))
-				for j, inject := range rule.Inject {
-					injects[j] = inject
-					injects[j].Secret = transform(inject.Secret)
-				}
-				copied.Inject = injects
-			}
-			rules[i] = copied
-		}
-		out.CubeRules = rules
-	}
 
 	if p.E2BHostRules != nil {
 		hostRules := make([]E2BHostRule, len(p.E2BHostRules))
@@ -153,14 +101,6 @@ const (
 // SDK exports it as e2b.AllTraffic with this value).
 const DenyAllIPv4 = "0.0.0.0/0"
 
-var (
-	cubeAuditLevels = map[string]bool{"": true, "none": true, "metadata": true, "full": true}
-	httpMethods     = map[string]bool{
-		"GET": true, "HEAD": true, "POST": true, "PUT": true, "PATCH": true,
-		"DELETE": true, "CONNECT": true, "OPTIONS": true, "TRACE": true,
-	}
-)
-
 // ValidateSandboxNetworkPolicy rejects a policy the provider would refuse, or
 // would silently accept without doing what the admin meant. Errors are plain
 // values; the service layer wraps them as bad-request responses.
@@ -173,7 +113,7 @@ func ValidateSandboxNetworkPolicy(cfg *TenantSandboxConfig) error {
 
 	if backend == "docker" &&
 		(len(p.AllowOut) > 0 || len(p.DenyOut) > 0 ||
-			len(p.CubeRules) > 0 || len(p.E2BHostRules) > 0) {
+			len(p.E2BHostRules) > 0) {
 		return errors.New(
 			"docker 后端只能整体开关出网，无法按 IP、域名或 HTTP 规则放行；" +
 				"请清空放行/拒绝列表，或改用 cube / e2b 后端")
@@ -223,9 +163,6 @@ func ValidateSandboxNetworkPolicy(cfg *TenantSandboxConfig) error {
 				"否则未经 DNS 学习的目的 IP 仍会默认放行，白名单形同虚设")
 	}
 
-	if err := validateCubeEgressRules(p.CubeRules); err != nil {
-		return err
-	}
 	return validateE2BHostRules(p.E2BHostRules, allowKeys)
 }
 
@@ -358,84 +295,6 @@ func classifyDomainTarget(
 		key = "*." + domain
 	}
 	return targetDomain, key, nil
-}
-
-func validateCubeEgressRules(rules []CubeEgressRule) error {
-	names := make(map[string]bool, len(rules))
-	for _, rule := range rules {
-		name := strings.TrimSpace(rule.Name)
-		if name == "" {
-			return errors.New("每条 Cube HTTP 规则都需要 name，用于审计与模板合并")
-		}
-		if names[name] {
-			return fmt.Errorf("cube HTTP 规则 name %q 重复", name)
-		}
-		names[name] = true
-
-		if strings.TrimSpace(rule.Host) == "" && strings.TrimSpace(rule.SNI) == "" {
-			return fmt.Errorf(
-				"cube HTTP 规则 %q 必须填 host 或 sni：网络层只从这两个字段提取放行目标，"+
-					"只写 method / path 的规则永远到不了 CubeEgress", name)
-		}
-		if host := strings.TrimSpace(rule.Host); host != "" {
-			if _, _, err := classifyNetworkTarget(hostWithoutPort(host), true); err != nil {
-				return fmt.Errorf("cube HTTP 规则 %q 的 host %q: %w", name, rule.Host, err)
-			}
-		}
-		if sni := strings.TrimSpace(rule.SNI); sni != "" {
-			kind, _, err := classifyNetworkTarget(sni, true)
-			if err != nil {
-				return fmt.Errorf("cube HTTP 规则 %q 的 sni %q: %w", name, rule.SNI, err)
-			}
-			if kind != targetDomain {
-				return fmt.Errorf("cube HTTP 规则 %q 的 sni 只能是域名，不能是 IP", name)
-			}
-		}
-		switch strings.ToLower(strings.TrimSpace(rule.Scheme)) {
-		case "", "http", "https":
-		default:
-			return fmt.Errorf("cube HTTP 规则 %q 的 scheme 只能是 http 或 https", name)
-		}
-		if !cubeAuditLevels[strings.ToLower(strings.TrimSpace(rule.Audit))] {
-			return fmt.Errorf("cube HTTP 规则 %q 的 audit 只能是 none、metadata 或 full", name)
-		}
-		for _, method := range rule.Methods {
-			if !httpMethods[strings.ToUpper(strings.TrimSpace(method))] {
-				return fmt.Errorf("cube HTTP 规则 %q 的 method %q 不是标准 HTTP 方法", name, method)
-			}
-		}
-		injectHeaders := make(map[string]bool, len(rule.Inject))
-		for _, inject := range rule.Inject {
-			header := strings.TrimSpace(inject.Header)
-			if header == "" {
-				return fmt.Errorf("cube HTTP 规则 %q 的注入 header 名不能为空", name)
-			}
-			if err := validateHTTPHeaderName(header); err != nil {
-				return fmt.Errorf("规则 %q 的注入 header 名 %q: %w", name, header, err)
-			}
-			if injectHeaders[header] {
-				return fmt.Errorf("cube HTTP 规则 %q 的注入 header 名 %q 重复", name, header)
-			}
-			injectHeaders[header] = true
-			if err := validateHTTPHeaderValue(inject.Secret); err != nil {
-				return fmt.Errorf("规则 %q 的注入 header %q 的值: %w", name, header, err)
-			}
-			if err := validateHTTPHeaderValue(inject.Format); err != nil {
-				return fmt.Errorf("规则 %q 的注入 header %q 的 format: %w", name, header, err)
-			}
-			if rule.Deny && inject.Secret != "" {
-				return fmt.Errorf("cube HTTP 规则 %q 是拒绝规则，注入 header 不会生效", name)
-			}
-		}
-	}
-	return nil
-}
-
-func hostWithoutPort(host string) string {
-	if h, _, err := net.SplitHostPort(host); err == nil {
-		return h
-	}
-	return host
 }
 
 func validateE2BHostRules(rules []E2BHostRule, allowKeys map[string]string) error {

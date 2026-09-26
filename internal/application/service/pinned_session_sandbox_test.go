@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,7 +48,7 @@ func (m *stubPinnedManager) Execute(context.Context, *sandbox.ExecuteConfig) (*s
 }
 func (m *stubPinnedManager) Cleanup(context.Context) error { return nil }
 func (m *stubPinnedManager) GetSandbox() sandbox.Sandbox   { return nil }
-func (m *stubPinnedManager) GetType() sandbox.SandboxType  { return sandbox.SandboxTypeCube }
+func (m *stubPinnedManager) GetType() sandbox.SandboxType  { return sandbox.SandboxTypeE2B }
 
 func (m *stubPinnedManager) BoundSandboxID(context.Context, string) (string, bool) {
 	return m.id, m.ok

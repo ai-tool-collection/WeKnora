@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-WeKnora MCP Server Package
+Knowledge Hub MCP Server Package
 
-A Model Context Protocol server that provides access to the WeKnora knowledge management API.
+A Model Context Protocol server that provides access to the Knowledge Hub API.
 """
 
 __version__ = "1.1.1"
-__author__ = "WeKnora Team"
-__description__ = "WeKnora MCP Server - Model Context Protocol server for WeKnora API"
+__author__ = "Knowledge Hub Contributors"
+__description__ = "Knowledge Hub MCP Server - Model Context Protocol server for Knowledge Hub API"
 
 from weknora_mcp_server import WeKnoraClient, run
 

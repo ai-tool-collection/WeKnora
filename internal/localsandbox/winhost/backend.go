@@ -10,8 +10,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Tencent/WeKnora/internal/localsandbox/core"
-	"github.com/Tencent/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/localsandbox/core"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
 )
 
 // New reports Windows as unavailable rather than running unsandboxed.

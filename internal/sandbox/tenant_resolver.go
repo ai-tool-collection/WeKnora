@@ -31,7 +31,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // ErrSandboxConfigNotFound means the referenced config is gone (deleted, or
@@ -181,7 +181,7 @@ func (r *tenantSandboxResolver) Resolve(
 	switch effective.Type {
 	case SandboxTypeDisabled:
 		return NewDisabledManager(), nil
-	case SandboxTypeCube, SandboxTypeE2B, SandboxTypeDocker:
+	case SandboxTypeE2B, SandboxTypeDocker:
 		client, err := r.buildClient(effective)
 		if err != nil {
 			return nil, err
@@ -204,11 +204,6 @@ func (r *tenantSandboxResolver) Resolve(
 // shared transport so pooling survives per-request construction.
 func (r *tenantSandboxResolver) buildClient(cfg *Config) (RemoteSandboxClient, error) {
 	switch cfg.Type {
-	case SandboxTypeCube:
-		if cfg.AllowPrivateEndpoints {
-			return NewCubeRemoteClientWithPool(cfg, r.privateGatewayTransports)
-		}
-		return NewCubeRemoteClientWithPool(cfg, r.gatewayTransports)
 	case SandboxTypeE2B:
 		// The gateway pool is used even without a gateway URL: it then keeps
 		// every request on the shared control transport, which is exactly what
@@ -241,9 +236,6 @@ func NewRemoteClientForCheck(cfg *Config) (RemoteSandboxClient, error) {
 		return nil, errors.New("sandbox: config is required")
 	}
 	switch cfg.Type {
-	case SandboxTypeCube:
-		return NewCubeRemoteClientWithPool(cfg, NewSandboxGatewayTransportPoolWithPolicy(nil,
-			OutboundURLPolicy{AllowPrivate: cfg.AllowPrivateEndpoints}))
 	case SandboxTypeE2B:
 		// Probing through the gateway pool is what makes the check meaningful
 		// for a self-hosted control plane: it exercises the same data-plane

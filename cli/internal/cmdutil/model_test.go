@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/Tencent/WeKnora/client"
+	sdk "github.com/ai-tool-collection/WeKnora/client"
 )
 
 type fakeModelLister struct {

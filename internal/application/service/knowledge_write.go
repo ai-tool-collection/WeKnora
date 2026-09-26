@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/application/access"
-	apperrors "github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/application/access"
+	apperrors "github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 type knowledgeBaseWriteLookup interface {

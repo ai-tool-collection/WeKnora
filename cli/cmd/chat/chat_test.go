@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Tencent/WeKnora/cli/internal/cmdutil"
-	"github.com/Tencent/WeKnora/cli/internal/iostreams"
-	"github.com/Tencent/WeKnora/cli/internal/sse"
-	sdk "github.com/Tencent/WeKnora/client"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/cmdutil"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/iostreams"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/sse"
+	sdk "github.com/ai-tool-collection/WeKnora/client"
 )
 
 // fakeChatService implements ChatService for unit tests. Tests configure the

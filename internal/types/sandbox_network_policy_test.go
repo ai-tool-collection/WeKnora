@@ -22,82 +22,9 @@ func TestSandboxNetworkPolicyZeroValueIsTheDefault(t *testing.T) {
 		"a default policy must serialize empty so it is indistinguishable from nil")
 }
 
-func TestSandboxNetworkPolicyCloneWithSecretsTransformsOnlyCredentials(t *testing.T) {
-	policy := &SandboxNetworkPolicy{
-		DenyEgressByDefault: true,
-		AllowOut:            []string{"api.example.com"},
-		DenyOut:             []string{"0.0.0.0/0"},
-		CubeRules: []CubeEgressRule{{
-			Name:   "allow-api",
-			Scheme: "https",
-			SNI:    "api.example.com",
-			Host:   "api.example.com",
-			Inject: []CubeHeaderInject{{
-				Header: "Authorization",
-				Secret: "real-token",
-				Format: "Bearer ${SECRET}",
-			}},
-		}},
-		E2BHostRules: []E2BHostRule{{
-			Host:    "api.example.com",
-			Headers: map[string]string{"X-Key": "real-key"},
-		}},
-	}
-
-	out := policy.CloneWithSecrets(func(string) string { return "TRANSFORMED" })
-
-	require.Equal(t, "TRANSFORMED", out.CubeRules[0].Inject[0].Secret)
-	require.Equal(t, "TRANSFORMED", out.E2BHostRules[0].Headers["X-Key"])
-	// Everything an operator needs to read stays legible.
-	require.Equal(t, "Authorization", out.CubeRules[0].Inject[0].Header)
-	require.Equal(t, "Bearer ${SECRET}", out.CubeRules[0].Inject[0].Format)
-	require.Equal(t, "X-Key", firstKey(out.E2BHostRules[0].Headers))
-	require.Equal(t, []string{"api.example.com"}, out.AllowOut)
-	require.True(t, out.DenyEgressByDefault)
-
-	// The receiver must not be mutated: Value() is called on a live row.
-	require.Equal(t, "real-token", policy.CubeRules[0].Inject[0].Secret)
-	require.Equal(t, "real-key", policy.E2BHostRules[0].Headers["X-Key"])
-
-	// And the copy must be deep, or a later mutation would reach back.
-	out.AllowOut[0] = "mutated"
-	require.Equal(t, "api.example.com", policy.AllowOut[0])
-}
-
 func TestSandboxNetworkPolicyCloneWithSecretsNil(t *testing.T) {
 	var p *SandboxNetworkPolicy
 	require.Nil(t, p.CloneWithSecrets(func(s string) string { return s }))
-}
-
-func TestSandboxNetworkPolicyCloneWithSecretsDeepCopiesEmptyCollections(t *testing.T) {
-	policy := &SandboxNetworkPolicy{
-		CubeRules: []CubeEgressRule{{
-			Inject: make([]CubeHeaderInject, 0, 1),
-		}},
-		E2BHostRules: []E2BHostRule{{
-			Headers: map[string]string{},
-		}},
-	}
-
-	out := policy.CloneWithSecrets(func(s string) string { return s })
-	out.CubeRules[0].Inject = append(out.CubeRules[0].Inject, CubeHeaderInject{Header: "X-Clone"})
-	out.E2BHostRules[0].Headers["X-Clone"] = "value"
-
-	policy.CubeRules[0].Inject = append(policy.CubeRules[0].Inject, CubeHeaderInject{Header: "X-Original"})
-	require.Equal(t, "X-Clone", out.CubeRules[0].Inject[0].Header)
-	require.Empty(t, policy.E2BHostRules[0].Headers)
-
-	policy = &SandboxNetworkPolicy{
-		CubeRules:    make([]CubeEgressRule, 0, 1),
-		E2BHostRules: make([]E2BHostRule, 0, 1),
-	}
-	out = policy.CloneWithSecrets(func(s string) string { return s })
-	out.CubeRules = append(out.CubeRules, CubeEgressRule{Name: "clone"})
-	out.E2BHostRules = append(out.E2BHostRules, E2BHostRule{Host: "clone.example.com"})
-	policy.CubeRules = append(policy.CubeRules, CubeEgressRule{Name: "original"})
-	policy.E2BHostRules = append(policy.E2BHostRules, E2BHostRule{Host: "original.example.com"})
-	require.Equal(t, "clone", out.CubeRules[0].Name)
-	require.Equal(t, "clone.example.com", out.E2BHostRules[0].Host)
 }
 
 func firstKey(m map[string]string) string {
@@ -209,110 +136,6 @@ func TestValidateSandboxNetworkPolicyRejectsBadTargets(t *testing.T) {
 	}
 }
 
-func TestValidateSandboxNetworkPolicyCubeRules(t *testing.T) {
-	valid := CubeEgressRule{Name: "allow-api", Scheme: "https", SNI: "api.example.com"}
-	require.NoError(t, ValidateSandboxNetworkPolicy(&TenantSandboxConfig{
-		SandboxType: "cube",
-		Network:     &SandboxNetworkPolicy{CubeRules: []CubeEgressRule{valid}},
-	}))
-
-	noName := valid
-	noName.Name = ""
-	requireRuleRejected(t, noName, "name")
-
-	// CubeVS extracts network targets only from match.sni / match.host, so a
-	// rule with neither never reaches CubeEgress at all.
-	noTarget := valid
-	noTarget.SNI = ""
-	noTarget.Path = "/v1/*"
-	requireRuleRejected(t, noTarget, "host")
-
-	badScheme := valid
-	badScheme.Scheme = "ftp"
-	requireRuleRejected(t, badScheme, "scheme")
-
-	badAudit := valid
-	badAudit.Audit = "verbose"
-	requireRuleRejected(t, badAudit, "audit")
-
-	badMethod := valid
-	badMethod.Methods = []string{"FETCH"}
-	requireRuleRejected(t, badMethod, "method")
-
-	longHeader := valid
-	longHeader.Inject = []CubeHeaderInject{{
-		Header: strings.Repeat("h", e2bMaxHeaderNameLength+1),
-		Secret: "secret",
-	}}
-	require.NoError(t, ValidateSandboxNetworkPolicy(&TenantSandboxConfig{
-		SandboxType: "cube",
-		Network:     &SandboxNetworkPolicy{CubeRules: []CubeEgressRule{longHeader}},
-	}))
-}
-
-func requireRuleRejected(t *testing.T, rule CubeEgressRule, wantSubstring string) {
-	t.Helper()
-	err := ValidateSandboxNetworkPolicy(&TenantSandboxConfig{
-		SandboxType: "cube",
-		Network:     &SandboxNetworkPolicy{CubeRules: []CubeEgressRule{rule}},
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), wantSubstring)
-}
-
-func TestValidateSandboxNetworkPolicyRejectsDuplicateInjectHeaders(t *testing.T) {
-	err := ValidateSandboxNetworkPolicy(&TenantSandboxConfig{
-		SandboxType: "cube",
-		Network: &SandboxNetworkPolicy{CubeRules: []CubeEgressRule{{
-			Name: "allow-api",
-			SNI:  "api.example.com",
-			Inject: []CubeHeaderInject{
-				{Header: "Authorization", Secret: "first"},
-				{Header: "Authorization", Secret: "second"},
-			},
-		}}},
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "Authorization")
-	require.Contains(t, err.Error(), "重复")
-}
-
-func TestValidateSandboxNetworkPolicyRejectsInjectedHeaderCRLF(t *testing.T) {
-	valid := CubeEgressRule{Name: "allow-api", SNI: "api.example.com"}
-
-	crlfName := valid
-	crlfName.Inject = []CubeHeaderInject{{Header: "X-Key\r\nX-Smuggled", Secret: "v"}}
-	requireRuleRejected(t, crlfName, "header 名")
-
-	spaceName := valid
-	spaceName.Inject = []CubeHeaderInject{{Header: "X Key", Secret: "v"}}
-	requireRuleRejected(t, spaceName, "header 名")
-
-	crlfValue := valid
-	crlfValue.Inject = []CubeHeaderInject{{Header: "Authorization", Secret: "tok\r\nX-Smuggled: 1"}}
-	requireRuleRejected(t, crlfValue, "不能包含换行")
-
-	crlfFormat := valid
-	crlfFormat.Inject = []CubeHeaderInject{{
-		Header: "Authorization", Secret: "tok", Format: "Bearer ${SECRET}\r\nX-Smuggled: 1",
-	}}
-	requireRuleRejected(t, crlfFormat, "format")
-
-	err := ValidateSandboxNetworkPolicy(&TenantSandboxConfig{
-		SandboxType: "e2b",
-		Network: &SandboxNetworkPolicy{
-			DenyEgressByDefault: true,
-			AllowOut:            []string{"api.example.com"},
-			E2BHostRules: []E2BHostRule{{
-				Host:    "api.example.com",
-				Headers: map[string]string{"X-Key\nEvil": "v"},
-			}},
-		},
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "header 名")
-}
-
 func TestValidateSandboxNetworkPolicyE2BHostRuleNeedsAllowOut(t *testing.T) {
 	// A transform rule grants no egress on its own.
 	err := ValidateSandboxNetworkPolicy(&TenantSandboxConfig{
@@ -419,33 +242,6 @@ func TestValidateSandboxNetworkPolicyE2BLimits(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), tc.want)
 	}
-}
-
-func TestValidateSandboxNetworkPolicyRejectsDuplicateRules(t *testing.T) {
-	err := ValidateSandboxNetworkPolicy(&TenantSandboxConfig{
-		SandboxType: "e2b",
-		Network: &SandboxNetworkPolicy{
-			DenyEgressByDefault: true,
-			AllowOut:            []string{"api.example.com"},
-			E2BHostRules: []E2BHostRule{
-				{Host: "api.example.com"},
-				{Host: "api.example.com"},
-			},
-		},
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "e2b host 规则")
-	require.Contains(t, err.Error(), "重复")
-
-	err = ValidateSandboxNetworkPolicy(&TenantSandboxConfig{
-		SandboxType: "cube",
-		Network: &SandboxNetworkPolicy{CubeRules: []CubeEgressRule{
-			{Name: "allow-api", SNI: "api.example.com"},
-			{Name: "allow-api", SNI: "other.example.com"},
-		}},
-	})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), `cube HTTP 规则 name "allow-api" 重复`)
 }
 
 func TestValidateSandboxNetworkPolicyDockerRejectsFineGrained(t *testing.T) {

@@ -11,7 +11,7 @@ package compaction
 import (
 	"time"
 
-	agenttoken "github.com/Tencent/WeKnora/internal/agent/token"
+	agenttoken "github.com/ai-tool-collection/WeKnora/internal/agent/token"
 )
 
 // DefaultReserveTokens is the floor on room kept free for the next response.

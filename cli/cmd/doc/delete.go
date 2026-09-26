@@ -6,11 +6,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	sdk "github.com/Tencent/WeKnora/client"
+	sdk "github.com/ai-tool-collection/WeKnora/client"
 
-	"github.com/Tencent/WeKnora/cli/internal/cmdutil"
-	"github.com/Tencent/WeKnora/cli/internal/iostreams"
-	"github.com/Tencent/WeKnora/cli/internal/prompt"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/cmdutil"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/iostreams"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/prompt"
 )
 
 // docDeleteFields enumerates the fields surfaced for `--format json` discovery

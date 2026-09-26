@@ -19,8 +19,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/localsandbox/core"
-	"github.com/Tencent/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/localsandbox/core"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
 )
 
 // seatbeltExecPath is hard-coded rather than resolved through PATH: a PATH

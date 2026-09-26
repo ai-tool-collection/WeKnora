@@ -36,13 +36,13 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/sync/singleflight"
 
-	"github.com/Tencent/WeKnora/internal/application/repository"
-	apperrors "github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/application/repository"
+	apperrors "github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 const sandboxConfigCleanupTimeout = 20 * time.Second
@@ -89,7 +89,7 @@ func skillRetargetWouldChange(stored, merged *types.TenantSandboxConfig) bool {
 	if desktopEnabledOf(stored) != desktopEnabledOf(merged) {
 		return true
 	}
-	return !sameStrings(cubeDNSServers(stored), cubeDNSServers(merged))
+	return false
 }
 
 func desktopEnabledOf(cfg *types.TenantSandboxConfig) bool {
@@ -103,10 +103,6 @@ func spawnTemplateID(cfg *types.TenantSandboxConfig) string {
 		return ""
 	}
 	switch sandbox.SandboxType(cfg.SandboxType) {
-	case sandbox.SandboxTypeCube:
-		if cfg.Cube != nil {
-			return strings.TrimSpace(cfg.Cube.TemplateID)
-		}
 	case sandbox.SandboxTypeE2B:
 		if cfg.E2B != nil {
 			return strings.TrimSpace(cfg.E2B.TemplateID)
@@ -117,25 +113,6 @@ func spawnTemplateID(cfg *types.TenantSandboxConfig) string {
 		}
 	}
 	return ""
-}
-
-func cubeDNSServers(cfg *types.TenantSandboxConfig) []string {
-	if cfg == nil || cfg.Cube == nil {
-		return nil
-	}
-	return cfg.Cube.DNSServers
-}
-
-func sameStrings(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }
 
 // skillSnapshotBlocksConnectionChange reports edits that would retarget the
@@ -180,7 +157,7 @@ var ErrSandboxConfigNameRequired = stderrors.New("sandbox config name is require
 // ErrNamedSandboxBackendUnsupported marks a sandbox type that cannot be stored
 // as a user-facing named backend config.
 var ErrNamedSandboxBackendUnsupported = stderrors.New(
-	"named sandbox configs only support cube, e2b and docker backends",
+	"named sandbox configs only support e2b and docker backends",
 )
 
 // ErrSkillSnapshotBlocksTemplateChange is returned when this config already
@@ -360,13 +337,6 @@ func SanitizeSandboxConfig(
 		if err := sandbox.EnsureDockerBackendAllowed(parsed); err != nil {
 			return nil, err
 		}
-	}
-	if merged.Cube != nil {
-		dns, err := sandbox.NormalizeCubeDNSServers(merged.Cube.DNSServers)
-		if err != nil {
-			return nil, apperrors.NewBadRequestError(err.Error())
-		}
-		merged.Cube.DNSServers = dns
 	}
 	// Rejected here rather than at sandbox-create time: the provider's own
 	// error arrives minutes later, on a screen the admin has already left.
@@ -589,13 +559,6 @@ func (s *TenantSandboxConfigService) QueryTemplates(
 	// validation protect every other required field without weakening runtime
 	// validation.
 	switch merged.SandboxType {
-	case string(sandbox.SandboxTypeCube):
-		if merged.Cube == nil {
-			merged.Cube = &types.CubeSandboxConfig{}
-		}
-		if strings.TrimSpace(merged.Cube.TemplateID) == "" {
-			merged.Cube.TemplateID = "__catalog__"
-		}
 	case string(sandbox.SandboxTypeE2B):
 		if merged.E2B == nil {
 			merged.E2B = &types.E2BSandboxConfig{}
@@ -618,7 +581,7 @@ func (s *TenantSandboxConfigService) QueryTemplates(
 		}
 	default:
 		return nil, apperrors.NewBadRequestError(
-			"sandbox template catalog only supports cube, e2b and docker backends")
+			"sandbox template catalog only supports e2b and docker backends")
 	}
 
 	for _, endpoint := range sandboxConfigEndpoints(merged) {
@@ -949,10 +912,6 @@ func setSpawnTemplateID(cfg *types.TenantSandboxConfig, id string) {
 		return
 	}
 	switch sandbox.SandboxType(cfg.SandboxType) {
-	case sandbox.SandboxTypeCube:
-		if cfg.Cube != nil {
-			cfg.Cube.TemplateID = id
-		}
 	case sandbox.SandboxTypeE2B:
 		if cfg.E2B != nil {
 			cfg.E2B.TemplateID = id
@@ -1534,7 +1493,7 @@ func (s *TenantSandboxConfigService) clientFor(
 		return nil, err
 	}
 	switch effective.Type {
-	case sandbox.SandboxTypeCube, sandbox.SandboxTypeE2B, sandbox.SandboxTypeDocker:
+	case sandbox.SandboxTypeE2B, sandbox.SandboxTypeDocker:
 		return s.newClient(effective)
 	default:
 		return nil, nil
@@ -1625,13 +1584,6 @@ func sandboxConfigEndpoints(cfg *types.TenantSandboxConfig) []string {
 		return nil
 	}
 	var endpoints []string
-	if cfg.Cube != nil {
-		for _, raw := range []string{cfg.Cube.APIURL, cfg.Cube.ProxyURL} {
-			if raw != "" {
-				endpoints = append(endpoints, raw)
-			}
-		}
-	}
 	if cfg.E2B != nil && cfg.E2B.APIURL != "" {
 		endpoints = append(endpoints, cfg.E2B.APIURL)
 	}
@@ -1644,9 +1596,6 @@ func sandboxConfigHasSecrets(cfg *types.TenantSandboxConfig) bool {
 	if cfg == nil {
 		return false
 	}
-	if cfg.Cube != nil && cfg.Cube.APIKey != "" {
-		return true
-	}
 	if cfg.E2B != nil && cfg.E2B.APIKey != "" {
 		return true
 	}
@@ -1656,13 +1605,6 @@ func sandboxConfigHasSecrets(cfg *types.TenantSandboxConfig) bool {
 		}
 	}
 	if cfg.Network != nil {
-		for _, rule := range cfg.Network.CubeRules {
-			for _, inject := range rule.Inject {
-				if inject.Secret != "" {
-					return true
-				}
-			}
-		}
 		for _, rule := range cfg.Network.E2BHostRules {
 			for _, value := range rule.Headers {
 				if value != "" {

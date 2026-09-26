@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/sourceloc"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/sourceloc"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 // MarkdownImageRegex matches Markdown image links: ![alt](url)

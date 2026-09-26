@@ -2,14 +2,12 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/middleware"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/middleware"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,6 +15,16 @@ import (
 
 type stubTenantService struct {
 	tenant *types.Tenant
+}
+
+func secretTenantFixture() *types.Tenant {
+	return &types.Tenant{
+		ID: 42, Name: "tenant",
+		WebSearchConfig: &types.WebSearchConfig{APIKey: "legacy-search-secret-999"},
+		StorageEngineConfig: &types.StorageEngineConfig{
+			MinIO: &types.MinIOEngineConfig{SecretAccessKey: "minio-secret-789"},
+		},
+	}
 }
 
 func (s *stubTenantService) UpdateTenant(_ context.Context, tenant *types.Tenant) (*types.Tenant, error) {
@@ -49,10 +57,6 @@ func (s *stubTenantService) BulkSetStorageQuota(context.Context, int64) (int64, 
 func (s *stubTenantService) GetTenantByIDForUser(context.Context, uint64, string) (*types.Tenant, error) {
 	return s.tenant, nil
 }
-func (s *stubTenantService) GetWeKnoraCloudCredentials(context.Context) *types.WeKnoraCloudCredentials {
-	return nil
-}
-
 func newTenantHandlerTestEngine(t *testing.T, role types.TenantRole, tenant *types.Tenant) *gin.Engine {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
@@ -115,42 +119,6 @@ func TestGetTenantKVViewerForbiddenForSecretKeys(t *testing.T) {
 	}
 }
 
-func TestGetTenantKVAdminReturnsRedactedSecrets(t *testing.T) {
-	tenant := secretTenantFixture()
-	engine := newTenantHandlerTestEngine(t, types.TenantRoleAdmin, tenant)
-
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/tenants/kv/parser-engine-config", nil)
-	engine.ServeHTTP(rec, req)
-	require.Equal(t, http.StatusOK, rec.Code)
-
-	var payload struct {
-		Success bool                     `json:"success"`
-		Data    types.ParserEngineConfig `json:"data"`
-	}
-	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &payload))
-	assert.Equal(t, types.RedactedSecretPlaceholder, payload.Data.MinerUAPIKey)
-	assert.NotContains(t, rec.Body.String(), "parser-secret-123")
-}
-
-func secretTenantFixture() *types.Tenant {
-	return &types.Tenant{
-		ID:   42,
-		Name: "tenant",
-		WebSearchConfig: &types.WebSearchConfig{
-			APIKey: "legacy-search-secret-999",
-		},
-		ParserEngineConfig: &types.ParserEngineConfig{
-			MinerUAPIKey: "parser-secret-123",
-		},
-		StorageEngineConfig: &types.StorageEngineConfig{
-			MinIO: &types.MinIOEngineConfig{
-				SecretAccessKey: "minio-secret-789",
-			},
-		},
-	}
-}
-
 func TestGetTenantKVViewerAllowedForNonSecretKey(t *testing.T) {
 	tenant := secretTenantFixture()
 	tenant.RetrievalConfig = &types.RetrievalConfig{}
@@ -160,19 +128,4 @@ func TestGetTenantKVViewerAllowedForNonSecretKey(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/tenants/kv/retrieval-config", nil)
 	engine.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)
-}
-
-func TestPutTenantParserConfigAdminPreservesRedactedSecrets(t *testing.T) {
-	tenant := secretTenantFixture()
-	engine := newTenantHandlerTestEngine(t, types.TenantRoleAdmin, tenant)
-
-	body := `{"mineru_api_key":"***","mineru_endpoint":"https://example.com/mineru"}`
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPut, "/tenants/kv/parser-engine-config", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	engine.ServeHTTP(rec, req)
-	require.Equal(t, http.StatusOK, rec.Code)
-	require.NotNil(t, tenant.ParserEngineConfig)
-	assert.Equal(t, "parser-secret-123", tenant.ParserEngineConfig.MinerUAPIKey)
-	assert.Equal(t, "https://example.com/mineru", tenant.ParserEngineConfig.MinerUEndpoint)
 }

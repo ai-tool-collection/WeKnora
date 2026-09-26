@@ -38,7 +38,7 @@ builtin_models: []
 #     parameters:
 #       base_url: ${LLM_BASE_URL}
 #       api_key: ${LLM_API_KEY}
-#       provider: ${LLM_PROVIDER}  # openai | generic | aliyun | moonshot | ...
+#       provider: ${LLM_PROVIDER}  # openai | generic | anthropic | ...
 #       context_window: 200000     # optional; omit to use the 200K default
 #
 #   - id: builtin-embedding-default
@@ -74,7 +74,7 @@ builtin_models: []
 #   - id: builtin-ollama-chat
 #     type: KnowledgeQA
 #     source: local
-#     name: ${LLM_MODEL_NAME}            # Ollama chat model, e.g. qwen2.5:7b
+#     name: ${LLM_MODEL_NAME}            # Ollama chat model, e.g. llama3.2:3b
 #   - id: builtin-ollama-embedding
 #     type: Embedding
 #     source: local

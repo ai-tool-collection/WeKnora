@@ -7,11 +7,11 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/Tencent/WeKnora/internal/infrastructure/docparser"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/models/asr"
-	"github.com/Tencent/WeKnora/internal/sourceloc"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/infrastructure/docparser"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/models/asr"
+	"github.com/ai-tool-collection/WeKnora/internal/sourceloc"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // attachStructureBlocks gives a parse result source blocks when the parser

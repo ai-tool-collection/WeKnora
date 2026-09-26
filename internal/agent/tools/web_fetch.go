@@ -10,10 +10,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	webfetch "github.com/Tencent/WeKnora/internal/infrastructure/web_fetch"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/utils"
+	webfetch "github.com/ai-tool-collection/WeKnora/internal/infrastructure/web_fetch"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 const (

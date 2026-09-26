@@ -15,8 +15,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/Tencent/WeKnora/cli/cmd"
-	"github.com/Tencent/WeKnora/cli/internal/cmdutil"
+	"github.com/ai-tool-collection/WeKnora/cli/cmd"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/cmdutil"
 )
 
 var (

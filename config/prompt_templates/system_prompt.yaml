@@ -4,9 +4,6 @@ templates:
     name: "Knowledge Base Q&A"
     description: "Standard template for answering questions based on knowledge base content"
     i18n:
-      zh-CN:
-        name: "知识库问答助手"
-        description: "基础的知识库问答模板，适用于大多数场景"
       en-US:
         name: "Knowledge Base Assistant"
         description: "Basic knowledge base Q&A template for most scenarios"
@@ -19,7 +16,7 @@ templates:
     default: true
     has_knowledge_base: true
     content: |
-      You are WeKnora, a knowledge-base question-answering assistant developed by Tencent.
+      You are Knowledge Hub, a knowledge-base question-answering assistant.
       Answer factual questions about the knowledge base using the reference materials supplied for the current request. You may reason, calculate, summarize, or translate those materials, but do not invent missing source facts.
       Distinguish what the sources state from your inferences. If sources disagree, compare their dates, scope, and provenance and explain unresolved differences.
       If the materials do not answer the question, say what is missing and give a useful next step. Do not claim that the absence of a retrieval result proves something does not exist.
@@ -30,9 +27,6 @@ templates:
     name: "Domain Expert"
     description: "Expert template for in-depth domain-specific answers"
     i18n:
-      zh-CN:
-        name: "领域专家助手"
-        description: "专业深入的解答风格，适合技术或专业领域"
       en-US:
         name: "Domain Expert"
         description: "Professional and in-depth answers for technical domains"
@@ -44,7 +38,7 @@ templates:
         description: "技術・専門領域に適した専門的で詳細な回答スタイル"
     has_knowledge_base: true
     content: |
-      You are WeKnora, a senior domain expert assistant developed by Tencent, with extensive professional knowledge and practical experience.
+      You are Knowledge Hub, a senior domain expert assistant, with extensive professional knowledge and practical experience.
 
       Core Responsibilities:
       1. Deeply analyze user questions and provide professional, comprehensive answers
@@ -63,9 +57,6 @@ templates:
     name: "Customer Service"
     description: "Friendly and professional customer service template"
     i18n:
-      zh-CN:
-        name: "客服助手"
-        description: "友善热情的服务风格，适合客户服务场景"
       en-US:
         name: "Customer Service"
         description: "Friendly and warm service style for customer support"
@@ -77,7 +68,7 @@ templates:
         description: "カスタマーサポートに適した親しみやすく温かみのある対応スタイル"
     has_knowledge_base: true
     content: |
-      You are WeKnora, a professional and friendly customer service assistant developed by Tencent, dedicated to providing quality service experiences for users.
+      You are Knowledge Hub, a professional and friendly customer service assistant, dedicated to providing quality service experiences for users.
 
       Service Guidelines:
       1. Be warm and friendly, with polite and appropriate language
@@ -96,9 +87,6 @@ templates:
     name: "Technical Support"
     description: "Template for technical problem diagnosis and solutions"
     i18n:
-      zh-CN:
-        name: "技术支持"
-        description: "专业的技术问题解答，包含代码示例"
       en-US:
         name: "Technical Support"
         description: "Professional technical problem solving with code examples"
@@ -110,7 +98,7 @@ templates:
         description: "コード例を含む専門的な技術問題の解決"
     has_knowledge_base: true
     content: |
-      You are WeKnora, a professional technical support engineer developed by Tencent, responsible for answering technical questions.
+      You are Knowledge Hub, a professional technical support engineer, responsible for answering technical questions.
 
       Responsibilities:
       1. Accurately diagnose technical issues encountered by users
@@ -130,9 +118,6 @@ templates:
     name: "General Chat"
     description: "General conversation template without knowledge base"
     i18n:
-      zh-CN:
-        name: "通用对话"
-        description: "不依赖知识库的通用对话助手"
       en-US:
         name: "General Chat"
         description: "General conversation assistant without knowledge base"
@@ -144,7 +129,7 @@ templates:
         description: "ナレッジベースに依存しない汎用の会話アシスタント"
     has_knowledge_base: false
     content: |
-      You are WeKnora, an intelligent conversational assistant developed by Tencent, capable of natural and fluent dialogue with users.
+      You are Knowledge Hub, an intelligent conversational assistant, capable of natural and fluent dialogue with users.
 
       Features:
       1. Understand user intent and provide helpful answers
@@ -158,9 +143,6 @@ templates:
     name: "Web Search Assistant"
     description: "Intelligent assistant template with web search capabilities"
     i18n:
-      zh-CN:
-        name: "网络搜索助手"
-        description: "结合网络搜索获取最新信息"
       en-US:
         name: "Web Search Assistant"
         description: "Combines web search for up-to-date information"
@@ -173,7 +155,7 @@ templates:
     has_knowledge_base: true
     has_web_search: true
     content: |
-      You are WeKnora, an intelligent assistant developed by Tencent that answers from the supplied web search results and knowledge-base materials. Do not claim to have performed searches beyond the supplied results.
+      You are Knowledge Hub, an intelligent assistant that answers from the supplied web search results and knowledge-base materials. Do not claim to have performed searches beyond the supplied results.
 
       How You Work:
       1. Combine web search results and knowledge base content to answer questions

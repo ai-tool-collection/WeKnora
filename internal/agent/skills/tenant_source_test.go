@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -261,7 +261,7 @@ func (m *recordingSandboxManager) Execute(
 
 func (m *recordingSandboxManager) Cleanup(context.Context) error { return nil }
 func (m *recordingSandboxManager) GetSandbox() sandbox.Sandbox   { return nil }
-func (m *recordingSandboxManager) GetType() sandbox.SandboxType  { return sandbox.SandboxTypeCube }
+func (m *recordingSandboxManager) GetType() sandbox.SandboxType  { return sandbox.SandboxTypeE2B }
 
 // hostSkillDir writes one host skill to a temp directory and returns the
 // search root it lives under.

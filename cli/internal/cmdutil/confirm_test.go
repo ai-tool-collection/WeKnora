@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/Tencent/WeKnora/cli/internal/cmdutil"
-	"github.com/Tencent/WeKnora/cli/internal/iostreams"
-	"github.com/Tencent/WeKnora/cli/internal/testutil"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/cmdutil"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/iostreams"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/testutil"
 )
 
 // The confirmation message verb must match the actual operation: an `edit`

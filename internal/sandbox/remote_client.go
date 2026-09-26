@@ -16,7 +16,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // RemoteProvider identifies a remote sandbox backend. Values match the
@@ -170,7 +170,6 @@ type RemoteNetworkPolicy struct {
 	// CubeRules / E2BHostRules are the provider-specific L7 extensions. Each
 	// adapter consumes its own and ignores the other's, so this type stays a
 	// superset rather than a lowest common denominator.
-	CubeRules    []RemoteCubeEgressRule
 	E2BHostRules []RemoteE2BHostRule
 }
 
@@ -205,31 +204,6 @@ func InboundTokenOf(handle RemoteSandboxHandle) string {
 		return ""
 	}
 	return carrier.TrafficAccessToken()
-}
-
-// RemoteCubeEgressRule is one CubeEgress L7 rule in neutral form. Allow is
-// phrased positively here even though the stored config says Deny: adapters
-// map onto provider payloads whose field is also an allow flag, and having
-// the negation happen exactly once (in ResolveEffectiveConfig) is what keeps
-// a double negative from creeping in.
-type RemoteCubeEgressRule struct {
-	Name    string
-	Scheme  string
-	SNI     string
-	Host    string
-	Methods []string
-	Path    string
-	Allow   bool
-	Audit   string
-	Inject  []RemoteHeaderInject
-}
-
-// RemoteHeaderInject is one credential header injected by the egress proxy.
-// Format defaults to "${SECRET}" provider-side when empty.
-type RemoteHeaderInject struct {
-	Header string
-	Secret string
-	Format string
 }
 
 // RemoteE2BHostRule is one E2B per-host request transform.

@@ -188,17 +188,13 @@
             <label class="form-label required">Bucket</label>
             <t-input v-model="form.config.bucket_name" :disabled="!!editing" clearable />
           </div>
-          <div v-if="form.provider === 'cos'" class="form-item">
-            <label class="form-label">App ID</label>
-            <t-input v-model="form.config.app_id" :disabled="!!editing" :placeholder="t('settings.storageBackend.optionalPlaceholder')" clearable />
-          </div>
         </section>
 
         <section class="setting-drawer__section">
           <h4 class="setting-drawer__section-title">{{ t('settings.storageBackend.advancedSection') }}</h4>
           <div class="form-item">
             <label class="form-label">{{ t('settings.storageBackend.pathPrefixLabel') }}</label>
-            <t-input v-model="form.config.path_prefix" :disabled="!!editing" placeholder="weknora/" clearable />
+            <t-input v-model="form.config.path_prefix" :disabled="!!editing" placeholder="knowledge-hub/" clearable />
           </div>
           <div v-if="form.provider === 'minio'" class="form-item">
             <div class="vision-toggle">
@@ -212,22 +208,6 @@
               <span class="form-desc form-desc--inline">{{ t('settings.storageBackend.forcePathStyleDesc') }}</span>
             </div>
           </div>
-          <div v-if="form.provider === 'oss'" class="form-item">
-            <div class="vision-toggle">
-              <t-switch v-model="form.config.use_temp_bucket" />
-              <span class="form-desc form-desc--inline">{{ t('settings.storageBackend.useTempBucketDesc') }}</span>
-            </div>
-          </div>
-          <template v-if="['cos', 'tos'].includes(form.provider) || (form.provider === 'oss' && form.config.use_temp_bucket)">
-            <div class="form-item">
-              <label class="form-label">{{ t('settings.storageBackend.tempBucketLabel') }}</label>
-              <t-input v-model="form.config.temp_bucket_name" :placeholder="t('settings.storageBackend.tempBucketPlaceholder')" clearable />
-            </div>
-            <div class="form-item">
-              <label class="form-label">{{ t('settings.storageBackend.tempRegionLabel') }}</label>
-              <t-input v-model="form.config.temp_region" :placeholder="t('settings.storageBackend.tempRegionPlaceholder')" clearable />
-            </div>
-          </template>
         </section>
       </t-form>
 
@@ -266,7 +246,7 @@ const editing = ref<StorageBackend | null>(null)
 const rawTestResult = ref<'ok' | 'error' | null>(null)
 const blankConfig = (): StorageBackendConfig => ({ mode: 'remote', endpoint: '', region: '', access_key_id: '', secret_access_key: '', bucket_name: '', path_prefix: '', use_ssl: true })
 const form = reactive<{ name: string; provider: string; config: StorageBackendConfig }>({ name: '', provider: 'local', config: blankConfig() })
-const needsEndpoint = computed(() => !['local', 'cos'].includes(form.provider) && !(form.provider === 'minio' && form.config.mode === 'docker'))
+const needsEndpoint = computed(() => form.provider !== 'local' && !(form.provider === 'minio' && form.config.mode === 'docker'))
 const needsRegion = computed(() => !['local', 'minio'].includes(form.provider))
 const needsCredentials = computed(() => form.provider !== 'local' && !(form.provider === 'minio' && form.config.mode === 'docker'))
 
@@ -444,23 +424,8 @@ onMounted(load)
 .backend-card--minio .backend-card__badge {
   .provider-card-badge-color(#c0382b);
 }
-.backend-card--cos .backend-card__badge {
-  .provider-card-badge-color(#0052d9);
-}
-.backend-card--tos .backend-card__badge {
-  .provider-card-badge-color(#0089ff);
-}
 .backend-card--s3 .backend-card__badge {
   .provider-card-badge-color(#d97706);
-}
-.backend-card--oss .backend-card__badge {
-  .provider-card-badge-color(#e55a00);
-}
-.backend-card--ks3 .backend-card__badge {
-  .provider-card-badge-color(#07a050);
-}
-.backend-card--obs .backend-card__badge {
-  .provider-card-badge-color(#ce1126);
 }
 
 .backend-card__body {
@@ -679,10 +644,5 @@ onMounted(load)
 
 .storage-backend-drawer--local .setting-drawer__header-icon { background: rgba(70, 70, 70, 0.1); color: #464646; }
 .storage-backend-drawer--minio .setting-drawer__header-icon { background: rgba(225, 38, 38, 0.12); color: #C0382B; }
-.storage-backend-drawer--cos .setting-drawer__header-icon { background: rgba(0, 82, 217, 0.1); color: #0052D9; }
-.storage-backend-drawer--tos .setting-drawer__header-icon { background: rgba(0, 137, 255, 0.12); color: #0089FF; }
 .storage-backend-drawer--s3 .setting-drawer__header-icon { background: rgba(255, 153, 0, 0.12); color: #D97706; }
-.storage-backend-drawer--oss .setting-drawer__header-icon { background: rgba(255, 90, 0, 0.12); color: #E55A00; }
-.storage-backend-drawer--ks3 .setting-drawer__header-icon { background: color-mix(in srgb, var(--td-brand-color) 12%, transparent); color: #07A050; }
-.storage-backend-drawer--obs .setting-drawer__header-icon { background: rgba(206, 17, 38, 0.1); color: #CE1126; }
 </style>

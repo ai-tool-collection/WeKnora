@@ -5,7 +5,6 @@ import { readFileSync } from 'node:fs'
 const manager = readFileSync(new URL('./FAQEntryManager.vue', import.meta.url), 'utf8')
 const batchBar = readFileSync(new URL('./FAQBatchBar.vue', import.meta.url), 'utf8')
 const locales = [
-  readFileSync(new URL('../../../i18n/locales/zh-CN.ts', import.meta.url), 'utf8'),
   readFileSync(new URL('../../../i18n/locales/en-US.ts', import.meta.url), 'utf8'),
   readFileSync(new URL('../../../i18n/locales/ko-KR.ts', import.meta.url), 'utf8'),
   readFileSync(new URL('../../../i18n/locales/ja-JP.ts', import.meta.url), 'utf8'),

@@ -173,7 +173,7 @@
           视觉与其他抽屉的提示一致。
         -->
         <section v-if="editingStore" class="setting-drawer__section">
-          <h4 class="setting-drawer__section-title">{{ t('vectorStoreSettings.basicSection', '基本信息') }}</h4>
+          <h4 class="setting-drawer__section-title">{{ t('vectorStoreSettings.basicSection', 'Basic') }}</h4>
 
           <div class="inline-alert inline-alert--info">
             <t-icon name="info-circle-filled" class="inline-alert__icon" />
@@ -216,7 +216,7 @@
         <template v-else>
           <!-- Section 1 — 基本信息：engine 类型 + 名称 -->
           <section class="setting-drawer__section">
-            <h4 class="setting-drawer__section-title">{{ t('vectorStoreSettings.basicSection', '基本信息') }}</h4>
+            <h4 class="setting-drawer__section-title">{{ t('vectorStoreSettings.basicSection', 'Basic') }}</h4>
 
             <div class="form-item">
               <label class="form-label required">{{ t('vectorStoreSettings.engineTypeLabel') }}</label>
@@ -302,7 +302,7 @@
               @click="showAdvanced = !showAdvanced"
             >
               <t-icon :name="showAdvanced ? 'chevron-down' : 'chevron-right'" />
-              <span>{{ showAdvanced ? t('common.collapse', '收起') : t('common.expand', '展开') }}</span>
+              <span>{{ showAdvanced ? t('common.collapse', 'Collapse') : t('common.expand', 'Expand') }}</span>
             </button>
 
             <template v-if="showAdvanced">
@@ -894,9 +894,6 @@ onMounted(async () => {
 .store-card--infinity .store-card__badge {
   .provider-card-badge-color(#6235bb);
 }
-.store-card--tencent_vectordb .store-card__badge {
-  .provider-card-badge-color(#0052d9);
-}
 .store-card--doris .store-card__badge {
   .provider-card-badge-color(#e55a00);
 }
@@ -1203,10 +1200,6 @@ onMounted(async () => {
 .vectorstore-drawer--infinity .setting-drawer__header-icon {
   background: rgba(98, 53, 187, 0.12);
   color: #6235BB;
-}
-.vectorstore-drawer--tencent_vectordb .setting-drawer__header-icon {
-  background: rgba(0, 82, 217, 0.1);
-  color: #0052D9;
 }
 .vectorstore-drawer--doris .setting-drawer__header-icon {
   background: rgba(255, 90, 0, 0.12);

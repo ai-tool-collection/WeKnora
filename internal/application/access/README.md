@@ -274,7 +274,7 @@ These are separate follow-ups, not capabilities provided by this package:
 3. **External-backend integration coverage.** Exercise clone/move, partial
    backend failures, retries, pagination and search/edit behavior against live
    PostgreSQL, Elasticsearch 7/8, OpenSearch, Qdrant, Milvus, Weaviate,
-   TencentVectorDB and Doris. Local SQLite vector tests and backend compilation
+   Milvus and Doris. Local SQLite vector tests and backend compilation
    do not establish this coverage. Doris ANN vector reuse remains unsupported.
 4. **Finish service-layer migration.** Apply explicit operation grants to the
    remaining KB configuration/duplicate/delete, wiki and resource-administration

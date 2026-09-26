@@ -20,7 +20,7 @@ WORKDIR /app
 # 通过构建参数接收敏感信息
 ARG GOPRIVATE_ARG
 ARG GOPROXY_ARG
-ARG GOSUMDB_ARG=off
+ARG GOSUMDB_ARG=sum.golang.org
 ARG APK_MIRROR_ARG
 
 # 设置Go环境变量

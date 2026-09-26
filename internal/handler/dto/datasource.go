@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // DataSourceResponse mirrors types.DataSource for response bodies, with the

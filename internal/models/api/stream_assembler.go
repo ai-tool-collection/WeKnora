@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // ToolCallDelta is one streamed fragment of a tool call, already lifted out

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	apperrors "github.com/Tencent/WeKnora/internal/errors"
+	apperrors "github.com/ai-tool-collection/WeKnora/internal/errors"
 	"github.com/gin-gonic/gin"
 )
 

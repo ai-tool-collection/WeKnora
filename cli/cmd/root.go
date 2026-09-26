@@ -10,26 +10,26 @@ import (
 
 	"github.com/spf13/cobra"
 
-	agentcmd "github.com/Tencent/WeKnora/cli/cmd/agent"
-	apicmd "github.com/Tencent/WeKnora/cli/cmd/api"
-	"github.com/Tencent/WeKnora/cli/cmd/auth"
-	chatcmd "github.com/Tencent/WeKnora/cli/cmd/chat"
-	chunkcmd "github.com/Tencent/WeKnora/cli/cmd/chunk"
-	configcmd "github.com/Tencent/WeKnora/cli/cmd/config"
-	"github.com/Tencent/WeKnora/cli/cmd/doc"
-	"github.com/Tencent/WeKnora/cli/cmd/doctor"
-	"github.com/Tencent/WeKnora/cli/cmd/kb"
-	linkcmd "github.com/Tencent/WeKnora/cli/cmd/link"
-	messagecmd "github.com/Tencent/WeKnora/cli/cmd/message"
-	mcpcmd "github.com/Tencent/WeKnora/cli/cmd/mcp"
-	modelcmd "github.com/Tencent/WeKnora/cli/cmd/model"
-	profilecmd "github.com/Tencent/WeKnora/cli/cmd/profile"
-	"github.com/Tencent/WeKnora/cli/cmd/search"
-	sessioncmd "github.com/Tencent/WeKnora/cli/cmd/session"
-	skillscmd "github.com/Tencent/WeKnora/cli/cmd/skills"
-	"github.com/Tencent/WeKnora/cli/internal/build"
-	"github.com/Tencent/WeKnora/cli/internal/cmdutil"
-	"github.com/Tencent/WeKnora/cli/internal/iostreams"
+	agentcmd "github.com/ai-tool-collection/WeKnora/cli/cmd/agent"
+	apicmd "github.com/ai-tool-collection/WeKnora/cli/cmd/api"
+	"github.com/ai-tool-collection/WeKnora/cli/cmd/auth"
+	chatcmd "github.com/ai-tool-collection/WeKnora/cli/cmd/chat"
+	chunkcmd "github.com/ai-tool-collection/WeKnora/cli/cmd/chunk"
+	configcmd "github.com/ai-tool-collection/WeKnora/cli/cmd/config"
+	"github.com/ai-tool-collection/WeKnora/cli/cmd/doc"
+	"github.com/ai-tool-collection/WeKnora/cli/cmd/doctor"
+	"github.com/ai-tool-collection/WeKnora/cli/cmd/kb"
+	linkcmd "github.com/ai-tool-collection/WeKnora/cli/cmd/link"
+	mcpcmd "github.com/ai-tool-collection/WeKnora/cli/cmd/mcp"
+	messagecmd "github.com/ai-tool-collection/WeKnora/cli/cmd/message"
+	modelcmd "github.com/ai-tool-collection/WeKnora/cli/cmd/model"
+	profilecmd "github.com/ai-tool-collection/WeKnora/cli/cmd/profile"
+	"github.com/ai-tool-collection/WeKnora/cli/cmd/search"
+	sessioncmd "github.com/ai-tool-collection/WeKnora/cli/cmd/session"
+	skillscmd "github.com/ai-tool-collection/WeKnora/cli/cmd/skills"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/build"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/cmdutil"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/iostreams"
 )
 
 // resolveFormatEarly scans raw argv for --format before cobra's command
@@ -135,8 +135,8 @@ func NewRootCmd(f *cmdutil.Factory) *cobra.Command {
 	v, commit, date := build.Info()
 	cmd := &cobra.Command{
 		Use:   "weknora",
-		Short: "WeKnora CLI",
-		Long: `Command-line client for the WeKnora RAG server. Manage knowledge bases
+		Short: "Knowledge Hub CLI",
+		Long: `Command-line client for the Knowledge Hub server. Manage knowledge bases
 and documents, run hybrid search, chat with grounded answers, or expose
 a curated read-only MCP tool surface for AI agents.`,
 		Example: `  weknora profile add prod --host=https://kb.example.com --use

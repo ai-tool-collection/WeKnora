@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/config"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
 	"github.com/golang-jwt/jwt/v5"
 )
 

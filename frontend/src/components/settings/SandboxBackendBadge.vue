@@ -19,7 +19,6 @@ const props = withDefaults(defineProps<{
 const logo = computed(() => providerLogo('sandbox', props.type))
 
 const iconName = computed(() => {
-  if (props.type === 'cube') return 'server'
   if (props.type === 'disabled') return 'minus-circle'
   return 'cloud'
 })

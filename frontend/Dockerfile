@@ -8,11 +8,11 @@
 #
 #   docker build --platform linux/amd64 \
 #     --build-arg VITE_FRONTEND_COMMIT=$(git rev-parse --short HEAD) \
-#     -t wechatopenai/weknora-ui:latest \
+#     -t knowledge-hub-ui:latest \
 #     frontend/
 #
-# Optional npm mirror (e.g. corporate registry):
-#   --build-arg NPM_REGISTRY=https://registry.npmmirror.com
+# Optional trusted npm registry:
+#   --build-arg NPM_REGISTRY=https://registry.npmjs.org
 #
 # Docker Desktop with a small VM:
 #   --build-arg NODE_MAX_OLD_SPACE_SIZE=2048
@@ -35,7 +35,7 @@ ENV VITE_IS_DOCKER=true
 ENV NODE_OPTIONS="--max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE}"
 
 # The lockfile pins the remote SheetJS archive and its integrity hash.
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN if [ -n "$NPM_REGISTRY" ]; then \
       npm ci --registry="$NPM_REGISTRY"; \
     else \

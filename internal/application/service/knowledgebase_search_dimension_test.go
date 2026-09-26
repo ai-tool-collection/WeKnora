@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	apperrors "github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/models/embedding"
+	apperrors "github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/models/embedding"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

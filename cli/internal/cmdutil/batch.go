@@ -17,7 +17,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/Tencent/WeKnora/cli/internal/output"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/output"
 )
 
 // BatchOutcome is one per-target result preserving argv order. Err==nil ⇒ success.

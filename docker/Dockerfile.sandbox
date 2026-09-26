@@ -6,22 +6,16 @@
 #   runtime          - the plain environment. Used by the Docker backend and
 #                      as the base image of E2B templates, whose builder
 #                      injects its own envd.
-#   cube             - the same environment plus Cube's envd daemon. Cube
 #                      builds templates straight from the image and probes
 #                      :49983/health, so an image without envd can only ever
 #                      fail. See website-docs/06-development/04-sandbox-deployment.md.
 #   desktop-runtime  - runtime plus XFCE / x11vnc / websockify. Not a published
-#                      tag; the desktop and desktop-cube targets sit on it.
 #   desktop          - desktop-runtime, tagged for E2B (and a future Docker
 #                      desktop path). The Docker backend does not use this yet.
-#   desktop-cube     - desktop-runtime plus Cube envd. amd64 only, same reason
-#                      as cube.
 #
 # Pin every FROM to TARGETPLATFORM. `docker build --platform` alone is not
 # enough: the legacy builder (DOCKER_BUILDKIT=0) on Apple Silicon still
-# pulls the host's arm64 python/node, then COPY's amd64 envd — Cube probes
 # that mixed image as READY and Exec fails with "exec format error".
-# Default amd64 matches cube/desktop-cube; BuildKit overrides this when
 # --platform is linux/arm64 (sandbox / desktop).
 ARG TARGETPLATFORM=linux/amd64
 
@@ -79,7 +73,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # expected to install packages and write wherever they need. A non-root
 # "user" account (UID 1000) is still created and named for interop — E2B
 # templates expose it and some tooling still addresses it by name — and it
-# gives something for `sudo` and E2B/Cube requests that target a named account
 # to land on. The Docker backend can also address it numerically as 1000:1000.
 RUN groupadd -g 1000 user && \
     useradd -u 1000 -g user -m -s /bin/bash user
@@ -93,7 +86,6 @@ RUN mkdir -p /workspace/input /workspace/output && \
 
 # Classic user@host:path prompt (colored). E2B's provisioner later appends
 # `PS1='\w $ '`; the script reapplies this prompt via PROMPT_COMMAND so
-# Cube, Docker, and E2B all show the same Debian-style line.
 COPY docker/sandbox-pty-prompt.sh /etc/weknora/pty-prompt.sh
 RUN echo '. /etc/weknora/pty-prompt.sh' > /etc/profile.d/zz-weknora-prompt.sh && \
     echo '. /etc/weknora/pty-prompt.sh' >> /root/.bashrc && \
@@ -101,34 +93,6 @@ RUN echo '. /etc/weknora/pty-prompt.sh' > /etc/profile.d/zz-weknora-prompt.sh &&
 
 WORKDIR /workspace
 USER root
-
-# Stage 3: Cube template image
-#
-# envd is what Cube talks to for everything — the readiness probe that decides
-# whether a template build succeeds, plus every later exec and file call. It
-# runs as root and selects the account named in each request. WeKnora names
-# root by default, matching the runtime stage.
-#
-# This target is linux/amd64 only: cubesandbox-base publishes no arm64 image,
-# which matches Cube itself (PVM is x86_64-only). Hard-pin the FROM so a
-# forgotten --platform cannot copy an amd64 envd onto an arm64 runtime.
-FROM --platform=linux/amd64 ghcr.io/tencentcloud/cubesandbox-base:2026.16 AS cube-base
-
-FROM runtime AS cube
-
-ARG TARGETARCH=amd64
-USER root
-RUN if [ "$TARGETARCH" != "amd64" ]; then \
-        echo "cube is linux/amd64 only (cubesandbox-base has no arm64), got TARGETARCH=$TARGETARCH" >&2; \
-        exit 1; \
-    fi
-COPY --from=cube-base /usr/bin/envd /usr/bin/envd
-COPY --from=cube-base /usr/local/bin/cube-entrypoint.sh /usr/local/bin/cube-entrypoint.sh
-
-EXPOSE 49983
-# The entrypoint backgrounds envd and then waits on it, since this image
-# defines no CMD of its own.
-ENTRYPOINT ["/usr/local/bin/cube-entrypoint.sh"]
 
 # Stage 4: desktop environment on top of runtime.
 #
@@ -140,14 +104,11 @@ FROM runtime AS desktop-runtime
 
 USER root
 # DISPLAY is exported by start-desktop.sh when the desktop actually starts.
-# Do not bake it into the image ENV: Cube copies image ENV onto the cubebox
-# and a preset DISPLAY=:0 is the only env the working main-cube templates
 # do not have.
 ENV DEBIAN_FRONTEND=noninteractive
 # XFCE apps (mousepad, xfce4-terminal) decode files with the process locale.
 # python:slim defaults to POSIX/C, which is why the desktop shows mojibake
 # while the WeKnora terminal tab does not: that tab is xterm.js in the
-# browser, and Cube/E2B already stamp LANG/LC_ALL on the envd PTY.
 # C.UTF-8 is built into glibc; do not pull locales-all.
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
@@ -186,31 +147,8 @@ RUN chmod 0755 /usr/local/bin/start-desktop.sh \
 FROM desktop-runtime AS desktop
 EXPOSE 6080
 
-# Stage 6: desktop + Cube envd. linux/amd64 only, same constraint as cube.
-FROM desktop-runtime AS desktop-cube
-
-ARG TARGETARCH=amd64
-USER root
-RUN if [ "$TARGETARCH" != "amd64" ]; then \
-        echo "desktop-cube is linux/amd64 only (cubesandbox-base has no arm64), got TARGETARCH=$TARGETARCH" >&2; \
-        exit 1; \
-    fi
-COPY --from=cube-base /usr/bin/envd /usr/bin/envd
-COPY --from=cube-base /usr/local/bin/cube-entrypoint.sh /usr/local/bin/cube-entrypoint.sh
-
-# cube-entrypoint.sh redirects envd to /var/log/envd.log. Cube packs this
-# ~1.5GiB image into a 1.5GiB ext4 with no spare blocks; mkdir/write of that
-# log fails under `set -eu`, envd never binds 49983, and the template probe
-# is connection refused. envd as PID 1 (stdio) succeeds on the same rootfs.
-# "-" is the entrypoint's documented "inherit container stdio" value.
-ENV ENVD_LOG_FILE=-
-
-EXPOSE 49983 6080
-ENTRYPOINT ["/usr/local/bin/cube-entrypoint.sh"]
-
 # Stage 7: default target
 #
 # Docker builds the last stage when none is named, and that must stay the plain
 # runtime: a bare `docker build -f docker/Dockerfile.sandbox .` is expected to
-# produce the image the Docker backend runs, not a Cube or desktop variant.
 FROM runtime AS sandbox

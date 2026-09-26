@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
 )
 
 func listenWithRetry(addr string, maxRetries int, baseDelay time.Duration) (net.Listener, error) {

@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
 
 	sqlite_vec "github.com/asg017/sqlite-vec-go-bindings/cgo"
 	_ "github.com/duckdb/duckdb-go/v2"
@@ -36,70 +36,56 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/Tencent/WeKnora/internal/agent/approval"
-	"github.com/Tencent/WeKnora/internal/application/repository"
-	dorisRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/doris"
-	elasticsearchRepoV7 "github.com/Tencent/WeKnora/internal/application/repository/retriever/elasticsearch/v7"
-	elasticsearchRepoV8 "github.com/Tencent/WeKnora/internal/application/repository/retriever/elasticsearch/v8"
-	milvusRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/milvus"
-	neo4jRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/neo4j"
-	openSearchRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/opensearch"
-	postgresRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/postgres"
-	qdrantRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/qdrant"
-	sqliteRetrieverRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/sqlite"
-	tencentVectorDBRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/tencentvectordb"
-	weaviateRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/weaviate"
-	"github.com/Tencent/WeKnora/internal/application/service"
-	chatpipeline "github.com/Tencent/WeKnora/internal/application/service/chat_pipeline"
-	"github.com/Tencent/WeKnora/internal/application/service/file"
-	"github.com/Tencent/WeKnora/internal/application/service/memory"
-	"github.com/Tencent/WeKnora/internal/application/service/retriever"
-	"github.com/Tencent/WeKnora/internal/browserskill"
-	"github.com/Tencent/WeKnora/internal/common"
-	"github.com/Tencent/WeKnora/internal/config"
-	"github.com/Tencent/WeKnora/internal/database"
-	"github.com/Tencent/WeKnora/internal/datasource"
-	confluenceConnector "github.com/Tencent/WeKnora/internal/datasource/connector/confluence"
-	dingtalkConnector "github.com/Tencent/WeKnora/internal/datasource/connector/dingtalk"
-	"github.com/Tencent/WeKnora/internal/datasource/connector/feishu/core"
-	"github.com/Tencent/WeKnora/internal/datasource/connector/feishu/drive"
-	"github.com/Tencent/WeKnora/internal/datasource/connector/feishu/wiki"
-	gitlabConnector "github.com/Tencent/WeKnora/internal/datasource/connector/gitlab"
-	imaConnector "github.com/Tencent/WeKnora/internal/datasource/connector/ima"
-	notionConnector "github.com/Tencent/WeKnora/internal/datasource/connector/notion"
-	rssConnector "github.com/Tencent/WeKnora/internal/datasource/connector/rss"
-	yuqueConnector "github.com/Tencent/WeKnora/internal/datasource/connector/yuque"
-	"github.com/Tencent/WeKnora/internal/event"
-	"github.com/Tencent/WeKnora/internal/handler"
-	"github.com/Tencent/WeKnora/internal/handler/session"
-	imPkg "github.com/Tencent/WeKnora/internal/im"
-	"github.com/Tencent/WeKnora/internal/im/dingtalk"
-	"github.com/Tencent/WeKnora/internal/im/feishu"
-	"github.com/Tencent/WeKnora/internal/im/mattermost"
-	"github.com/Tencent/WeKnora/internal/im/qqbot"
-	"github.com/Tencent/WeKnora/internal/im/slack"
-	"github.com/Tencent/WeKnora/internal/im/telegram"
-	"github.com/Tencent/WeKnora/internal/im/wechat"
-	"github.com/Tencent/WeKnora/internal/im/wecom"
-	"github.com/Tencent/WeKnora/internal/im/yunzhijia"
-	"github.com/Tencent/WeKnora/internal/infrastructure/docparser"
-	infra_web_search "github.com/Tencent/WeKnora/internal/infrastructure/web_search"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/mcp"
-	"github.com/Tencent/WeKnora/internal/mcpserver"
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/embedding"
-	"github.com/Tencent/WeKnora/internal/models/limiter" // register built-in vendors
-	"github.com/Tencent/WeKnora/internal/models/utils/ollama"
-	"github.com/Tencent/WeKnora/internal/router"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/storageallowlist"
-	"github.com/Tencent/WeKnora/internal/stream"
-	"github.com/Tencent/WeKnora/internal/tracing/langfuse"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
-	"github.com/tencent/vectordatabase-sdk-go/tcvectordb"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/approval"
+	"github.com/ai-tool-collection/WeKnora/internal/application/repository"
+	dorisRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/doris"
+	elasticsearchRepoV7 "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/elasticsearch/v7"
+	elasticsearchRepoV8 "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/elasticsearch/v8"
+	milvusRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/milvus"
+	neo4jRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/neo4j"
+	openSearchRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/opensearch"
+	postgresRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/postgres"
+	qdrantRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/qdrant"
+	sqliteRetrieverRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/sqlite"
+	weaviateRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/weaviate"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service"
+	chatpipeline "github.com/ai-tool-collection/WeKnora/internal/application/service/chat_pipeline"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service/file"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service/memory"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service/retriever"
+	"github.com/ai-tool-collection/WeKnora/internal/browserskill"
+	"github.com/ai-tool-collection/WeKnora/internal/common"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
+	"github.com/ai-tool-collection/WeKnora/internal/database"
+	"github.com/ai-tool-collection/WeKnora/internal/datasource"
+	confluenceConnector "github.com/ai-tool-collection/WeKnora/internal/datasource/connector/confluence"
+	gitlabConnector "github.com/ai-tool-collection/WeKnora/internal/datasource/connector/gitlab"
+	notionConnector "github.com/ai-tool-collection/WeKnora/internal/datasource/connector/notion"
+	rssConnector "github.com/ai-tool-collection/WeKnora/internal/datasource/connector/rss"
+	"github.com/ai-tool-collection/WeKnora/internal/event"
+	"github.com/ai-tool-collection/WeKnora/internal/handler"
+	"github.com/ai-tool-collection/WeKnora/internal/handler/session"
+	imPkg "github.com/ai-tool-collection/WeKnora/internal/im"
+	"github.com/ai-tool-collection/WeKnora/internal/im/mattermost"
+	"github.com/ai-tool-collection/WeKnora/internal/im/slack"
+	"github.com/ai-tool-collection/WeKnora/internal/im/telegram"
+	"github.com/ai-tool-collection/WeKnora/internal/infrastructure/docparser"
+	infra_web_search "github.com/ai-tool-collection/WeKnora/internal/infrastructure/web_search"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/mcp"
+	"github.com/ai-tool-collection/WeKnora/internal/mcpserver"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/embedding"
+	"github.com/ai-tool-collection/WeKnora/internal/models/limiter" // register built-in vendors
+	"github.com/ai-tool-collection/WeKnora/internal/models/utils/ollama"
+	"github.com/ai-tool-collection/WeKnora/internal/router"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/storageallowlist"
+	"github.com/ai-tool-collection/WeKnora/internal/stream"
+	"github.com/ai-tool-collection/WeKnora/internal/tracing/langfuse"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/weaviate/weaviate-go-client/v5/weaviate"
 	"github.com/weaviate/weaviate-go-client/v5/weaviate/auth"
 	wgrpc "github.com/weaviate/weaviate-go-client/v5/weaviate/grpc"
@@ -260,7 +246,6 @@ func BuildContainer(container *dig.Container) *dig.Container {
 	must(container.Provide(func(s *service.TenantSandboxConfigService) service.WorkspaceSandboxPolicy {
 		return s
 	}))
-	must(container.Provide(service.NewWeKnoraCloudService))
 
 	// Extract services - register individual extracters with names
 	must(container.Provide(service.NewChunkExtractService, dig.Name("chunkExtractor")))
@@ -593,7 +578,6 @@ func BuildContainer(container *dig.Container) *dig.Container {
 	must(container.Provide(handler.NewIMHandler))
 	must(container.Provide(handler.NewEmbedChannelHandler))
 	must(container.Provide(handler.NewMCPEndpointHandler))
-	must(container.Provide(handler.NewWeKnoraCloudHandler))
 	logger.Debugf(ctx, "[Container] HTTP handlers registered")
 
 	// Wire the chat package's local image resolver so multimodal chat can read
@@ -1146,41 +1130,6 @@ func initRawFileService(_ *config.Config) (interfaces.FileService, error) {
 			os.Getenv("MINIO_BUCKET_NAME"),
 			strings.EqualFold(os.Getenv("MINIO_USE_SSL"), "true"),
 		)
-	case "cos":
-		if os.Getenv("COS_BUCKET_NAME") == "" ||
-			os.Getenv("COS_REGION") == "" ||
-			os.Getenv("COS_SECRET_ID") == "" ||
-			os.Getenv("COS_SECRET_KEY") == "" ||
-			os.Getenv("COS_PATH_PREFIX") == "" {
-			return nil, fmt.Errorf("missing COS configuration")
-		}
-		return file.NewCosFileServiceWithTempBucket(
-			os.Getenv("COS_BUCKET_NAME"),
-			os.Getenv("COS_REGION"),
-			os.Getenv("COS_SECRET_ID"),
-			os.Getenv("COS_SECRET_KEY"),
-			os.Getenv("COS_PATH_PREFIX"),
-			os.Getenv("COS_TEMP_BUCKET_NAME"),
-			os.Getenv("COS_TEMP_REGION"),
-		)
-	case "tos":
-		if os.Getenv("TOS_ENDPOINT") == "" ||
-			os.Getenv("TOS_REGION") == "" ||
-			os.Getenv("TOS_ACCESS_KEY") == "" ||
-			os.Getenv("TOS_SECRET_KEY") == "" ||
-			os.Getenv("TOS_BUCKET_NAME") == "" {
-			return nil, fmt.Errorf("missing TOS configuration")
-		}
-		return file.NewTosFileServiceWithTempBucket(
-			os.Getenv("TOS_ENDPOINT"),
-			os.Getenv("TOS_REGION"),
-			os.Getenv("TOS_ACCESS_KEY"),
-			os.Getenv("TOS_SECRET_KEY"),
-			os.Getenv("TOS_BUCKET_NAME"),
-			os.Getenv("TOS_PATH_PREFIX"),
-			os.Getenv("TOS_TEMP_BUCKET_NAME"), // 可选：临时桶名称（桶需配置生命周期规则自动过期）
-			os.Getenv("TOS_TEMP_REGION"),      // 可选：临时桶 region，默认与主桶相同
-		)
 	case "s3":
 		accessKey, secretKey := os.Getenv("S3_ACCESS_KEY"), os.Getenv("S3_SECRET_KEY")
 		if os.Getenv("S3_REGION") == "" ||
@@ -1199,48 +1148,6 @@ func initRawFileService(_ *config.Config) (interfaces.FileService, error) {
 			os.Getenv("S3_BUCKET_NAME"),
 			os.Getenv("S3_REGION"),
 			pathPrefix,
-		)
-	case "obs":
-		if os.Getenv("OBS_ENDPOINT") == "" ||
-			os.Getenv("OBS_ACCESS_KEY") == "" ||
-			os.Getenv("OBS_SECRET_KEY") == "" ||
-			os.Getenv("OBS_BUCKET_NAME") == "" {
-			return nil, fmt.Errorf("missing OBS configuration")
-		}
-		obsRegion := os.Getenv("OBS_REGION")
-		obsPathPrefix := os.Getenv("OBS_PATH_PREFIX")
-		if obsPathPrefix == "" {
-			obsPathPrefix = "weknora/"
-		}
-		return file.NewObsFileService(
-			os.Getenv("OBS_ENDPOINT"),
-			obsRegion,
-			os.Getenv("OBS_ACCESS_KEY"),
-			os.Getenv("OBS_SECRET_KEY"),
-			os.Getenv("OBS_BUCKET_NAME"),
-			obsPathPrefix,
-		)
-	case "oss":
-		if os.Getenv("OSS_ENDPOINT") == "" ||
-			os.Getenv("OSS_REGION") == "" ||
-			os.Getenv("OSS_ACCESS_KEY") == "" ||
-			os.Getenv("OSS_SECRET_KEY") == "" ||
-			os.Getenv("OSS_BUCKET_NAME") == "" {
-			return nil, fmt.Errorf("missing OSS configuration")
-		}
-		pathPrefix := os.Getenv("OSS_PATH_PREFIX")
-		if pathPrefix == "" {
-			pathPrefix = "weknora/"
-		}
-		return file.NewOssFileServiceWithTempBucket(
-			os.Getenv("OSS_ENDPOINT"),
-			os.Getenv("OSS_REGION"),
-			os.Getenv("OSS_ACCESS_KEY"),
-			os.Getenv("OSS_SECRET_KEY"),
-			os.Getenv("OSS_BUCKET_NAME"),
-			pathPrefix,
-			os.Getenv("OSS_TEMP_BUCKET_NAME"),
-			os.Getenv("OSS_TEMP_REGION"),
 		)
 	case "local":
 		baseDir := os.Getenv("LOCAL_STORAGE_BASE_DIR")
@@ -1567,37 +1474,6 @@ func initRetrieveEngineRegistry(
 			}
 		}
 	}
-	if slices.Contains(retrieveDriver, "tencent_vectordb") {
-		addr := os.Getenv("TENCENT_VECTORDB_ADDR")
-		username := os.Getenv("TENCENT_VECTORDB_USERNAME")
-		apiKey := os.Getenv("TENCENT_VECTORDB_API_KEY")
-		if addr == "" || username == "" || apiKey == "" {
-			log.Errorf("Missing Tencent VectorDB configuration")
-		} else {
-			client, err := tcvectordb.NewRpcClient(addr, username, apiKey, &tcvectordb.ClientOption{
-				ReadConsistency: tcvectordb.EventualConsistency,
-				Timeout:         10 * time.Second,
-			})
-			if err != nil {
-				log.Errorf("Create tencent_vectordb client failed: %v", err)
-			} else {
-				tencentRepository := tencentVectorDBRepo.NewTencentVectorDBRetrieveEngineRepository(
-					client,
-					os.Getenv("TENCENT_VECTORDB_DATABASE"),
-					nil,
-				)
-				if err := registry.Register(
-					retriever.NewKVHybridRetrieveEngine(
-						tencentRepository, types.TencentVectorDBRetrieverEngineType,
-					),
-				); err != nil {
-					log.Errorf("Register tencent_vectordb retrieve engine failed: %v", err)
-				} else {
-					log.Infof("Register tencent_vectordb retrieve engine success")
-				}
-			}
-		}
-	}
 	// ─── DB store registration (byStoreID) ───
 	if storeReg, ok := registry.(*retriever.RetrieveEngineRegistry); ok {
 		loadDBStoresIntoRegistry(storeReg, db, cfg, auditSink)
@@ -1812,13 +1688,9 @@ func registerWebSearchProviders(registry *infra_web_search.Registry) {
 	registry.Register("bing", infra_web_search.NewBingProvider)
 	registry.Register("tavily", infra_web_search.NewTavilyProvider)
 	registry.Register("ollama", infra_web_search.NewOllamaProvider)
-	registry.Register("baidu", infra_web_search.NewBaiduProvider)
 	registry.Register("searxng", infra_web_search.NewSearxngProvider)
 	registry.Register("keenable", infra_web_search.NewKeenableProvider)
-	registry.Register("zhipu", infra_web_search.NewZhipuProvider)
 	registry.Register("exa", infra_web_search.NewExaProvider)
-	registry.Register("metaso", infra_web_search.NewMetasoProvider)
-	registry.Register("bocha", infra_web_search.NewBochaProvider)
 	registry.Register("brave", infra_web_search.NewBraveProvider)
 	registry.Register("serply", infra_web_search.NewSerplyProvider)
 }
@@ -1827,17 +1699,9 @@ func registerWebSearchProviders(registry *infra_web_search.Registry) {
 // wires the process-lifetime shutdown hook. Each platform's factory lives in
 // its own subpackage to keep this file focused on wiring.
 func registerIMService(imService *imPkg.Service, cleaner interfaces.ResourceCleaner) {
-	imService.RegisterAdapterFactory("wecom", wecom.NewFactory())
-	imService.RegisterAdapterFactory("feishu", feishu.NewFactory(feishu.RegionFeishu))
-	// Lark is Feishu's international cloud: same adapter, different host/tenant.
-	imService.RegisterAdapterFactory("lark", feishu.NewFactory(feishu.RegionLark))
 	imService.RegisterAdapterFactory("slack", slack.NewFactory())
 	imService.RegisterAdapterFactory("telegram", telegram.NewFactory())
-	imService.RegisterAdapterFactory("dingtalk", dingtalk.NewFactory())
 	imService.RegisterAdapterFactory("mattermost", mattermost.NewFactory())
-	imService.RegisterAdapterFactory("wechat", wechat.NewFactory())
-	imService.RegisterAdapterFactory("qqbot", qqbot.NewFactory())
-	imService.RegisterAdapterFactory("yunzhijia", yunzhijia.NewFactory())
 
 	// Load and start all enabled channels from database
 	if err := imService.LoadAndStartChannels(); err != nil {
@@ -1857,36 +1721,11 @@ func initConnectorRegistry() (*datasource.ConnectorRegistry, error) {
 	registry := datasource.NewConnectorRegistry()
 
 	var errs error
-	if err := registry.Register(wiki.NewConnector(core.RegionFeishu)); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("register feishu connector: %w", err))
-	}
-	// Lark is Feishu's international cloud: same connector, different host/tenant.
-	if err := registry.Register(wiki.NewConnector(core.RegionLark)); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("register lark connector: %w", err))
-	}
-	// Feishu/Lark Drive (云盘) mode: different connector type so the registry
-	// dispatches to the Drive connector. Shares core.Client/Region/export logic
-	// with the wiki connector. See 飞书云盘数据源设计.md / ADR-0001.
-	if err := registry.Register(drive.NewDriveConnector(core.RegionFeishuDrive)); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("register feishu_drive connector: %w", err))
-	}
-	if err := registry.Register(drive.NewDriveConnector(core.RegionLarkDrive)); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("register lark_drive connector: %w", err))
-	}
 	if err := registry.Register(notionConnector.NewConnector()); err != nil {
 		errs = errors.Join(errs, fmt.Errorf("register notion connector: %w", err))
 	}
 	if err := registry.Register(confluenceConnector.NewConnector()); err != nil {
 		errs = errors.Join(errs, fmt.Errorf("register confluence connector: %w", err))
-	}
-	if err := registry.Register(yuqueConnector.NewConnector()); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("register yuque connector: %w", err))
-	}
-	if err := registry.Register(dingtalkConnector.NewConnector()); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("register dingtalk connector: %w", err))
-	}
-	if err := registry.Register(imaConnector.NewConnector()); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("register ima connector: %w", err))
 	}
 	if err := registry.Register(rssConnector.NewConnector()); err != nil {
 		errs = errors.Join(errs, fmt.Errorf("register rss connector: %w", err))

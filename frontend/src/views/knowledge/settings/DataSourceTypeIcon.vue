@@ -4,7 +4,7 @@ import { getDatasourceIconUrl, datasourceIconMap } from './datasourceIcons'
 const props = withDefaults(defineProps<{
   type: string
   size?: number
-  /** inline: 类型选择等小尺寸场景；badge: 嵌入 ds-card__badge 等父级徽章容器 */
+  /** Small inline icon or icon in a datasource badge. */
   variant?: 'inline' | 'badge'
 }>(), {
   size: 20,
@@ -15,16 +15,8 @@ const iconMap = datasourceIconMap
 
 function fallbackText(type: string) {
   switch (type) {
-    case 'feishu':
-      return 'F'
-    case 'lark':
-      return 'L'
     case 'notion':
       return 'N'
-    case 'yuque':
-      return 'Y'
-    case 'ima':
-      return 'I'
     default:
       return type.slice(0, 1).toUpperCase() || '?'
   }

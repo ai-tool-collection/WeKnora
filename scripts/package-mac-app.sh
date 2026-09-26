@@ -2,7 +2,7 @@
 set -euo pipefail
 
 #
-# 本地构建 + 打包 WeKnora macOS 桌面应用 (.app)
+# Build and package the Knowledge Hub macOS desktop app (.app)
 #
 # 用法:
 #   ./scripts/package-mac-app.sh
@@ -13,11 +13,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${ROOT_DIR}"
 
-APP_NAME="WeKnora Lite"
+APP_NAME="Knowledge Hub"
 APP_BUNDLE="${APP_NAME}.app"
 DIST_DIR="dist/${APP_BUNDLE}"
 
-echo "=== WeKnora Mac App Packager ==="
+echo "=== Knowledge Hub Mac App Packager ==="
 echo "  Output: dist/${APP_BUNDLE}"
 echo ""
 
@@ -51,7 +51,7 @@ fi
 
 # 使用 Wails 打包 (需要先处理依赖代理问题)
 export GONOSUMDB="git.sr.ht/*"
-export GOPROXY="https://goproxy.cn,direct"
+export GOPROXY="https://proxy.golang.org,direct"
 export CGO_CFLAGS="-Wno-deprecated-declarations"
 export CGO_LDFLAGS="-Wl,-no_warn_duplicate_libraries"
 export EDITION=lite

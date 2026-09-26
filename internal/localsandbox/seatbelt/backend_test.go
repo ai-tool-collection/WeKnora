@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Tencent/WeKnora/internal/localsandbox/core"
+	"github.com/ai-tool-collection/WeKnora/internal/localsandbox/core"
 )
 
 func darwinFixture(t *testing.T) (core.Backend, core.Policy, string) {

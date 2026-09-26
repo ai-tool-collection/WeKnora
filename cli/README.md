@@ -1,12 +1,12 @@
-# weknora — WeKnora CLI
+# Knowledge Hub CLI
 
-A command-line interface for the WeKnora RAG knowledge-base server. Lets you
+A command-line interface for the Knowledge Hub server. Lets you
 authenticate, manage knowledge bases and documents, run hybrid search, and
 ask streaming RAG questions from your terminal or from an AI agent.
 
 ```bash
 $ weknora --help
-Command-line client for the WeKnora RAG server. Manage knowledge bases
+Command-line client for the Knowledge Hub server. Manage knowledge bases
 and documents, run hybrid search, chat with grounded answers, or expose
 a curated read-only MCP tool surface for AI agents.
 
@@ -48,7 +48,7 @@ For contributing to the CLI source, see [AGENTS.md](AGENTS.md).
 Requires Go 1.26+.
 
 ```bash
-git clone https://github.com/Tencent/WeKnora.git
+git clone https://github.com/ai-tool-collection/WeKnora.git
 cd WeKnora/cli
 go build -o weknora .
 sudo mv weknora /usr/local/bin/   # or anywhere on $PATH
@@ -450,7 +450,7 @@ macOS / Windows × Go 1.26, path-filtered to changes under `cli/`.
 ## Contributing / Reporting issues
 
 - **Bugs and feature requests**: file an issue at
-  [github.com/Tencent/WeKnora/issues](https://github.com/Tencent/WeKnora/issues).
+  [github.com/ai-tool-collection/WeKnora/issues](https://github.com/ai-tool-collection/WeKnora/issues).
 - **Security disclosures**: see the repository-level
   [SECURITY.md](../SECURITY.md). Do not file public issues for
   security findings.

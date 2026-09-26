@@ -248,17 +248,17 @@ test('renderChatMarkdown renders an unfinished bold line as bold immediately whi
     escapeMarkdown: (text: string) => text,
     sanitizeHtml: (html: string) => html,
   }
-  const partial = '**平台访问地址：chatbot.weixin.qq.com'
+  const partial = '**Platform address: chatbot.example.com'
   // Streaming: optimistically bold so no raw `**` and no late layout jump.
   assert.match(
     stripFadeTail(renderChatMarkdown(partial, { ...options, streaming: true })),
-    /<p class="md-strong-title"><strong>平台访问地址：chatbot\.weixin\.qq\.com<\/strong><\/p>/,
+    /<p class="md-strong-title"><strong>Platform address: chatbot\.example\.com<\/strong><\/p>/,
   )
   // Completed: a genuinely unterminated marker stays literal (we never invent
   // content for the final, authoritative render).
   assert.match(
     renderChatMarkdown(partial, { ...options, streaming: false }),
-    /<p>\*\*平台访问地址/,
+    /<p>\*\*Platform address/,
   )
 })
 

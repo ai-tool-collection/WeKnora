@@ -32,8 +32,8 @@ package providers
 import (
 	_ "embed"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 //go:embed assets/novita.svg

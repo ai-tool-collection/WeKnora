@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
 )
 
 // stringOr returns val (trimmed) if non-empty, otherwise fallback.

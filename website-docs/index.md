@@ -1,22 +1,13 @@
----
-layout: page
-title: 快速上手
-sidebar: false
-aside: false
-footer: false
-search: false
-head:
-  - - meta
-    - http-equiv: refresh
-      content: '0;url=/docs/01-getting-started/03-quickstart.html'
-  - - link
-    - rel: canonical
-      href: /docs/01-getting-started/03-quickstart.html
----
+# Knowledge Hub documentation
 
-<script setup>
-import { onMounted } from 'vue'
-onMounted(() => window.location.replace('/docs/01-getting-started/03-quickstart.html' + window.location.search + window.location.hash))
-</script>
+Knowledge Hub is a self-hosted knowledge base and agent application. Add documents, index them, and ask questions with source citations.
 
-[进入快速上手](/01-getting-started/03-quickstart)
+## Start here
+
+- [Install and start](./01-getting-started/03-quickstart.md)
+- [Architecture](./02-architecture/01-overview.md)
+- [Model connections](./03-features/06-models.md)
+- [API overview](./04-api/01-api-overview.md)
+- [Development](./06-development/01-dev-guide.md)
+
+The application supports local deployment and configurable external model endpoints. Review configured endpoints and credentials before exposing an instance to users.

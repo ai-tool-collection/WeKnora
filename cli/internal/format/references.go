@@ -1,6 +1,6 @@
 package format
 
-import sdk "github.com/Tencent/WeKnora/client"
+import sdk "github.com/ai-tool-collection/WeKnora/client"
 
 // ReferenceIndex is the bounded citation pointer exposed by projected JSON,
 // text, and MCP output. ChunkID is the chunk the model cited; ParentChunkID is

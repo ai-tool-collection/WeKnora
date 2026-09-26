@@ -31,7 +31,7 @@ log_warning() {
 
 echo ""
 printf "%b\n" "${GREEN}========================================${NC}"
-printf "%b\n" "${GREEN}  WeKnora 快速开发环境启动${NC}"
+printf "%b\n" "${GREEN}  Knowledge Hub quick development setup${NC}"
 printf "%b\n" "${GREEN}========================================${NC}"
 echo ""
 
@@ -120,4 +120,3 @@ fi
 echo ""
 log_success "开发环境已就绪，开始编码吧！"
 echo ""
-

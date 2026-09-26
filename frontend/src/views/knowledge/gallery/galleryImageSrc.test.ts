@@ -10,7 +10,6 @@ const KB_PROXY = '/api/v1/knowledge-bases/kb-1/files?file_path='
 for (const url of [
   'local://10001/exports/a.png',
   'minio://bucket/a.png',
-  'cos://bucket/a.png',
   's3://bucket/a.png',
   'resource://AbCdEfGhIjKlMnOpQrStUv',
   'storage://backend-1/local://10001/a.png',

@@ -68,11 +68,6 @@ test('referenced i18n keys used in app code exist in every locale', () => {
 const PARSER_ENGINE_NAMES = [
   'builtin',
   'simple',
-  'mineru',
-  'mineru_cloud',
-  'paddleocr_vl',
-  'paddleocr_vl_cloud',
-  'weknoracloud',
   'markitdown',
   'opendataloader',
 ] as const
@@ -146,18 +141,18 @@ test('registered audit action labels exist as flat keys in every locale', () => 
 
 test('locale alignment preserves flat audit action keys (regenerate safety)', () => {
   const referenceKeys = collectLocaleKeys(LOCALE_BUNDLES[REFERENCE_LOCALE])
-  const aligned = alignLocaleBundleToReferenceKeys(referenceKeys, LOCALE_BUNDLES['zh-CN'], LOCALE_BUNDLES['en-US'])
+  const aligned = alignLocaleBundleToReferenceKeys(referenceKeys, LOCALE_BUNDLES['ko-KR'], LOCALE_BUNDLES['en-US'])
   const failures: string[] = []
 
   for (const { root, actions } of REGISTERED_AUDIT_ACTION_ENTRIES) {
     const bag = getLocaleValueAtPath(aligned, root)
     if (bag == null || typeof bag !== 'object') {
-      failures.push(`zh-CN aligned: missing bag ${root}`)
+      failures.push(`ko-KR aligned: missing bag ${root}`)
       continue
     }
     for (const action of actions) {
       if (typeof (bag as Record<string, unknown>)[action] !== 'string') {
-        failures.push(`zh-CN aligned: missing flat ${root}.${action}`)
+        failures.push(`ko-KR aligned: missing flat ${root}.${action}`)
       }
       const nestedArea = action.split('.')[0]
       if (
@@ -165,7 +160,7 @@ test('locale alignment preserves flat audit action keys (regenerate safety)', ()
         (bag as Record<string, unknown>)[nestedArea] != null &&
         typeof (bag as Record<string, unknown>)[nestedArea] === 'object'
       ) {
-        failures.push(`zh-CN aligned: nested corruption under ${root}.${nestedArea}`)
+        failures.push(`ko-KR aligned: nested corruption under ${root}.${nestedArea}`)
       }
     }
   }
@@ -204,7 +199,6 @@ test('prune rebuild restores registered audit keys from baked-in English default
   const usage = collectI18nUsageFromSources()
   const emptyBundles = {
     'en-US': {},
-    'zh-CN': {},
     'ko-KR': {},
     'ja-JP': {},
     'ru-RU': {},
@@ -290,20 +284,4 @@ test('locale messages compile with vue-i18n syntax rules', () => {
     (failure) => `${failure.path}: ${failure.message}\n  ${failure.value}`,
   )
   assert.deepEqual(summary, [], summary.slice(0, 20).join('\n'))
-})
-
-test('DingTalk configuration and sync failures remain localized after pruning', () => {
-  const keys = [
-    'connector.dingtalk', 'connectorDesc.dingtalk',
-    'field.clientId', 'field.clientSecret', 'field.operatorId', 'field.operatorIdHint',
-    'prereqBarText_dingtalk', 'prereqOpenConsole_dingtalk',
-    ...[1, 2, 3].flatMap(step => [`prereqStep${step}Brief_dingtalk`, `prereqStep${step}Desc_dingtalk`]),
-    'syncError.dingtalk_document_failed', 'syncError.dingtalk_resource_failed',
-  ].map(key => `datasource.${key}`)
-  for (const key of keys) {
-    assert.ok(referencedKeys.has(key), `pruning would remove ${key}`)
-    for (const [locale, bundle] of Object.entries(LOCALE_BUNDLES)) {
-      assert.equal(typeof getLocaleValueAtPath(bundle, key), 'string', `${locale}: missing ${key}`)
-    }
-  }
 })

@@ -145,7 +145,7 @@ func TestFormatIMAgentIntermediate_retractIntoThinkOnTools(t *testing.T) {
 	if !strings.Contains(got, "好的，让我先搜索知识库") {
 		t.Fatalf("retracted preamble should be inside think, got: %q", got)
 	}
-	if !strings.Contains(got, "搜索关键词") {
+	if !strings.Contains(got, "Search keywords") {
 		t.Fatalf("tool lines should be inside think, got: %q", got)
 	}
 	if !strings.Contains(got, "文明6") {
@@ -185,7 +185,7 @@ func TestBuildIMStreamRaw_agentInProgress_mergesToolsAndNarrativeIntoThink(t *te
 	}
 	got := FormatIMIntermediateFromParts(parts, true)
 
-	if !strings.Contains(got, "搜索关键词") {
+	if !strings.Contains(got, "Search keywords") {
 		t.Fatalf("tool progress should be inside think block, got: %q", got)
 	}
 	if !strings.Contains(got, "思考过程") {
@@ -213,7 +213,7 @@ func TestFormatIMQuickQA_separatesPipelineAndThinking(t *testing.T) {
 	if !strings.Contains(got, "分析问题意图") {
 		t.Fatalf("reasoning body missing, got: %q", got)
 	}
-	if !strings.Contains(got, "正在理解问题") {
+	if !strings.Contains(got, "Understanding question") {
 		t.Fatalf("pipeline steps missing, got: %q", got)
 	}
 	if !strings.Contains(got, "文明6") {

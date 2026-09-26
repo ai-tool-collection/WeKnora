@@ -14,8 +14,8 @@ import (
 
 	_ "github.com/duckdb/duckdb-go/v2"
 
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 // newPlainDuckDB opens an in-memory DuckDB without optional extensions; CSV

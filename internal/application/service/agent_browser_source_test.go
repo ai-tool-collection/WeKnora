@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/agent"
-	"github.com/Tencent/WeKnora/internal/agent/tools"
-	"github.com/Tencent/WeKnora/internal/browserskill"
-	"github.com/Tencent/WeKnora/internal/config"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/agent"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/tools"
+	"github.com/ai-tool-collection/WeKnora/internal/browserskill"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,7 +30,7 @@ func TestBrowserSourceKeepsOtherConfiguredTools(t *testing.T) {
 		knowledgeBaseService: &browserSourceKBService{fakeAgentKnowledgeBaseService{kb: kb}},
 		knowledgeService:     &fakeAgentKnowledgeService{},
 		sandboxResolver: stubSandboxResolver{mgr: &capableManager{
-			typ: sandbox.SandboxTypeCube, shell: &stubShellExecutor{}, files: stubSessionFileStore{},
+			typ: sandbox.SandboxTypeE2B, shell: &stubShellExecutor{}, files: stubSessionFileStore{},
 		}},
 	}
 	var offered [][]string

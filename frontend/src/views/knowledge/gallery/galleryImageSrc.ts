@@ -9,7 +9,7 @@ import {
  * The proxy request that loads one gallery image, or null when the browser can
  * render the URL as is.
  *
- * Stored images are storage handles (local://, minio://, cos://, s3://,
+ * Stored images are storage handles (local://, minio://, s3://,
  * storage://<backend>/..., resource://) that no browser can open; they go
  * through the knowledge-base file proxy, which is also what authorises a
  * viewer of a KB shared from another tenant. The scheme list is the one

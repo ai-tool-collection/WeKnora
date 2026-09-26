@@ -26,11 +26,11 @@ func TestNewRemoteClientForCheckRefusesLinkLocalAtDial(t *testing.T) {
 			name: "cube",
 			cfg: &Config{
 				AllowPrivateEndpoints: true,
-				Type:                  SandboxTypeCube,
-				CubeAPIURL:            metadata,
-				CubeProxyURL:          metadata,
-				CubeSandboxDomain:     "cube.app",
-				CubeTemplate:          "tpl-test",
+				Type:                  SandboxTypeE2B,
+				E2BAPIURL:             metadata,
+				E2BProxyURL:           metadata,
+				E2BSandboxDomain:      "cube.app",
+				E2BTemplate:           "tpl-test",
 			},
 		},
 		{

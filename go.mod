@@ -1,4 +1,4 @@
-module github.com/Tencent/WeKnora
+module github.com/ai-tool-collection/WeKnora
 
 go 1.26.0
 
@@ -9,7 +9,6 @@ require (
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.1
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/alicebob/miniredis/v2 v2.38.0
-	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.5.1
 	github.com/asg017/sqlite-vec-go-bindings v0.1.6
 	github.com/aws/aws-sdk-go-v2 v1.41.7
 	github.com/aws/aws-sdk-go-v2/config v1.32.17
@@ -32,8 +31,6 @@ require (
 	github.com/hibiken/asynq v0.26.0
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/joho/godotenv v1.5.1
-	github.com/ks3sdklib/aws-sdk-go v1.11.0
-	github.com/larksuite/oapi-sdk-go/v3 v3.9.7
 	github.com/mark3labs/mcp-go v0.52.0
 	github.com/matiasinsaurralde/go-e2b v0.1.1-0.20260808041540-fdc08ceaa1c1
 	github.com/milvus-io/milvus/client/v2 v2.6.4
@@ -41,7 +38,6 @@ require (
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/neo4j/neo4j-go-driver/v6 v6.0.0
 	github.com/ollama/ollama v0.23.2
-	github.com/open-dingtalk/dingtalk-stream-sdk-go v0.9.2-beta.1
 	github.com/opensearch-project/opensearch-go/v4 v4.6.0
 	github.com/panjf2000/ants/v2 v2.12.0
 	github.com/parquet-go/parquet-go v0.29.0
@@ -58,14 +54,7 @@ require (
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.1
 	github.com/swaggo/swag v1.16.6
-	github.com/tencent/vectordatabase-sdk-go v1.8.4
-	github.com/tencentcloud/CubeSandbox/sdk/go v0.0.0-20260807115140-5cefcca27a7f
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.3.103
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/lkeap v1.3.103
-	github.com/tencentyun/cos-go-sdk-v5 v0.7.73
 	github.com/tiktoken-go/tokenizer v0.7.0
-	github.com/volcengine/ve-tos-golang-sdk/v2 v2.9.4
-	github.com/volcengine/vikingdb-go-sdk v0.0.11
 	github.com/wailsapp/wails/v2 v2.12.0
 	github.com/weaviate/weaviate v1.37.3
 	github.com/weaviate/weaviate-go-client/v5 v5.7.3
@@ -304,7 +293,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/vcaesar/cedar v0.20.2 // indirect
-	github.com/volcengine/volc-sdk-golang v1.0.252 // indirect
 	github.com/wailsapp/go-webview2 v1.0.22 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect

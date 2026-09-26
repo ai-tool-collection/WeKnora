@@ -3,7 +3,7 @@ package agent
 import (
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/agent/tools"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/tools"
 
 	"github.com/stretchr/testify/require"
 )

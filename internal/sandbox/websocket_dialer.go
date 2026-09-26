@@ -89,7 +89,7 @@ func sandboxDomainFor(cfg *Config) string {
 		// default.
 		return DefaultE2BSandboxDomain
 	default:
-		return strings.TrimSpace(cfg.CubeSandboxDomain)
+		return ""
 	}
 }
 

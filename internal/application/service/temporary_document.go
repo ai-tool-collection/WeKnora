@@ -15,13 +15,13 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/Tencent/WeKnora/internal/common"
-	"github.com/Tencent/WeKnora/internal/infrastructure/chunker"
-	"github.com/Tencent/WeKnora/internal/infrastructure/docparser"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/common"
+	"github.com/ai-tool-collection/WeKnora/internal/infrastructure/chunker"
+	"github.com/ai-tool-collection/WeKnora/internal/infrastructure/docparser"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
 )
@@ -455,9 +455,6 @@ func (s *temporaryDocumentService) parse(ctx context.Context, document *types.Te
 		request.ParserEngineOverrides = tenant.ParserEngineConfig.ToOverridesMap()
 	}
 	deps := docparser.ReaderDeps{Overrides: request.ParserEngineOverrides, Remote: s.documentReader}
-	if s.tenantService != nil {
-		deps.WeKnoraCloudCredentials = s.tenantService.GetWeKnoraCloudCredentials
-	}
 	reader, err := docparser.NewReader(ctx, parserEngine, strings.TrimPrefix(ext, "."), false, deps)
 	if err != nil {
 		return "", nil, nil, fmt.Errorf("parse document: %w", err)

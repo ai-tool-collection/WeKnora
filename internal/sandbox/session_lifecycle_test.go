@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -184,7 +184,7 @@ func newTestRemoteSessionLifecycle(
 }
 
 func TestCreateAndBindPersistsInboundToken(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	client.trafficAccessToken = "traffic-token"
 	store := NewMemorySessionSandboxBindingStore()
 	lifecycle := newTestRemoteSessionLifecycle(
@@ -246,7 +246,7 @@ func TestCreateAndBindAllowsTokenlessSandboxWhenProviderHasNoInboundCredential(t
 
 func TestCreateAndBindPersistsTokenWhenInboundClosed(t *testing.T) {
 	closed := false
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	client.trafficAccessToken = "traffic-token"
 	store := NewMemorySessionSandboxBindingStore()
 	lifecycle := newTestRemoteSessionLifecycleWithPolicy(
@@ -264,7 +264,7 @@ func TestCreateAndBindPersistsTokenWhenInboundClosed(t *testing.T) {
 }
 
 func TestResolveReconnectPassesStoredInboundToken(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	client.trafficAccessToken = "traffic-token"
 	store := NewMemorySessionSandboxBindingStore()
 	lifecycle := newTestRemoteSessionLifecycle(
@@ -285,7 +285,7 @@ func TestResolveReconnectPassesStoredInboundToken(t *testing.T) {
 }
 
 func TestResolveReconnectPersistsProviderReissuedInboundToken(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	client.trafficAccessToken = "create-token"
 	store := NewMemorySessionSandboxBindingStore()
 	lifecycle := newTestRemoteSessionLifecycle(
@@ -311,7 +311,7 @@ func TestResolveReconnectPersistsProviderReissuedInboundToken(t *testing.T) {
 
 func TestRemoteSessionLifecycleCreatesOnceAcrossCoordinators(t *testing.T) {
 	store := NewMemorySessionSandboxBindingStore()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	checker := &fakeSessionExistenceChecker{exists: true}
 	first := newTestRemoteSessionLifecycle(t, client, store, checker)
 	second := newTestRemoteSessionLifecycle(t, client, store, checker)
@@ -343,7 +343,7 @@ func TestRemoteSessionLifecycleCreatesOnceAcrossCoordinators(t *testing.T) {
 
 func TestRemoteSessionLifecycleAllowsDifferentKeysInParallel(t *testing.T) {
 	store := NewMemorySessionSandboxBindingStore()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	checker := &fakeSessionExistenceChecker{exists: true}
 	lifecycle := newTestRemoteSessionLifecycle(t, client, store, checker)
 	firstKey := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
@@ -402,13 +402,13 @@ func TestRemoteSessionLifecycleReplacesOnlyTerminalBinding(t *testing.T) {
 		{
 			name:    "unavailable error",
 			state:   RemoteStateRunning,
-			getErr:  NewRemoteError(SandboxTypeCube, "Get", RemoteErrorKindUnavailable, "offline", nil),
+			getErr:  NewRemoteError(SandboxTypeE2B, "Get", RemoteErrorKindUnavailable, "offline", nil),
 			wantErr: true,
 		},
 		{
 			name:    "internal error",
 			state:   RemoteStateRunning,
-			getErr:  NewRemoteError(SandboxTypeCube, "Get", RemoteErrorKindInternal, "unknown", nil),
+			getErr:  NewRemoteError(SandboxTypeE2B, "Get", RemoteErrorKindInternal, "unknown", nil),
 			wantErr: true,
 		},
 	}
@@ -416,7 +416,7 @@ func TestRemoteSessionLifecycleReplacesOnlyTerminalBinding(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			store := NewMemorySessionSandboxBindingStore()
-			client := newFakeRemoteClient(SandboxTypeCube)
+			client := newFakeRemoteClient(SandboxTypeE2B)
 			checker := &fakeSessionExistenceChecker{exists: true}
 			lifecycle := newTestRemoteSessionLifecycle(t, client, store, checker)
 			key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
@@ -454,7 +454,7 @@ func TestRemoteSessionLifecycleProviderMismatchNeverUsesOldID(t *testing.T) {
 	lifecycle := newTestRemoteSessionLifecycle(t, client, store, checker)
 	key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
 	old := validSessionSandboxBinding(key, "cube-old")
-	old.Provider = SandboxTypeCube
+	old.Provider = SandboxTypeE2B
 	created, err := store.Create(context.Background(), key, old)
 	require.NoError(t, err)
 	require.True(t, created)
@@ -475,7 +475,7 @@ func TestRemoteSessionLifecycleProviderMismatchNeverUsesOldID(t *testing.T) {
 }
 
 func TestRemoteSessionLifecycleRecoversOldestMetadataCandidate(t *testing.T) {
-	for _, provider := range []RemoteProvider{SandboxTypeCube, SandboxTypeE2B} {
+	for _, provider := range []RemoteProvider{SandboxTypeE2B, SandboxTypeE2B} {
 		t.Run(string(provider), func(t *testing.T) {
 			store := NewMemorySessionSandboxBindingStore()
 			client := newFakeRemoteClient(provider)
@@ -498,7 +498,7 @@ func TestRemoteSessionLifecycleRecoversOldestMetadataCandidate(t *testing.T) {
 }
 
 func TestRemoteSessionLifecycleDeletesDuplicateMetadataCandidates(t *testing.T) {
-	for _, provider := range []RemoteProvider{SandboxTypeCube, SandboxTypeE2B} {
+	for _, provider := range []RemoteProvider{SandboxTypeE2B, SandboxTypeE2B} {
 		t.Run(string(provider), func(t *testing.T) {
 			store := NewMemorySessionSandboxBindingStore()
 			client := newFakeRemoteClient(provider)
@@ -654,7 +654,7 @@ func TestRemoteSessionLifecycleAdoptsTokenlessSandboxWhenInboundPublic(t *testin
 }
 
 func TestRemoteSessionLifecycleStopsDuplicateCleanupAfterLockLoss(t *testing.T) {
-	for _, provider := range []RemoteProvider{SandboxTypeCube, SandboxTypeE2B} {
+	for _, provider := range []RemoteProvider{SandboxTypeE2B, SandboxTypeE2B} {
 		t.Run(string(provider), func(t *testing.T) {
 			base := NewMemorySessionSandboxBindingStore()
 			store := &cancelableLifecycleStore{SessionSandboxBindingStore: base}
@@ -739,7 +739,7 @@ func TestE2BRemoteSessionLifecycleBindingStoreContract(t *testing.T) {
 
 func TestRemoteSessionLifecycleCleansCreatedSandboxWhenSessionDisappears(t *testing.T) {
 	store := NewMemorySessionSandboxBindingStore()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	checker := &fakeSessionExistenceChecker{results: []bool{true, false}}
 	lifecycle := newTestRemoteSessionLifecycle(t, client, store, checker)
 	key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
@@ -757,7 +757,7 @@ func TestRemoteSessionLifecycleCleansCreatedSandboxWhenSessionDisappears(t *test
 
 func TestRemoteSessionLifecycleCleansCreatedSandboxAfterCallerCancellation(t *testing.T) {
 	store := NewMemorySessionSandboxBindingStore()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	checker := &fakeSessionExistenceChecker{exists: true}
 	lifecycle := newTestRemoteSessionLifecycle(t, client, store, checker)
 	key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
@@ -780,7 +780,7 @@ func TestRemoteSessionLifecycleCleansCreatedSandboxAfterCallerCancellation(t *te
 
 func TestRemoteSessionLifecycleCleansCreateLoserAndUsesWinner(t *testing.T) {
 	base := NewMemorySessionSandboxBindingStore()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	checker := &fakeSessionExistenceChecker{exists: true}
 	key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
 	client.addSandbox("winner", "template-a", RemoteStateRunning, nil, time.Now())
@@ -807,7 +807,7 @@ func TestRemoteSessionLifecycleCleansCreateLoserAndUsesWinner(t *testing.T) {
 
 func TestRemoteSessionLifecycleDoesNotDeleteCreatedSandboxChosenAsWinner(t *testing.T) {
 	base := NewMemorySessionSandboxBindingStore()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	checker := &fakeSessionExistenceChecker{exists: true}
 	key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
 	store := &bindingStoreFaults{base: base, forceCreateFalse: true}
@@ -834,14 +834,14 @@ func TestRemoteSessionLifecycleCleansCreatedSandboxWhenBindingWriteFails(t *test
 	base := NewMemorySessionSandboxBindingStore()
 	bindErr := errors.New("binding write failed")
 	cleanupErr := NewRemoteError(
-		SandboxTypeCube,
+		SandboxTypeE2B,
 		"Delete",
 		RemoteErrorKindUnavailable,
 		"cleanup unavailable",
 		nil,
 	)
 	store := &bindingStoreFaults{base: base, createErr: bindErr}
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	client.deleteErrs["cube-1"] = cleanupErr
 	lifecycle := newTestRemoteSessionLifecycle(
 		t,
@@ -865,9 +865,9 @@ func TestRemoteSessionLifecycleCleansCreatedSandboxWhenBindingWriteFails(t *test
 
 func TestRemoteSessionLifecycleDoesNotCreateWhenRecoveryListFails(t *testing.T) {
 	store := NewMemorySessionSandboxBindingStore()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	listErr := NewRemoteError(
-		SandboxTypeCube,
+		SandboxTypeE2B,
 		"List",
 		RemoteErrorKindUnavailable,
 		"list unavailable",
@@ -928,7 +928,7 @@ func TestRemoteSessionLifecycleFailsClosedOnBindingErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := newFakeRemoteClient(SandboxTypeCube)
+			client := newFakeRemoteClient(SandboxTypeE2B)
 			lifecycle := newTestRemoteSessionLifecycle(
 				t,
 				client,
@@ -949,7 +949,7 @@ func TestRemoteSessionLifecycleFailsClosedOnBindingErrors(t *testing.T) {
 
 func TestRemoteSessionLifecycleSerializesResolveAndDestroy(t *testing.T) {
 	store := NewMemorySessionSandboxBindingStore()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	checker := &fakeSessionExistenceChecker{exists: true}
 	lifecycle := newTestRemoteSessionLifecycle(t, client, store, checker)
 	key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
@@ -995,7 +995,7 @@ func TestRemoteSessionLifecycleSerializesResolveAndDestroy(t *testing.T) {
 
 func TestRemoteSessionLifecycleDoesNotCreateForDeletedSession(t *testing.T) {
 	store := NewMemorySessionSandboxBindingStore()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	checker := &fakeSessionExistenceChecker{exists: false}
 	lifecycle := newTestRemoteSessionLifecycle(t, client, store, checker)
 	key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
@@ -1010,7 +1010,7 @@ func TestRemoteSessionLifecycleDoesNotCreateForDeletedSession(t *testing.T) {
 
 func TestRemoteSessionLifecycleCleansBindingAfterSessionDeletion(t *testing.T) {
 	store := NewMemorySessionSandboxBindingStore()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	checker := &fakeSessionExistenceChecker{exists: true}
 	lifecycle := newTestRemoteSessionLifecycle(t, client, store, checker)
 	key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
@@ -1031,7 +1031,7 @@ func TestRemoteSessionLifecycleCleansBindingAfterSessionDeletion(t *testing.T) {
 func TestRemoteSessionLifecycleDestroySemantics(t *testing.T) {
 	t.Run("transient delete preserves binding", func(t *testing.T) {
 		store := NewMemorySessionSandboxBindingStore()
-		client := newFakeRemoteClient(SandboxTypeCube)
+		client := newFakeRemoteClient(SandboxTypeE2B)
 		lifecycle := newTestRemoteSessionLifecycle(
 			t,
 			client,
@@ -1041,7 +1041,7 @@ func TestRemoteSessionLifecycleDestroySemantics(t *testing.T) {
 		key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
 		client.addSandbox("existing", "template-a", RemoteStateRunning, nil, time.Now())
 		client.deleteErrs["existing"] = NewRemoteError(
-			SandboxTypeCube,
+			SandboxTypeE2B,
 			"Delete",
 			RemoteErrorKindUnavailable,
 			"offline",
@@ -1063,7 +1063,7 @@ func TestRemoteSessionLifecycleDestroySemantics(t *testing.T) {
 
 	t.Run("not found delete removes binding", func(t *testing.T) {
 		store := NewMemorySessionSandboxBindingStore()
-		client := newFakeRemoteClient(SandboxTypeCube)
+		client := newFakeRemoteClient(SandboxTypeE2B)
 		lifecycle := newTestRemoteSessionLifecycle(
 			t,
 			client,
@@ -1096,7 +1096,7 @@ func TestRemoteSessionLifecycleDestroySemantics(t *testing.T) {
 		)
 		key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
 		old := validSessionSandboxBinding(key, "cube-old")
-		old.Provider = SandboxTypeCube
+		old.Provider = SandboxTypeE2B
 		created, err := store.Create(context.Background(), key, old)
 		require.NoError(t, err)
 		require.True(t, created)
@@ -1113,7 +1113,7 @@ func TestRemoteSessionLifecycleDestroySemantics(t *testing.T) {
 		base := NewMemorySessionSandboxBindingStore()
 		deleteErr := errors.New("binding delete failed")
 		store := &bindingStoreFaults{base: base, deleteErr: deleteErr}
-		client := newFakeRemoteClient(SandboxTypeCube)
+		client := newFakeRemoteClient(SandboxTypeE2B)
 		lifecycle := newTestRemoteSessionLifecycle(
 			t,
 			client,
@@ -1173,7 +1173,7 @@ type lifecycleFixture struct {
 
 func newLifecycleFixture(t *testing.T) *lifecycleFixture {
 	t.Helper()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	bindings := NewMemorySessionSandboxBindingStore()
 	checker := &fakeSessionExistenceChecker{exists: true}
 	lifecycle, err := newRemoteSessionLifecycle(
@@ -1345,7 +1345,7 @@ func TestInvalidateStaysWithinTheWorkspace(t *testing.T) {
 func newTestLifecycleWithConfigID(t *testing.T, configID string) *remoteSessionLifecycle {
 	t.Helper()
 	lifecycle, err := newRemoteSessionLifecycle(
-		newFakeRemoteClient(SandboxTypeCube),
+		newFakeRemoteClient(SandboxTypeE2B),
 		NewMemorySessionSandboxBindingStore(),
 		&fakeSessionExistenceChecker{exists: true},
 		RemoteCreateRequest{TemplateID: "template-a"},

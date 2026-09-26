@@ -69,9 +69,7 @@ prepare_patched_anydoc() {
   if [ -z "$src" ]; then
     local tarball="$crate_dir/.anydoc-$anydoc_version.crate"
     echo "Fetching anydoc $anydoc_version to patch document_to_markdown into the public API"
-    if ! curl -fsSL "https://rsproxy.cn/api/v1/crates/anydoc/$anydoc_version/download" -o "$tarball"; then
-      curl -fsSL "https://static.crates.io/crates/anydoc/anydoc-$anydoc_version.crate" -o "$tarball"
-    fi
+    curl -fsSL "https://static.crates.io/crates/anydoc/anydoc-$anydoc_version.crate" -o "$tarball"
     local unpack="$crate_dir/.anydoc-unpack"
     rm -rf "$unpack"
     mkdir -p "$unpack"
@@ -100,7 +98,7 @@ prepare_patched_anydoc() {
 go_version=$(sed -n 's/^const Version = "\([^"]*\)".*/\1/p' "$crate_dir/version.go" | head -1)
 if [ "$go_version" != "$anydoc_version" ]; then
   echo "error: version.go says '$go_version' but Cargo.toml pins anydoc '$anydoc_version'." >&2
-  echo "Bump both: the Go constant is the version WeKnora records for parsed documents." >&2
+  echo "Bump both: the Go constant is the version Knowledge Hub records for parsed documents." >&2
   exit 1
 fi
 
@@ -117,4 +115,4 @@ mkdir -p "$dest"
 cp "$crate_dir/target/$target/release/$lib_name" "$dest/$lib_name"
 
 echo "Wrote $dest/$lib_name"
-echo "Build WeKnora with the archive: go build -tags anydoc ./cmd/server"
+echo "Build Knowledge Hub with the archive: go build -tags anydoc ./cmd/server"

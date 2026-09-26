@@ -3,15 +3,16 @@ package runtime
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/models"
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/catalog"
-	"github.com/Tencent/WeKnora/internal/models/internal/configcopy"
-	"github.com/Tencent/WeKnora/internal/models/providers"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/catalog"
+	"github.com/ai-tool-collection/WeKnora/internal/models/internal/configcopy"
+	"github.com/ai-tool-collection/WeKnora/internal/models/providers"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Ref identifies one configured model.
@@ -66,13 +67,49 @@ type Resolved struct {
 }
 
 // Resolve merges the vendor, catalog entry, extra-config and per-row
-// overrides for a model reference. It never fails for unknown vendors or
-// models: they degrade to the generic OpenAI-compatible baseline.
+// overrides for a model reference. Unknown vendors normally use the generic
+// OpenAI-compatible baseline; removed providers are rejected.
 func Resolve(ref Ref) (*Resolved, error) { return Default().Resolve(ref) }
 
 // Resolve merges one model against a single generation of this runtime.
 func (rt *Runtime) Resolve(ref Ref) (*Resolved, error) {
+	if blockedModelProvider(ref.Provider) || blockedModelEndpoint(ref.BaseURL) {
+		return nil, fmt.Errorf("model provider or endpoint is not supported in this build")
+	}
 	return resolveWithVendor(ref, rt.selectProvider(ref.Provider, ref.BaseURL))
+}
+
+// Legacy rows may still name removed providers. Reject them before the generic
+// provider fallback can send their stored credentials to the old endpoint.
+func blockedModelProvider(provider string) bool {
+	switch strings.ToLower(strings.TrimSpace(provider)) {
+	case "aliyun", "alibaba", "baidu", "deepseek", "doubao", "hunyuan", "lkeap", "longcat", "mimo",
+		"minimax", "modelscope", "moonshot", "qianfan", "qiniu",
+		"siliconflow", "tencent", "volcengine", "weknoracloud", "zhipu":
+		return true
+	}
+	return false
+}
+
+func blockedModelEndpoint(raw string) bool {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || u.Hostname() == "" {
+		return false
+	}
+	host := strings.ToLower(strings.TrimSuffix(u.Hostname(), "."))
+	for _, domain := range []string{
+		"aliyuncs.com", "deepseek.com", "volces.com", "volcengine.com",
+		"bigmodel.cn", "modelscope.cn", "moonshot.cn", "minimaxi.com",
+		"siliconflow.cn", "qiniu.com", "baidu.com", "baidubce.com", "qq.com",
+		"tencentcloudapi.com", "myqcloud.com", "qcloud.com", "aliyun.com",
+		"weixin.qq.com", "larksuite.com", "feishu.cn", "dingtalk.com",
+		"yuque.com", "xiaomimimo.com", "longcat.chat",
+	} {
+		if host == domain || strings.HasSuffix(host, "."+domain) {
+			return true
+		}
+	}
+	return false
 }
 
 func resolveWithVendor(ref Ref, vendor *Provider) (*Resolved, error) {
@@ -508,7 +545,7 @@ func resolveTranscriptions(
 	}
 	settings.API = protocol
 	switch settings.LanguageParam {
-	case "", api.LanguageForm, api.LanguageHeader, api.LanguageASROptions:
+	case "", api.LanguageForm, api.LanguageHeader:
 	default:
 		return nil, fmt.Errorf("catalog: unknown language_param %q for %s/%s",
 			settings.LanguageParam, vendor.ID, spec.ID)

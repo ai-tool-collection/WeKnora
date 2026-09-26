@@ -12,7 +12,7 @@ import (
 
 // UnmarshalSkillFrontmatter decodes the YAML between SKILL.md's --- markers.
 //
-// Third-party skills (ClawHub / SkillHub) often indent `version` / `description`
+// Third-party skills may indent `version` / `description`
 // under `name:` as if it were a nested mapping, or leave a colon unquoted in
 // a scalar. Strict YAML rejects both with "mapping values are not allowed in
 // this context". When the first parse fails, those two conservative repairs

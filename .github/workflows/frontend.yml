@@ -68,8 +68,8 @@ jobs:
           docker build \
             -f frontend/Dockerfile \
             --build-arg VITE_FRONTEND_COMMIT="${GITHUB_SHA::7}" \
-            -t weknora-ui:ci \
+            -t knowledge-hub-ui:ci \
             frontend/
 
       - name: Test embed and MCP proxy routes
-        run: python3 scripts/test_embed_nginx.py weknora-ui:ci
+        run: python3 scripts/test_embed_nginx.py knowledge-hub-ui:ci

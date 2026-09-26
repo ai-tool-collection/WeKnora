@@ -1,14 +1,12 @@
 package im
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -95,11 +93,14 @@ func imCredentialsConfigured(cred types.JSON) bool {
 }
 
 func (ch *IMChannel) BeforeCreate(tx *gorm.DB) error {
+	if err := ch.validatePlatform(); err != nil {
+		return err
+	}
 	if ch.ID == "" {
 		ch.ID = uuid.New().String()
 	}
 	if ch.Mode == "" {
-		if ch.Platform == "mattermost" || ch.Platform == "yunzhijia" {
+		if ch.Platform == "mattermost" {
 			ch.Mode = "webhook"
 		} else {
 			ch.Mode = "websocket"
@@ -124,6 +125,9 @@ func (ch *IMChannel) BeforeCreate(tx *gorm.DB) error {
 // BeforeSave ensures bot_identity is recomputed and session_mode is validated
 // on every save (create + update).
 func (ch *IMChannel) BeforeSave(tx *gorm.DB) error {
+	if err := ch.validatePlatform(); err != nil {
+		return err
+	}
 	if ch.SessionMode == "" {
 		ch.SessionMode = string(SessionModeUser)
 	}
@@ -135,6 +139,15 @@ func (ch *IMChannel) BeforeSave(tx *gorm.DB) error {
 	}
 	ch.BotIdentity = ch.computeBotIdentity()
 	return nil
+}
+
+func (ch *IMChannel) validatePlatform() error {
+	switch ch.Platform {
+	case "slack", "telegram", "mattermost":
+		return nil
+	default:
+		return fmt.Errorf("unsupported IM platform: %s", ch.Platform)
+	}
 }
 
 func (ch *IMChannel) normalizeAndValidateLocale() error {
@@ -181,25 +194,6 @@ func (ch *IMChannel) computeBotIdentity() string {
 	}
 
 	switch ch.Platform {
-	case "wecom":
-		switch ch.Mode {
-		case "websocket":
-			if botID := str("bot_id"); botID != "" {
-				return "wecom:ws:" + botID
-			}
-		case "webhook":
-			corpID := str("corp_id")
-			agentID := str("corp_agent_id")
-			if corpID != "" && agentID != "" {
-				return "wecom:wh:" + corpID + ":" + agentID
-			}
-		}
-	// Feishu and Lark app_ids live in separate clouds and never collide, so the
-	// platform prefix keeps the same app_id on both from looking like one bot.
-	case "feishu", "lark":
-		if appID := str("app_id"); appID != "" {
-			return ch.Platform + ":" + appID
-		}
 	case "telegram":
 		if botToken := str("bot_token"); botToken != "" {
 			// Use the bot ID part (before the colon) as identity.
@@ -208,31 +202,9 @@ func (ch *IMChannel) computeBotIdentity() string {
 			}
 			return "telegram:" + botToken
 		}
-	case "dingtalk":
-		if clientID := str("client_id"); clientID != "" {
-			return "dingtalk:" + clientID
-		}
 	case "mattermost":
 		if tok := str("outgoing_token"); tok != "" {
 			return "mattermost:wh:" + tok
-		}
-	case "wechat":
-		if botID := str("ilink_bot_id"); botID != "" {
-			return "wechat:" + botID
-		}
-	case "qqbot":
-		if appID := str("app_id"); appID != "" {
-			return "qqbot:" + appID
-		}
-	case "yunzhijia":
-		if sendMsgURL := str("send_msg_url"); sendMsgURL != "" {
-			parsed, err := url.Parse(sendMsgURL)
-			if err != nil {
-				return ""
-			}
-			if token := strings.TrimSpace(parsed.Query().Get("yzjtoken")); token != "" {
-				return fmt.Sprintf("yunzhijia:%x", sha256.Sum256([]byte(token)))
-			}
 		}
 	}
 	return ""

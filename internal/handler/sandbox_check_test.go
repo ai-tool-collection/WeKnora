@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 func TestSandboxConnectionCheckConfigAllowsTemplateDiscoveryAfterConnection(t *testing.T) {
@@ -42,29 +42,6 @@ func TestRunStatelessSandboxCheckRemovedWithLocalBackend(t *testing.T) {
 // The probe has to run under the policy the admin configured, or
 // egress_available answers a question nobody asked: whether the provider's
 // default allows egress.
-func TestDeepSandboxCheckUsesConfiguredNetworkPolicy(t *testing.T) {
-	incoming := &types.TenantSandboxConfig{
-		SandboxType: "cube",
-		Cube: &types.CubeSandboxConfig{
-			APIURL: "https://203.0.113.20", ProxyURL: "https://203.0.113.20",
-			SandboxDomain: "cube.app", TemplateID: "tpl-1",
-		},
-		Network: &types.SandboxNetworkPolicy{
-			DenyEgressByDefault: true,
-			AllowOut:            []string{"api.example.com"},
-		},
-	}
-
-	effective, err := sandbox.ResolveEffectiveConfig(incoming, sandbox.DefaultConfig())
-	require.NoError(t, err)
-
-	require.NotNil(t, effective.Network.AllowInternetAccess)
-	require.False(t, *effective.Network.AllowInternetAccess)
-	require.Equal(t, []string{"api.example.com"}, effective.Network.AllowOut)
-}
-
-// Under a deny-by-default policy a blocked probe is the policy working, not a
-// misconfiguration, so it must not be reported as a failure.
 func TestDeepSandboxCheckReportsEgressRestrictedRatherThanFailed(t *testing.T) {
 	result := &SandboxCheckResponse{OK: true, Provider: "cube"}
 	denied := false

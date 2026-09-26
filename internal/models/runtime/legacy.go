@@ -3,7 +3,7 @@ package runtime
 import (
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
 )
 
 // inferAPIFromURL preserves protocol selection for legacy URLs.

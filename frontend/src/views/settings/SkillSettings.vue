@@ -565,7 +565,7 @@ function sandboxTargetLine(record: SandboxConfigRecord): string {
   if (record.sandbox_type === 'docker') {
     return record.config?.docker?.image?.trim() || ''
   }
-  const remote = record.config?.e2b || record.config?.cube
+  const remote = record.config?.e2b
   const raw = remote?.api_url?.trim() || ''
   if (!raw) return ''
   try {

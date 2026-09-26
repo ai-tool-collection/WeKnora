@@ -23,7 +23,7 @@ withDefaults(
   defineProps<{
     label: string
     hint?: string
-    variant?: 'chrome' | 'claw'
+    variant?: 'chrome'
   }>(),
   { variant: 'chrome' },
 )

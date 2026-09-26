@@ -89,7 +89,7 @@ RUN if [ -n "$APT_MIRROR" ]; then \
 
 WORKDIR /app
 
-# 安装运行时依赖（已移除 OCR/PaddleOCR 相关依赖）
+# Install runtime dependencies for the document reader.
 RUN apt-get update && apt-get install -y \
     libjpeg62-turbo \
     wget \

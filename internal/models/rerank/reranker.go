@@ -7,18 +7,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/api/cohererank"
-	"github.com/Tencent/WeKnora/internal/models/api/dashscoperank"
-	"github.com/Tencent/WeKnora/internal/models/api/nimrerank"
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api/cohererank"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api/nimrerank"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
 
 	// modelruntime.Resolve answers from the vendor catalog, which is empty until
 	// the vendor packages have run their init. Without this import every row
-	// resolves to the generic vendor: LKEAP and Volcengine would lose their
-	// signed clients and Aliyun its native protocol.
-	"github.com/Tencent/WeKnora/internal/types"
+	// resolves to the generic vendor and loses provider-specific protocols.
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Reranker defines the interface for document reranking
@@ -115,7 +113,7 @@ type RerankerConfig struct {
 	ModelName   string
 	Source      types.ModelSource
 	ModelID     string
-	Provider    string                   // Provider identifier: openai, aliyun, zhipu, siliconflow, jina, generic
+	Provider    string                   // Provider identifier: openai, jina, nvidia, generic
 	Spec        *types.ModelSpecOverride `json:"spec,omitempty"`
 	ExtraConfig map[string]string
 	// CustomHeaders 允许在调用远程 API 时附加自定义 HTTP 请求头（类似 OpenAI Python SDK 的 extra_headers）。
@@ -126,7 +124,7 @@ type RerankerConfig struct {
 
 // ConfigFromModel 根据 types.Model 构造 RerankerConfig。
 // 生产路径（从 DB 拉起）和测试连接路径（临时表单）共享这份映射。
-// appID / appSecret 是已解密的 WeKnoraCloud 凭证，调用方负责传入。
+// appID and appSecret are legacy optional credentials supplied by the caller.
 func ConfigFromModel(m *types.Model, appID, appSecret string) *RerankerConfig {
 	if m == nil {
 		return nil
@@ -197,14 +195,8 @@ func newReranker(config *RerankerConfig) (Reranker, error) {
 	switch resolved.RerankAPI {
 	case api.RerankCohere:
 		client = cohererank.New(cohererank.Config{Endpoint: endpoint, Settings: resolved.Rerank})
-	case api.RerankDashScope:
-		client = dashscoperank.New(dashscoperank.Config{Endpoint: endpoint, Settings: resolved.Rerank})
 	case api.RerankNIM:
 		client = nimrerank.New(nimrerank.Config{Endpoint: endpoint, Settings: resolved.Rerank})
-	case api.RerankTencentLKEAP:
-		client, err = newLKEAPClient(config, resolved)
-	case api.RerankVolcengineKnowledge:
-		client, err = newVolcengineClient(config, resolved)
 	default:
 		return nil, fmt.Errorf("unsupported rerank api %q for provider %s", resolved.RerankAPI, vendor.ID)
 	}

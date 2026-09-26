@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/types"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 func allowNotionTestServer(t *testing.T) {

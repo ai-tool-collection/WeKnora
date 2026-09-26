@@ -3,8 +3,8 @@ package runtime_test
 import (
 	"testing"
 
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
-	"github.com/Tencent/WeKnora/internal/types"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 func TestValidateRow(t *testing.T) {
@@ -19,38 +19,38 @@ func TestValidateRow(t *testing.T) {
 			name: "nil parameters", modelName: "x", modelType: types.ModelTypeKnowledgeQA,
 		},
 		{
-			name: "a catalogued embedding row resolves", modelName: "text-embedding-v4",
+			name: "a catalogued embedding row resolves", modelName: "text-embedding-3-small",
 			modelType: types.ModelTypeEmbedding,
-			params:    &types.ModelParameters{Provider: "aliyun"},
+			params:    &types.ModelParameters{Provider: "openai"},
 		},
 		{
 			// Embedding is built from Resolve too, so a bad overlay fails
 			// every call; it must fail the save instead.
-			name: "unknown embedding compat key is rejected", modelName: "text-embedding-v4",
+			name: "unknown embedding compat key is rejected", modelName: "text-embedding-3-small",
 			modelType: types.ModelTypeEmbedding,
 			params: &types.ModelParameters{
-				Provider: "aliyun", Spec: &types.ModelSpecOverride{Compat: map[string]any{"max_tokens_field": "x"}},
+				Provider: "openai", Spec: &types.ModelSpecOverride{Compat: map[string]any{"max_tokens_field": "x"}},
 			},
 			wantErr: true,
 		},
 		{
-			name: "unknown embedding protocol is rejected", modelName: "text-embedding-v4",
+			name: "unknown embedding protocol is rejected", modelName: "text-embedding-3-small",
 			modelType: types.ModelTypeEmbedding,
 			params: &types.ModelParameters{
-				Provider: "aliyun", Spec: &types.ModelSpecOverride{Compat: map[string]any{"api": "openai-completions"}},
+				Provider: "openai", Spec: &types.ModelSpecOverride{Compat: map[string]any{"api": "openai-completions"}},
 			},
 			wantErr: true,
 		},
 		{
-			name: "an embedding name inside a chat glob is accepted", modelName: "qwen3.8-text-embedding",
+			name: "an embedding name inside a chat glob is accepted", modelName: "custom-embedding",
 			modelType: types.ModelTypeEmbedding,
-			params:    &types.ModelParameters{Provider: "aliyun"},
+			params:    &types.ModelParameters{Provider: "openai"},
 		},
 		{
-			name: "rerank truncation on a vendor without the extension is rejected", modelName: "gte-rerank-v2",
+			name: "rerank truncation on a vendor without the extension is rejected", modelName: "jina-reranker-v3",
 			modelType: types.ModelTypeRerank,
 			params: &types.ModelParameters{
-				Provider: "aliyun", ExtraConfig: map[string]string{"truncate_prompt_tokens": "512"},
+				Provider: "jina", ExtraConfig: map[string]string{"truncate_prompt_tokens": "512"},
 			},
 			wantErr: true,
 		},
@@ -68,32 +68,32 @@ func TestValidateRow(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "a catalogued chat row resolves", modelName: "deepseek-v4-pro",
+			name: "a catalogued chat row resolves", modelName: "gpt-4o",
 			modelType: types.ModelTypeKnowledgeQA,
-			params:    &types.ModelParameters{Provider: "deepseek"},
+			params:    &types.ModelParameters{Provider: "openai"},
 		},
 		{
-			name: "unknown protocol is rejected", modelName: "deepseek-v4-pro",
+			name: "unknown protocol is rejected", modelName: "gpt-4o",
 			modelType: types.ModelTypeKnowledgeQA,
 			params: &types.ModelParameters{
-				Provider: "deepseek", Spec: &types.ModelSpecOverride{API: "openai-chat-v9"},
+				Provider: "openai", Spec: &types.ModelSpecOverride{API: "openai-chat-v9"},
 			},
 			wantErr: true,
 		},
 		{
-			name: "misspelled thinking level is rejected", modelName: "deepseek-v4-pro",
+			name: "misspelled thinking level is rejected", modelName: "gpt-4o",
 			modelType: types.ModelTypeKnowledgeQA,
 			params: &types.ModelParameters{
-				Provider: "deepseek",
+				Provider: "openai",
 				Spec:     &types.ModelSpecOverride{ThinkingLevels: map[string]*string{"hgih": nil}},
 			},
 			wantErr: true,
 		},
 		{
-			name: "unknown compat key is rejected", modelName: "deepseek-v4-pro",
+			name: "unknown compat key is rejected", modelName: "gpt-4o",
 			modelType: types.ModelTypeKnowledgeQA,
 			params: &types.ModelParameters{
-				Provider: "deepseek",
+				Provider: "openai",
 				Spec:     &types.ModelSpecOverride{Compat: map[string]any{"max_tokens_fields": "max_tokens"}},
 			},
 			wantErr: true,

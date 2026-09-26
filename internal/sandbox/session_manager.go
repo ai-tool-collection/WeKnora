@@ -34,7 +34,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // SessionInputRoot is reserved for durable user attachments restored from
@@ -164,8 +164,6 @@ func NewSessionBoundManager(deps SessionBoundManagerConfig) (*SessionBoundManage
 	// applied here: this constructor also serves named configs, which must be
 	// told what they are missing rather than handed a built-in localhost value.
 	switch provider {
-	case SandboxTypeCube:
-		applyCubeRuntimeDefaults(cfg)
 	case SandboxTypeE2B:
 		applyE2BRuntimeDefaults(cfg)
 	case SandboxTypeDocker:
@@ -1565,23 +1563,6 @@ func buildSessionCreateRequest(provider RemoteProvider, cfg *Config) (RemoteCrea
 	envVars := withWorkspaceEnvDefaults(cloneMetadata(cfg.EnvVars))
 
 	switch provider {
-	case SandboxTypeCube:
-		ttl := cfg.CubeSandboxTTL
-		if ttl <= 0 {
-			ttl = DefaultCubeSandboxTTL
-		}
-		return RemoteCreateRequest{
-			TemplateID: cfg.CubeTemplate,
-			EnvVars:    envVars,
-			Network:    cfg.Network,
-			Timeout: RemoteTimeoutPolicy{
-				Mode:       RemoteTimeoutExplicit,
-				Value:      ttl,
-				Action:     RemoteOnTimeoutPause,
-				AutoResume: true,
-			},
-		}, nil
-
 	case SandboxTypeE2B:
 		ttl := cfg.E2BSandboxTTL
 		if ttl <= 0 {
@@ -1637,11 +1618,6 @@ func buildSessionCreateRequest(provider RemoteProvider, cfg *Config) (RemoteCrea
 // to their own package-level default.
 func effectiveHTTPTimeout(provider RemoteProvider, cfg *Config) time.Duration {
 	switch provider {
-	case SandboxTypeCube:
-		if cfg.CubeHTTPTimeout > 0 {
-			return cfg.CubeHTTPTimeout
-		}
-		return DefaultCubeHTTPTimeout
 	case SandboxTypeE2B:
 		if cfg.E2BHTTPTimeout > 0 {
 			return cfg.E2BHTTPTimeout
@@ -1653,7 +1629,7 @@ func effectiveHTTPTimeout(provider RemoteProvider, cfg *Config) time.Duration {
 		}
 		return DefaultDockerHTTPTimeout
 	default:
-		return DefaultCubeHTTPTimeout
+		return DefaultE2BHTTPTimeout
 	}
 }
 

@@ -13,9 +13,9 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"github.com/Tencent/WeKnora/internal/datasource"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/datasource"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // notionClient wraps the Notion API with rate limiting and retry logic.

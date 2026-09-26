@@ -22,9 +22,9 @@ const sourceLabels = {
 
 test('resolveSessionOrigin distinguishes web, IM, and embed sessions', () => {
   assert.deepEqual(resolveSessionOrigin({ id: '1' }), { kind: 'web' })
-  assert.deepEqual(resolveSessionOrigin({ id: '2', im_platform: 'feishu' }), {
+  assert.deepEqual(resolveSessionOrigin({ id: '2', im_platform: 'telegram' }), {
     kind: 'im',
-    platform: 'feishu',
+    platform: 'telegram',
   })
   assert.deepEqual(
     resolveSessionOrigin({
@@ -45,24 +45,24 @@ test('resolveSessionOrigin distinguishes web, IM, and embed sessions', () => {
 
 test('configuredPlatforms returns distinct platform keys in first-seen order', () => {
   const channels = [
-    { platform: 'feishu' },
-    { platform: 'wecom' },
-    { platform: 'feishu' },
+    { platform: 'telegram' },
+    { platform: 'slack' },
+    { platform: 'telegram' },
     { platform: '' },
   ]
-  assert.deepEqual(configuredPlatforms(channels), ['feishu', 'wecom'])
+  assert.deepEqual(configuredPlatforms(channels), ['telegram', 'slack'])
 })
 
 test('groupSessionsBySource orders web, configured IM, then embed channels', () => {
   const sessions = [
     { id: 'w', title: 'web chat' },
-    { id: 'f', title: 'feishu', im_platform: 'feishu' },
+    { id: 'f', title: 'telegram', im_platform: 'telegram' },
     { id: 'e', title: 'embed', description: `${EMBED_SESSION_MARKER_PREFIX}ec-1` },
   ]
-  const groups = groupSessionsBySource(sessions, sourceLabels, { 'ec-1': 'Help widget' }, ['feishu'], 'Pinned')
+  const groups = groupSessionsBySource(sessions, sourceLabels, { 'ec-1': 'Help widget' }, ['telegram'], 'Pinned')
   assert.deepEqual(
     groups.map((g) => g.key),
-    ['web', 'im:feishu', 'embed:ec-1'],
+    ['web', 'im:telegram', 'embed:ec-1'],
   )
   assert.equal(groups[2]?.label, 'Help widget')
 })

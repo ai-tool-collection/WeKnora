@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // ValidateProxyURL delegates to utils.ValidateURLForSSRF (only http/https pass that check).

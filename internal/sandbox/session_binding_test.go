@@ -15,7 +15,7 @@ import (
 func validSessionSandboxBinding(key SessionSandboxKey, sandboxID string) SessionSandboxBinding {
 	return SessionSandboxBinding{
 		Version:    SessionSandboxBindingVersion,
-		Provider:   SandboxTypeCube,
+		Provider:   SandboxTypeE2B,
 		TenantID:   key.TenantID,
 		SessionID:  key.SessionID,
 		SandboxID:  sandboxID,
@@ -50,10 +50,10 @@ func testSessionSandboxBindingStore(t *testing.T, store SessionSandboxBindingSto
 	deleted, err := store.DeleteIfMatch(ctx, key, SandboxTypeE2B, "sandbox-a")
 	require.NoError(t, err)
 	require.False(t, deleted)
-	deleted, err = store.DeleteIfMatch(ctx, key, SandboxTypeCube, "sandbox-b")
+	deleted, err = store.DeleteIfMatch(ctx, key, SandboxTypeE2B, "sandbox-b")
 	require.NoError(t, err)
 	require.False(t, deleted)
-	deleted, err = store.DeleteIfMatch(ctx, key, SandboxTypeCube, "sandbox-a")
+	deleted, err = store.DeleteIfMatch(ctx, key, SandboxTypeE2B, "sandbox-a")
 	require.NoError(t, err)
 	require.True(t, deleted)
 }
@@ -406,12 +406,12 @@ func TestSessionSandboxBindingValidation(t *testing.T) {
 	require.NoError(t, valid.Validate(key))
 
 	tests := []SessionSandboxBinding{
-		{Version: SessionSandboxBindingVersion + 1, Provider: SandboxTypeCube, TenantID: 42, SessionID: "session-a", SandboxID: "sandbox-a"},
+		{Version: SessionSandboxBindingVersion + 1, Provider: SandboxTypeE2B, TenantID: 42, SessionID: "session-a", SandboxID: "sandbox-a"},
 		{Version: SessionSandboxBindingVersion, TenantID: 42, SessionID: "session-a", SandboxID: "sandbox-a"},
 		{Version: SessionSandboxBindingVersion, Provider: "unknown", TenantID: 42, SessionID: "session-a", SandboxID: "sandbox-a"},
-		{Version: SessionSandboxBindingVersion, Provider: SandboxTypeCube, TenantID: 43, SessionID: "session-a", SandboxID: "sandbox-a"},
-		{Version: SessionSandboxBindingVersion, Provider: SandboxTypeCube, TenantID: 42, SessionID: "other", SandboxID: "sandbox-a"},
-		{Version: SessionSandboxBindingVersion, Provider: SandboxTypeCube, TenantID: 42, SessionID: "session-a"},
+		{Version: SessionSandboxBindingVersion, Provider: SandboxTypeE2B, TenantID: 43, SessionID: "session-a", SandboxID: "sandbox-a"},
+		{Version: SessionSandboxBindingVersion, Provider: SandboxTypeE2B, TenantID: 42, SessionID: "other", SandboxID: "sandbox-a"},
+		{Version: SessionSandboxBindingVersion, Provider: SandboxTypeE2B, TenantID: 42, SessionID: "session-a"},
 	}
 	for _, binding := range tests {
 		require.Error(t, binding.Validate(key), "binding must be rejected: %+v", binding)
@@ -441,7 +441,7 @@ func TestSessionSandboxBindingWithoutTrafficTokenStaysValid(t *testing.T) {
 
 func TestSessionSandboxBindingOmitsEmptyTrafficToken(t *testing.T) {
 	encoded, err := json.Marshal(SessionSandboxBinding{
-		Version: SessionSandboxBindingVersion, Provider: SandboxTypeCube,
+		Version: SessionSandboxBindingVersion, Provider: SandboxTypeE2B,
 		TenantID: 1, SessionID: "s", SandboxID: "sb", TemplateID: "tpl",
 		CreatedAt: time.Unix(0, 0).UTC(),
 	})
@@ -452,7 +452,7 @@ func TestSessionSandboxBindingOmitsEmptyTrafficToken(t *testing.T) {
 func TestSessionSandboxBindingRoundTripsTrafficToken(t *testing.T) {
 	const token = "traffic-token"
 	encoded, err := json.Marshal(SessionSandboxBinding{
-		Version: SessionSandboxBindingVersion, Provider: SandboxTypeCube,
+		Version: SessionSandboxBindingVersion, Provider: SandboxTypeE2B,
 		TenantID: 1, SessionID: "s", SandboxID: "sb", TemplateID: "tpl",
 		TrafficAccessToken: token, CreatedAt: time.Unix(0, 0).UTC(),
 	})

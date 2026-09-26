@@ -23,7 +23,7 @@
           class="subtitle-tag"
           :class="formData.enabled ? 'subtitle-tag--ok' : 'subtitle-tag--muted'"
         >
-          {{ formData.enabled ? t('mcpSettings.enabled', '已启用') : t('mcpSettings.disabled', '已禁用') }}
+          {{ formData.enabled ? t('mcpSettings.enabled', 'Enabled') : t('mcpSettings.disabled', 'Disabled') }}
         </span>
       </template>
       <template v-else>{{ t('mcpServiceDialog.addDesc') }}</template>
@@ -80,7 +80,7 @@
 
       <!-- Section 1 — 基本信息 -->
       <section class="setting-drawer__section mcp-settings-group">
-        <h4 class="setting-drawer__section-title">{{ t('mcpServiceDialog.basicSection', '基本信息') }}</h4>
+        <h4 class="setting-drawer__section-title">{{ t('mcpServiceDialog.basicSection', 'Basic') }}</h4>
 
         <div class="form-item">
           <label class="form-label required">{{ t('mcpServiceDialog.name') }}</label>
@@ -92,7 +92,7 @@
           <div class="vision-toggle">
             <t-switch v-model="formData.enabled" />
             <span class="form-desc form-desc--inline">
-              {{ t('mcpServiceDialog.enableServiceDesc', '关闭后该服务不会被调用') }}
+              {{ t('mcpServiceDialog.enableServiceDesc', 'When off, this service will not be invoked') }}
             </span>
           </div>
         </div>
@@ -100,7 +100,7 @@
 
       <!-- Section 2 — 连接配置（transport + url） -->
       <section class="setting-drawer__section mcp-settings-group">
-        <h4 class="setting-drawer__section-title">{{ t('mcpServiceDialog.connectionSection', '连接配置') }}</h4>
+        <h4 class="setting-drawer__section-title">{{ t('mcpServiceDialog.connectionSection', 'Connection') }}</h4>
 
         <div class="form-item">
           <label class="form-label required">{{ t('mcpServiceDialog.transportType') }}</label>
@@ -176,7 +176,7 @@
         <h4 class="setting-drawer__section-title">{{ t('mcpServiceDialog.authConfig') }}</h4>
 
         <div class="form-item">
-          <label class="form-label">{{ t('mcpServiceDialog.authType', '认证方式') }}</label>
+          <label class="form-label">{{ t('mcpServiceDialog.authType', 'Auth Method') }}</label>
           <!-- 展开式 pill segmented，与上方传输类型同款，避免再点开下拉 -->
           <div class="source-options" role="radiogroup">
             <button
@@ -195,20 +195,20 @@
         <!-- OAuth 2.0：零配置（自动发现 + 动态客户端注册），按用户授权 -->
         <template v-if="isOAuth">
           <div class="form-item">
-            <label class="form-label">{{ t('mcpServiceDialog.oauthScopes', 'Scopes（可选，空格分隔）') }}</label>
+            <label class="form-label">{{ t('mcpServiceDialog.oauthScopes', 'Scopes (optional, space-separated)') }}</label>
             <t-input v-model="oauthScopesText" :placeholder="t('mcpServiceDialog.optional')" />
           </div>
           <div class="form-item">
-            <label class="form-label">{{ t('mcpServiceDialog.oauthAuthorization', '授权状态') }}</label>
+            <label class="form-label">{{ t('mcpServiceDialog.oauthAuthorization', 'Authorization Status') }}</label>
             <div class="oauth-status">
               <t-tag v-if="oauthTokenState === 'authorized'" theme="success" variant="light">
-                {{ t('mcpServiceDialog.oauthAuthorized', '已授权') }}
+                {{ t('mcpServiceDialog.oauthAuthorized', 'Authorized') }}
               </t-tag>
               <t-tag v-else-if="oauthTokenState === 'refreshable'" theme="primary" variant="light">
-                {{ t('mcpServiceDialog.oauthRefreshable', 'Token 已过期，将自动刷新') }}
+                {{ t('mcpServiceDialog.oauthRefreshable', 'Token expired; it will refresh automatically on next use') }}
               </t-tag>
               <t-tag v-else theme="warning" variant="light">
-                {{ t('mcpServiceDialog.oauthUnauthorized', '未授权') }}
+                {{ t('mcpServiceDialog.oauthUnauthorized', 'Unauthorized') }}
               </t-tag>
               <t-button
                 size="small"
@@ -216,7 +216,7 @@
                 :loading="oauthAuthorizing || oauthChecking || submitting"
                 @click="handleAuthorize"
               >
-                {{ oauthTokenState === 'reauth_required' ? t('mcpServiceDialog.oauthAuthorize', '去授权') : t('mcpServiceDialog.oauthReauthorize', '重新授权') }}
+                {{ oauthTokenState === 'reauth_required' ? t('mcpServiceDialog.oauthAuthorize', 'Authorize') : t('mcpServiceDialog.oauthReauthorize', 'Re-authorize') }}
               </t-button>
               <t-button
                 v-if="oauthTokenState !== 'reauth_required' && currentService?.id"
@@ -225,11 +225,11 @@
                 variant="outline"
                 @click="handleRevokeOAuth"
               >
-                {{ t('mcpServiceDialog.oauthRevoke', '撤销授权') }}
+                {{ t('mcpServiceDialog.oauthRevoke', 'Revoke') }}
               </t-button>
             </div>
             <p class="form-desc">
-              {{ t('mcpServiceDialog.oauthAuthorizeHint', '点击「去授权」会先自动保存当前配置，再发起授权（每个用户独立授权）。') }}
+              {{ t('mcpServiceDialog.oauthAuthorizeHint', 'Clicking "Authorize" saves the current config first, then starts authorization (each user authorizes individually).') }}
             </p>
           </div>
         </template>
@@ -243,12 +243,12 @@
         <template v-else-if="formData.auth_config.auth_type === 'api_key'">
           <!-- 请求头名称（非密钥）：默认 X-API-Key，Bearer/裸 token 场景填 Authorization。 -->
           <div class="form-item">
-            <label class="form-label">{{ t('mcpServiceDialog.apiKeyHeader', '请求头名称') }}</label>
+            <label class="form-label">{{ t('mcpServiceDialog.apiKeyHeader', 'Header Name') }}</label>
             <t-input
               v-model="formData.auth_config.api_key_header"
               placeholder="X-API-Key"
             />
-            <p class="form-desc">{{ t('mcpServiceDialog.apiKeyHeaderDesc', '留空默认 X-API-Key。Bearer 方式请填 Authorization，并在下方密钥值中写 “Bearer <token>”；需要裸 token 时填 Authorization 并直接填入 token。') }}</p>
+            <p class="form-desc">{{ t('mcpServiceDialog.apiKeyHeaderDesc', 'Defaults to X-API-Key. For Bearer, set Authorization and put "Bearer <token>" in the value below; for raw-token services use Authorization with the raw token.') }}</p>
           </div>
 
           <CredentialResource
@@ -258,7 +258,7 @@
             :meta="credentialMeta"
           />
           <div v-else class="form-item">
-            <label class="form-label">{{ t('mcpServiceDialog.credentialValue', '密钥值 / Token') }}</label>
+            <label class="form-label">{{ t('mcpServiceDialog.credentialValue', 'Secret / Token') }}</label>
             <t-input
               v-model="formData.auth_config.api_key"
               type="password"
@@ -287,7 +287,7 @@
             @blur="onAdvancedNumberBlur('timeout', 30, 1, 300)"
           >
             <template #suffix>
-              <span class="number-input__unit">{{ t('mcpServiceDialog.unitSecond', '秒') }}</span>
+              <span class="number-input__unit">{{ t('mcpServiceDialog.unitSecond', 's') }}</span>
             </template>
           </t-input>
         </div>
@@ -303,7 +303,7 @@
             @blur="onAdvancedNumberBlur('retry_count', 3, 0, 10)"
           >
             <template #suffix>
-              <span class="number-input__unit">{{ t('mcpServiceDialog.unitTimes', '次') }}</span>
+              <span class="number-input__unit">{{ t('mcpServiceDialog.unitTimes', '×') }}</span>
             </template>
           </t-input>
         </div>
@@ -319,7 +319,7 @@
             @blur="onAdvancedNumberBlur('retry_delay', 1, 0, 60)"
           >
             <template #suffix>
-              <span class="number-input__unit">{{ t('mcpServiceDialog.unitSecond', '秒') }}</span>
+              <span class="number-input__unit">{{ t('mcpServiceDialog.unitSecond', 's') }}</span>
             </template>
           </t-input>
         </div>
@@ -602,9 +602,9 @@ const isOAuth = computed(() => formData.value.auth_config.auth_type === 'oauth')
 // value prefix). "None" stays as the default for services that need no auth or
 // only the custom headers configured above.
 const authTypeOptions = computed(() => [
-  { value: '', label: t('mcpServiceDialog.authTypeNone', '无 / 自定义 Header') },
+  { value: '', label: t('mcpServiceDialog.authTypeNone', 'None / Custom Header') },
   { value: 'api_key', label: t('mcpServiceDialog.authTypeApiKey', 'API Key / Token') },
-  { value: 'oauth', label: t('mcpServiceDialog.authTypeOAuth', 'OAuth 2.0（首次连接授权）') },
+  { value: 'oauth', label: t('mcpServiceDialog.authTypeOAuth', 'OAuth 2.0 (authorize on first connect)') },
 ])
 
 // ---- OAuth authorization state (edit mode only) ----
@@ -644,7 +644,7 @@ async function startAuthorize(serviceId: string) {
       frontend_redirect: frontendRedirect,
     })
     if (!authorization.authorizationUrl || !authorization.authorizationAttempt) {
-      MessagePlugin.error(t('mcpServiceDialog.toasts.authorizeFailed', '发起授权失败') as string)
+      MessagePlugin.error(t('mcpServiceDialog.toasts.authorizeFailed', 'Failed to start authorization') as string)
       oauthAuthorizing.value = false
       return
     }
@@ -661,13 +661,13 @@ async function startAuthorize(serviceId: string) {
         oauthAuthorizing.value = false
         if (oauthAuthorized.value) {
           try { popup?.close() } catch { /* cross-origin close may throw */ }
-          MessagePlugin.success(t('mcpServiceDialog.toasts.authorized', '授权成功') as string)
+          MessagePlugin.success(t('mcpServiceDialog.toasts.authorized', 'Authorization succeeded') as string)
         }
       }
     }, 1500)
   } catch (e) {
     console.error('Failed to start MCP OAuth authorization:', e)
-    MessagePlugin.error(t('mcpServiceDialog.toasts.authorizeFailed', '发起授权失败') as string)
+    MessagePlugin.error(t('mcpServiceDialog.toasts.authorizeFailed', 'Failed to start authorization') as string)
     oauthAuthorizing.value = false
   }
 }
@@ -688,10 +688,10 @@ async function handleRevokeOAuth() {
     await revokeMCPOAuthToken(currentService.value.id)
     oauthAuthorized.value = false
     oauthTokenState.value = 'reauth_required'
-    MessagePlugin.success(t('mcpServiceDialog.toasts.revoked', '已撤销授权') as string)
+    MessagePlugin.success(t('mcpServiceDialog.toasts.revoked', 'Authorization revoked') as string)
   } catch (e) {
     console.error('Failed to revoke MCP OAuth token:', e)
-    MessagePlugin.error(t('mcpServiceDialog.toasts.revokeFailed', '撤销失败') as string)
+    MessagePlugin.error(t('mcpServiceDialog.toasts.revokeFailed', 'Failed to revoke authorization') as string)
   }
 }
 
@@ -709,7 +709,7 @@ const transportLabel = computed(() => {
 // secret, so the credential card is only shown for the api_key strategy.
 const credentialFields = computed<CredentialFieldDef<McpCredentialField>[]>(() => {
   if (formData.value.auth_config.auth_type === 'api_key') {
-    return [{ key: 'api_key', label: t('mcpServiceDialog.credentialValue', '密钥值 / Token') }]
+    return [{ key: 'api_key', label: t('mcpServiceDialog.credentialValue', 'Secret / Token') }]
   }
   return []
 })

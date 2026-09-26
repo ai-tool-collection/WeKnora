@@ -165,7 +165,7 @@
       <t-form ref="formRef" :data="providerForm" label-align="top" class="provider-form">
         <!-- Section 1 — 基本信息 -->
         <section class="setting-drawer__section">
-          <h4 class="setting-drawer__section-title">{{ t('webSearchSettings.basicSection', '基本信息') }}</h4>
+          <h4 class="setting-drawer__section-title">{{ t('webSearchSettings.basicSection', 'Basic') }}</h4>
 
           <!-- providerType 选择器：仅在新建时可改 -->
           <div class="form-item">
@@ -207,7 +207,7 @@
           v-if="selectedProviderType?.requires_api_key || selectedProviderType?.supports_optional_api_key || selectedProviderType?.requires_engine_id || selectedProviderType?.requires_base_url || selectedProviderType?.config_fields?.length"
           class="setting-drawer__section"
         >
-          <h4 class="setting-drawer__section-title">{{ t('webSearchSettings.credentialsSection', '连接配置') }}</h4>
+          <h4 class="setting-drawer__section-title">{{ t('webSearchSettings.credentialsSection', 'Connection') }}</h4>
 
           <div v-if="selectedProviderType?.requires_base_url" class="form-item">
             <label class="form-label required">{{ t('webSearchSettings.baseUrlLabel') }}</label>
@@ -225,7 +225,7 @@
           <div v-if="selectedProviderType?.requires_api_key || selectedProviderType?.supports_optional_api_key" class="form-item">
             <label class="form-label" :class="{ required: selectedProviderType?.requires_api_key }">
               {{ selectedProviderType?.supports_optional_api_key && !selectedProviderType?.requires_api_key
-                ? t('webSearchSettings.apiKeyOptionalLabel', 'API Key（可选）')
+                ? t('webSearchSettings.apiKeyOptionalLabel', 'API Key (optional)')
                 : t('webSearchSettings.apiKeyLabel') }}
             </label>
             <CredentialResource
@@ -282,7 +282,7 @@
           v-if="selectedProviderType?.supports_proxy || selectedProviderType"
           class="setting-drawer__section"
         >
-          <h4 class="setting-drawer__section-title">{{ t('webSearchSettings.optionsSection', '选项') }}</h4>
+          <h4 class="setting-drawer__section-title">{{ t('webSearchSettings.optionsSection', 'Options') }}</h4>
 
           <div v-if="selectedProviderType?.supports_proxy" class="form-item">
             <label class="form-label">{{ t('webSearchSettings.proxyUrlLabel') }}</label>
@@ -814,9 +814,6 @@ onMounted(async () => {
 .provider-card--tavily .provider-card__badge {
   .provider-card-badge-color(#6235bb);
 }
-.provider-card--baidu .provider-card__badge {
-  .provider-card-badge-color(#2932e1);
-}
 .provider-card--searxng .provider-card__badge {
   .provider-card-badge-color(#215689);
 }
@@ -825,9 +822,6 @@ onMounted(async () => {
 }
 .provider-card--keenable .provider-card__badge {
   .provider-card-badge-color(#149e82);
-}
-.provider-card--zhipu .provider-card__badge {
-  .provider-card-badge-color(#2563eb);
 }
 
 .provider-card__body {
@@ -1058,10 +1052,6 @@ onMounted(async () => {
   background: rgba(98, 53, 187, 0.12);
   color: #6235BB;
 }
-.websearch-drawer--baidu .setting-drawer__header-icon {
-  background: rgba(41, 50, 225, 0.12);
-  color: #2932E1;
-}
 .websearch-drawer--searxng .setting-drawer__header-icon {
   background: rgba(33, 86, 137, 0.12);
   color: #215689;
@@ -1073,9 +1063,5 @@ onMounted(async () => {
 .websearch-drawer--keenable .setting-drawer__header-icon {
   background: rgba(20, 158, 130, 0.12);
   color: #149E82;
-}
-.websearch-drawer--zhipu .setting-drawer__header-icon {
-  background: rgba(37, 99, 235, 0.12);
-  color: #2563EB;
 }
 </style>

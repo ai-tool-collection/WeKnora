@@ -1,7 +1,7 @@
 package tools
 
 import (
-	"github.com/Tencent/WeKnora/internal/agent/skills"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/skills"
 	"sort"
 	"strings"
 )

@@ -241,13 +241,13 @@ jobs:
             -platform "${{ matrix.platform }}" \
             ${NSIS_FLAG} \
             -ldflags="${LDFLAGS}" \
-            -o "WeKnora Lite"
+            -o "Knowledge Hub"
 
       # ── macOS: bundle .app with resources, then create DMG ──
       - name: Package macOS app
         if: runner.os == 'macOS'
         run: |
-          APP_BUNDLE="WeKnora Lite.app"
+          APP_BUNDLE="Knowledge Hub.app"
           SRC="cmd/desktop/build/bin/${APP_BUNDLE}"
           RESOURCES="${SRC}/Contents/Resources"
 
@@ -272,7 +272,7 @@ jobs:
           cp -R "cmd/desktop/build/bin/${APP_BUNDLE}" "${DMG_SRC}/"
           ln -s /Applications "${DMG_SRC}/Applications"
 
-          hdiutil create -volname "WeKnora Lite" \
+          hdiutil create -volname "Knowledge Hub" \
             -srcfolder "${DMG_SRC}" \
             -ov -format UDZO \
             "${DMG_NAME}.dmg"
@@ -285,7 +285,7 @@ jobs:
         run: |
           ARCHIVE="WeKnora-Lite-App_${{ steps.ver.outputs.version }}_${{ matrix.arch_label }}"
           mkdir -p "${ARCHIVE}"
-          cp "cmd/desktop/build/bin/WeKnora Lite" "${ARCHIVE}/"
+          cp "cmd/desktop/build/bin/Knowledge Hub" "${ARCHIVE}/"
           bash ./scripts/copy-licenses.sh "${ARCHIVE}"
           if [ -f .env.lite.example ]; then
             cp .env.lite.example "${ARCHIVE}/"
@@ -307,7 +307,7 @@ jobs:
         shell: bash
         run: |
           ARCHIVE="WeKnora-Lite-App_${{ steps.ver.outputs.version }}_${{ matrix.arch_label }}"
-          INSTALLER="cmd/desktop/build/bin/WeKnora Lite-amd64-installer.exe"
+          INSTALLER="cmd/desktop/build/bin/Knowledge Hub-amd64-installer.exe"
           # Do not publish a bare executable if NSIS was unavailable: the
           # installer also carries the notices/source and supports auto-update.
           test -f "$INSTALLER"
@@ -352,33 +352,33 @@ jobs:
         id: notes
         run: |
           cat > notes.md << 'NOTES'
-          ## WeKnora Lite ${{ steps.ver.outputs.version }}
+          ## Knowledge Hub ${{ steps.ver.outputs.version }}
 
-          ### Web CLI 版（命令行 / 服务器部署）
+          ### Server archive
 
-          单二进制部署，零外部依赖（无需 Docker / PostgreSQL / Redis）。
+          The standalone server archive runs without Docker, PostgreSQL, or Redis.
 
           ```bash
-          # 1. 解压
+          # Extract the archive
           tar xzf WeKnora-lite_${{ steps.ver.outputs.version }}_<os>_<arch>.tar.gz
           cd WeKnora-lite_${{ steps.ver.outputs.version }}_<os>_<arch>
 
-          # 2. 配置
+          # Configure the server
           cp .env.lite.example .env.lite
-          # 编辑 .env.lite，至少确认 OLLAMA_BASE_URL 正确
+          # Set OLLAMA_BASE_URL in .env.lite
 
-          # 3. 启动 Ollama（如尚未运行）
+          # Start Ollama if needed
           ollama serve &
-          ollama pull qwen2.5:7b
+          ollama pull llama3.2:3b
           ollama pull nomic-embed-text
 
-          # 4. 运行
+          # Run the server
           set -a && source .env.lite && set +a
           ./WeKnora-lite
-          # 访问 http://localhost:8080
+          # Open http://localhost:8080
           ```
 
-          | 文件 | 平台 |
+          | Archive | Platform |
           |------|------|
           | `WeKnora-lite_*_linux_amd64.tar.gz` | Linux x86_64 |
           | `WeKnora-lite_*_linux_arm64.tar.gz` | Linux ARM64 |
@@ -387,19 +387,19 @@ jobs:
 
           ---
 
-          ### 桌面 APP 版（开箱即用，无需命令行）
+          ### Desktop app
 
-          原生桌面应用，内置 Web 服务，双击即可运行。
+          The desktop app includes the web server.
 
-          | 文件 | 平台 |
+          | Archive | Platform |
           |------|------|
           | `WeKnora-Lite-App_*_macOS_universal.dmg` | macOS (Intel + Apple Silicon) |
           | `WeKnora-Lite-App_*_macOS_amd64.dmg` | macOS Intel |
           | `WeKnora-Lite-App_*_macOS_arm64.dmg` | macOS Apple Silicon |
           | `WeKnora-Lite-App_*_linux_amd64.tar.gz` | Linux x86_64 |
-          | `WeKnora-Lite-App_*_windows_amd64_setup.exe` | Windows x86_64 (安装包) |
+          | `WeKnora-Lite-App_*_windows_amd64_setup.exe` | Windows x86_64 installer |
 
-          详细文档见 [LITE.md](docs/LITE.md)。
+          See the [documentation](https://github.com/ai-tool-collection/WeKnora/tree/main/website-docs).
           NOTES
 
       - name: Create release
@@ -407,7 +407,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${{ steps.ver.outputs.version }}" \
-            --title "WeKnora Lite ${{ steps.ver.outputs.version }}" \
+            --title "Knowledge Hub ${{ steps.ver.outputs.version }}" \
             --notes-file notes.md \
             WeKnora-lite_*.tar.gz \
             WeKnora-lite_*.tar.gz.sha256 \

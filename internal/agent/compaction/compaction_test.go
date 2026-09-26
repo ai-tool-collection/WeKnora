@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	agenttoken "github.com/Tencent/WeKnora/internal/agent/token"
-	"github.com/Tencent/WeKnora/internal/models/chat"
-	"github.com/Tencent/WeKnora/internal/types"
+	agenttoken "github.com/ai-tool-collection/WeKnora/internal/agent/token"
+	"github.com/ai-tool-collection/WeKnora/internal/models/chat"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

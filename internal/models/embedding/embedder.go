@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/models/utils/ollama"
-	"github.com/Tencent/WeKnora/internal/tracing/langfuse"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/models/utils/ollama"
+	"github.com/ai-tool-collection/WeKnora/internal/tracing/langfuse"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Embedder defines the interface for text vectorization
@@ -62,7 +62,7 @@ type Config struct {
 
 // ConfigFromModel 根据 types.Model 构造 embedding.Config。
 // 生产路径（从 DB 拉起）和测试连接路径（临时表单）共享这份映射。
-// appID / appSecret 是已解密的 WeKnoraCloud 凭证，调用方负责传入。
+// appID and appSecret are legacy optional credentials supplied by the caller.
 func ConfigFromModel(m *types.Model, appID, appSecret string) Config {
 	if m == nil {
 		return Config{}

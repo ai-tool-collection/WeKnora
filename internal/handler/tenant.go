@@ -12,13 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/Tencent/WeKnora/internal/config"
-	"github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/handler/dto"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
+	"github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/handler/dto"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // TenantHandler implements HTTP request handlers for tenant management
@@ -1468,7 +1468,7 @@ func (h *TenantHandler) GetTenantWebSearchConfig(c *gin.Context) {
 	})
 }
 
-// GetTenantParserEngineConfig returns the tenant's parser engine config (MinerU endpoint, API key, etc.).
+// GetTenantParserEngineConfig returns the tenant's parser engine config.
 func (h *TenantHandler) GetTenantParserEngineConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	tenant, _ := types.TenantInfoFromContext(ctx)
@@ -1906,24 +1906,9 @@ func validateParserEngineOutboundURLs(cfg *types.ParserEngineConfig) error {
 	if cfg == nil {
 		return nil
 	}
-	if endpoint := strings.TrimSpace(cfg.MinerUEndpoint); endpoint != "" {
-		if err := secutils.ValidateURLForSSRF(endpoint); err != nil {
-			return fmt.Errorf("mineru_endpoint failed SSRF validation: %v", err)
-		}
-	}
-	if vlmURL := strings.TrimSpace(cfg.MinerUVLMServerURL); vlmURL != "" {
-		if err := secutils.ValidateURLForSSRF(vlmURL); err != nil {
-			return fmt.Errorf("mineru_vlm_server_url failed SSRF validation: %v", err)
-		}
-	}
 	if odlURL := strings.TrimSpace(cfg.ODLHybridURL); odlURL != "" {
 		if err := secutils.ValidateURLForSSRF(odlURL); err != nil {
 			return fmt.Errorf("odl_hybrid_url failed SSRF validation: %v", err)
-		}
-	}
-	if endpoint := strings.TrimSpace(cfg.PaddleOCRVLEndpoint); endpoint != "" {
-		if err := secutils.ValidateURLForSSRF(endpoint); err != nil {
-			return fmt.Errorf("paddleocr_vl_endpoint failed SSRF validation: %v", err)
 		}
 	}
 	return nil

@@ -26,8 +26,8 @@ const EXPECTED_REFERENCES_DRAWER_KEYS = [
   'referencesDrawerEmpty',
 ] as const
 
-test('supported embed locales include zh-CN, en-US, ko-KR, ja-JP, ru-RU', () => {
-  assert.deepEqual([...SUPPORTED_LOCALES].sort(), ['en-US', 'ja-JP', 'ko-KR', 'ru-RU', 'zh-CN'].sort())
+test('supported embed locales include en-US, ko-KR, ja-JP, ru-RU', () => {
+  assert.deepEqual([...SUPPORTED_LOCALES].sort(), ['en-US', 'ja-JP', 'ko-KR', 'ru-RU'].sort())
 })
 
 test('every supported locale defines conversationTime and referencesDrawer in chat', () => {
@@ -91,17 +91,6 @@ test('every supported locale defines conversationTime and referencesDrawer in ch
 })
 
 test('locale-specific translations match expected strings for missing keys', () => {
-  // zh-CN
-  const zhChat = EMBED_MESSAGES['zh-CN'].chat as Record<string, any>
-  const zhCommon = EMBED_MESSAGES['zh-CN'].common as Record<string, any>
-  assert.equal(zhChat.conversationTime.today, '今天 {time}')
-  assert.equal(zhChat.conversationTime.yesterday, '昨天 {time}')
-  assert.equal(zhChat.conversationTime.thisYear, '{month}月{day}日 {time}')
-  assert.equal(zhChat.conversationTime.otherYear, '{year}年{month}月{day}日 {time}')
-  assert.equal(zhChat.referencesDrawerTitleDocs, '文档来源')
-  assert.equal(zhChat.referencesDrawerEmpty, '暂无参考来源')
-  assert.equal(zhCommon.close, '关闭')
-
   // en-US
   const enChat = EMBED_MESSAGES['en-US'].chat as Record<string, any>
   const enCommon = EMBED_MESSAGES['en-US'].common as Record<string, any>
@@ -145,10 +134,10 @@ test('locale-specific translations match expected strings for missing keys', () 
   assert.equal(ruCommon.close, 'Закрыть')
 })
 
-test('normalizeEmbedLocale maps tags accurately with fallback to zh-CN', () => {
-  assert.equal(normalizeEmbedLocale('zh-CN'), 'zh-CN')
-  assert.equal(normalizeEmbedLocale('zh'), 'zh-CN')
-  assert.equal(normalizeEmbedLocale('ZH-cn'), 'zh-CN')
+test('normalizeEmbedLocale maps tags accurately with fallback to en-US', () => {
+  assert.equal(normalizeEmbedLocale('zh-CN'), 'en-US')
+  assert.equal(normalizeEmbedLocale('zh'), 'en-US')
+  assert.equal(normalizeEmbedLocale('ZH-cn'), 'en-US')
   assert.equal(normalizeEmbedLocale('en-US'), 'en-US')
   assert.equal(normalizeEmbedLocale('en'), 'en-US')
   assert.equal(normalizeEmbedLocale('EN-gb'), 'en-US')
@@ -158,6 +147,6 @@ test('normalizeEmbedLocale maps tags accurately with fallback to zh-CN', () => {
   assert.equal(normalizeEmbedLocale('ko'), 'ko-KR')
   assert.equal(normalizeEmbedLocale('ru-RU'), 'ru-RU')
   assert.equal(normalizeEmbedLocale('ru'), 'ru-RU')
-  assert.equal(normalizeEmbedLocale('unknown-locale'), 'zh-CN')
-  assert.equal(normalizeEmbedLocale('   '), 'zh-CN')
+  assert.equal(normalizeEmbedLocale('unknown-locale'), 'en-US')
+  assert.equal(normalizeEmbedLocale('   '), 'en-US')
 })

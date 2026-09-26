@@ -8,13 +8,13 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/application/access"
-	filesvc "github.com/Tencent/WeKnora/internal/application/service/file"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/storageurl"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/application/access"
+	filesvc "github.com/ai-tool-collection/WeKnora/internal/application/service/file"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/storageurl"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 

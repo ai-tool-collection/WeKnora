@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Bundle limits bound decompression. They mirror the install-time limits: the

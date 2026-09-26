@@ -16,16 +16,16 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"github.com/Tencent/WeKnora/internal/agent/skills"
-	"github.com/Tencent/WeKnora/internal/agent/tools"
-	apperrors "github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/event"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/models/chat"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/tracing/langfuse"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/skills"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/tools"
+	apperrors "github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/event"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/models/chat"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/tracing/langfuse"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 const (
@@ -2442,10 +2442,6 @@ func currentBaseTemplate(cfg *types.TenantSandboxConfig) string {
 		return ""
 	}
 	switch sandbox.SandboxType(cfg.SandboxType) {
-	case sandbox.SandboxTypeCube:
-		if cfg.Cube != nil {
-			return cfg.Cube.TemplateID
-		}
 	case sandbox.SandboxTypeE2B:
 		if cfg.E2B != nil {
 			return cfg.E2B.TemplateID

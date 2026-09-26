@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	werrors "github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
+	werrors "github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 const xlsxFirstRowAsHeaderOverride = "xlsx_first_row_as_header"

@@ -24,8 +24,8 @@ import (
 
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/Tencent/WeKnora/cli/internal/build"
-	sdk "github.com/Tencent/WeKnora/client"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/build"
+	sdk "github.com/ai-tool-collection/WeKnora/client"
 )
 
 // ServiceClient bundles the SDK methods the tool registry needs. *sdk.Client

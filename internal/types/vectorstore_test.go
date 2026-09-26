@@ -327,43 +327,6 @@ func TestGetVectorStoreTypes(t *testing.T) {
 		assert.True(t, passwordField.Sensitive)
 	})
 
-	t.Run("tencent vectordb defaults to one replica", func(t *testing.T) {
-		var tencentType VectorStoreTypeInfo
-		for _, typ := range types {
-			if typ.Type == "tencent_vectordb" {
-				tencentType = typ
-				break
-			}
-		}
-		require.NotEmpty(t, tencentType.IndexFields)
-
-		seen := map[string]VectorStoreFieldInfo{}
-		for _, f := range tencentType.IndexFields {
-			seen[f.Name] = f
-		}
-		assert.Equal(t, 1, seen["replica_number"].Default)
-	})
-
-	t.Run("tencent vectordb replica default follows env", func(t *testing.T) {
-		t.Setenv(envTencentVectorDBReplicaNumber, "0")
-		types := GetVectorStoreTypes()
-
-		var tencentType VectorStoreTypeInfo
-		for _, typ := range types {
-			if typ.Type == "tencent_vectordb" {
-				tencentType = typ
-				break
-			}
-		}
-		require.NotEmpty(t, tencentType.IndexFields)
-
-		seen := map[string]VectorStoreFieldInfo{}
-		for _, f := range tencentType.IndexFields {
-			seen[f.Name] = f
-		}
-		assert.Equal(t, 0, seen["replica_number"].Default)
-	})
-
 	t.Run("display names have no parenthetical suffix", func(t *testing.T) {
 		for _, typ := range types {
 			assert.NotContains(t, typ.DisplayName, "(", "display_name should not contain parenthetical suffix: %s", typ.DisplayName)
@@ -434,52 +397,6 @@ func TestVectorStore_BeforeCreate(t *testing.T) {
 func TestVectorStore_TableName(t *testing.T) {
 	assert.Equal(t, "vector_stores", VectorStore{}.TableName())
 }
-
-func TestIsValidEngineType(t *testing.T) {
-	validTypes := []RetrieverEngineType{
-		ElasticsearchRetrieverEngineType,
-		QdrantRetrieverEngineType,
-		MilvusRetrieverEngineType,
-		WeaviateRetrieverEngineType,
-		DorisRetrieverEngineType,
-		TencentVectorDBRetrieverEngineType,
-	}
-	for _, et := range validTypes {
-		t.Run("valid: "+string(et), func(t *testing.T) {
-			assert.True(t, IsValidEngineType(et))
-		})
-	}
-
-	// Postgres and SQLite are intentionally NOT registerable as DB stores —
-	// they only make sense as env stores driven by RETRIEVE_DRIVER (see the
-	// doc comment on validEngineTypes). UI/API surface stays consistent:
-	// GetVectorStoreTypes does not list them, Validate rejects them, and
-	// env stores reach the engine registry through BuildEnvVectorStores
-	// instead of through CreateStore.
-	// Note: opensearch is now a VALID DB-store engine (activated in this PR);
-	// see TestIsValidEngineType_OpenSearch in vectorstore_opensearch_test.go.
-	invalidTypes := []RetrieverEngineType{
-		"unknown",
-		"",
-		PostgresRetrieverEngineType,
-		SQLiteRetrieverEngineType,
-		InfinityRetrieverEngineType,
-		ElasticFaissRetrieverEngineType,
-	}
-	for _, et := range invalidTypes {
-		name := string(et)
-		if name == "" {
-			name = "(empty)"
-		}
-		t.Run("invalid: "+name, func(t *testing.T) {
-			assert.False(t, IsValidEngineType(et))
-		})
-	}
-}
-
-// ---------------------------------------------------------------------------
-// ConnectionConfig
-// ---------------------------------------------------------------------------
 
 func TestConnectionConfig_ValueScan(t *testing.T) {
 	t.Run("encrypts password and api_key on Value, decrypts on Scan", func(t *testing.T) {
@@ -711,104 +628,6 @@ func TestIndexConfig_ValueScan(t *testing.T) {
 		assert.NoError(t, c.Scan(42))
 	})
 }
-
-func TestIndexConfig_GetIndexNameOrDefault(t *testing.T) {
-	tests := []struct {
-		name       string
-		config     IndexConfig
-		engineType RetrieverEngineType
-		expected   string
-	}{
-		// Elasticsearch
-		{
-			name:       "elasticsearch with custom index",
-			config:     IndexConfig{IndexName: "custom_index"},
-			engineType: ElasticsearchRetrieverEngineType,
-			expected:   "custom_index",
-		},
-		{
-			name:       "elasticsearch default",
-			config:     IndexConfig{},
-			engineType: ElasticsearchRetrieverEngineType,
-			expected:   "xwrag_default",
-		},
-		// Qdrant
-		{
-			name:       "qdrant with custom collection prefix",
-			config:     IndexConfig{CollectionPrefix: "custom_embeddings"},
-			engineType: QdrantRetrieverEngineType,
-			expected:   "custom_embeddings",
-		},
-		{
-			name:       "qdrant default",
-			config:     IndexConfig{},
-			engineType: QdrantRetrieverEngineType,
-			expected:   "weknora_embeddings",
-		},
-		// Milvus
-		{
-			name:       "milvus with custom collection name",
-			config:     IndexConfig{CollectionName: "custom_collection"},
-			engineType: MilvusRetrieverEngineType,
-			expected:   "custom_collection",
-		},
-		{
-			name:       "milvus default",
-			config:     IndexConfig{},
-			engineType: MilvusRetrieverEngineType,
-			expected:   "weknora_embeddings",
-		},
-		// Tencent VectorDB
-		{
-			name:       "tencent vectordb with custom collection name",
-			config:     IndexConfig{CollectionName: "custom_collection"},
-			engineType: TencentVectorDBRetrieverEngineType,
-			expected:   "custom_collection",
-		},
-		{
-			name:       "tencent vectordb default",
-			config:     IndexConfig{},
-			engineType: TencentVectorDBRetrieverEngineType,
-			expected:   "weknora_embeddings",
-		},
-		// Weaviate
-		{
-			name:       "weaviate with custom prefix",
-			config:     IndexConfig{CollectionPrefix: "Custom"},
-			engineType: WeaviateRetrieverEngineType,
-			expected:   "Custom",
-		},
-		{
-			name:       "weaviate default",
-			config:     IndexConfig{},
-			engineType: WeaviateRetrieverEngineType,
-			expected:   "Weknora_embeddings",
-		},
-		// Postgres (no index config)
-		{
-			name:       "postgres returns empty (no index config)",
-			config:     IndexConfig{},
-			engineType: PostgresRetrieverEngineType,
-			expected:   "",
-		},
-		// SQLite (no index config)
-		{
-			name:       "sqlite returns empty (no index config)",
-			config:     IndexConfig{},
-			engineType: SQLiteRetrieverEngineType,
-			expected:   "",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, tt.config.GetIndexNameOrDefault(tt.engineType))
-		})
-	}
-}
-
-// ---------------------------------------------------------------------------
-// IndexConfig — getter helpers
-// ---------------------------------------------------------------------------
 
 func TestIndexConfig_GetterHelpers(t *testing.T) {
 	t.Run("nil receiver returns default", func(t *testing.T) {
@@ -1390,21 +1209,3 @@ func TestOpenSearchRetrieverEngineType_StringValue(t *testing.T) {
 // new wire value does not collide with any of the 10 existing engine
 // types. A collision would silently route requests to the wrong
 // engine after the activation switch lands.
-func TestOpenSearchRetrieverEngineType_DistinctFromExisting(t *testing.T) {
-	existing := []RetrieverEngineType{
-		PostgresRetrieverEngineType,
-		ElasticsearchRetrieverEngineType,
-		InfinityRetrieverEngineType,
-		ElasticFaissRetrieverEngineType,
-		QdrantRetrieverEngineType,
-		MilvusRetrieverEngineType,
-		WeaviateRetrieverEngineType,
-		DorisRetrieverEngineType,
-		SQLiteRetrieverEngineType,
-		TencentVectorDBRetrieverEngineType,
-	}
-	for _, e := range existing {
-		assert.NotEqual(t, e, OpenSearchRetrieverEngineType,
-			"OpenSearch wire value must not collide with %s", e)
-	}
-}

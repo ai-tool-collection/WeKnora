@@ -19,7 +19,7 @@
 package sandbox
 
 import (
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // SandboxIdentity is the comparable projection of a config: two configs with
@@ -59,12 +59,6 @@ func IdentityOf(tenantCfg *types.TenantSandboxConfig) SandboxIdentity {
 		AllowPrivateEndpoints: tenantCfg.AllowPrivateEndpoints,
 	}
 	switch SandboxType(tenantCfg.SandboxType) {
-	case SandboxTypeCube:
-		if cube := tenantCfg.Cube; cube != nil {
-			identity.APIURL, identity.APIKey = cube.APIURL, cube.APIKey
-			identity.SandboxDomain = cube.SandboxDomain
-			identity.ProxyURL = cube.ProxyURL
-		}
 	case SandboxTypeE2B:
 		if e2bCfg := tenantCfg.E2B; e2bCfg != nil {
 			identity.APIURL, identity.APIKey = e2bCfg.APIURL, e2bCfg.APIKey

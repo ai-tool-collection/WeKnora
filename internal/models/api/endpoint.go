@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/logger"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // AuthFunc stamps credentials onto an outbound request. body is the exact
@@ -45,11 +45,11 @@ type Endpoint struct {
 	BaseURL string
 	// URL, when set, is the complete request URL and overrides the protocol
 	// default of BaseURL + protocol path. Vendors with non-standard paths
-	// (Azure deployments, WeKnora Cloud) set it.
+	// (for example, Azure deployments) set it.
 	URL string
 	// Query is appended to the final URL (Azure api-version).
 	Query map[string]string
-	// Model is the name sent on the wire; ModelID is WeKnora's own identifier.
+	// Model is the name sent on the wire; ModelID is the local identifier.
 	Model   string
 	ModelID string
 	// Auth stamps credentials; Headers are static extra headers (vendor

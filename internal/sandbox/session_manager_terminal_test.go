@@ -7,16 +7,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 func newSessionManagerTerminalTestHarness(t *testing.T) (*SessionBoundManager, *terminalFakeClient) {
 	t.Helper()
 
-	client := &terminalFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube)}
+	client := &terminalFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B)}
 	client.capabilities.SupportsTerminals = true
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,

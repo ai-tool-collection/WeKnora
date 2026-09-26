@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/models/providers"
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
-	"github.com/Tencent/WeKnora/internal/models/utils/ollama"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/models/utils/ollama"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // VLM defines the interface for Vision Language Model operations.
@@ -47,7 +45,7 @@ type Config struct {
 
 // ConfigFromModel 根据 types.Model 构造 vlm.Config。
 // 生产路径（从 DB 拉起）和测试连接路径（临时表单）共享这份映射。
-// appID / appSecret 是已解密的 WeKnoraCloud 凭证，调用方负责传入。
+// appID and appSecret are legacy optional credentials supplied by the caller.
 // InterfaceType 会根据 source / 模型参数自动回退到合理默认值。
 func ConfigFromModel(m *types.Model, appID, appSecret string) *Config {
 	if m == nil {
@@ -109,14 +107,6 @@ func newVLM(config *Config, ollamaService *ollama.OllamaService) (VLM, error) {
 
 	if ifType == "ollama" || config.Source == types.ModelSourceLocal {
 		return NewOllamaVLM(config, ollamaService)
-	}
-
-	providerID := config.Provider
-	if providerID == "" {
-		providerID = modelruntime.DetectByURL(config.BaseURL)
-	}
-	if providerID == providers.WeKnoraCloudID {
-		return NewWeKnoraCloudVLM(config)
 	}
 
 	return NewRemoteAPIVLM(config)

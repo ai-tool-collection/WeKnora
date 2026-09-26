@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/config"
-	"github.com/Tencent/WeKnora/internal/models/rerank"
-	"github.com/Tencent/WeKnora/internal/reranking"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
+	"github.com/ai-tool-collection/WeKnora/internal/models/rerank"
+	"github.com/ai-tool-collection/WeKnora/internal/reranking"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // stubReranker returns canned scores (or an error) without any network call.

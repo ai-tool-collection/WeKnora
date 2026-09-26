@@ -128,46 +128,7 @@
         <t-alert v-else-if="record" theme="info" class="identity-hint compact-alert"
           :message="$t('settings.sandbox.identityFieldHint')" />
 
-        <template v-if="backend === 'cube'">
-          <t-form-item :label="requiredLabel('apiUrl')" :status="fieldStatus('api_url')" :tips="fieldTip('api_url')">
-            <t-input v-model="cube.api_url" placeholder="http://cube.example.com:33000"
-              :disabled="retargetFrozen" @input="onConnectionInput('api_url')" />
-          </t-form-item>
-          <div class="form-grid form-grid--two">
-            <t-form-item :label="requiredLabel('proxyUrl')" :status="fieldStatus('proxy_url')"
-              :tips="fieldTip('proxy_url')">
-              <t-input v-model="cube.proxy_url" placeholder="http://cube.example.com:80"
-                :disabled="retargetFrozen" @input="onConnectionInput('proxy_url')" />
-            </t-form-item>
-            <t-form-item :label="requiredLabel('sandboxDomain')" :status="fieldStatus('sandbox_domain')"
-              :tips="fieldTip('sandbox_domain')">
-              <t-input v-model="cube.sandbox_domain" placeholder="cube.app"
-                :disabled="retargetFrozen" @input="onConnectionInput('sandbox_domain')" />
-            </t-form-item>
-          </div>
-          <t-form-item :label="$t('settings.sandbox.apiKey')">
-            <t-input v-model="cube.api_key" type="password" :placeholder="secretInputPlaceholder('cube')"
-              :disabled="retargetFrozen" @input="invalidateConnection" />
-            <div class="field-hints">
-              <p class="section-help">
-                {{ storedSecrets.cube
-                  ? $t('settings.sandbox.secretConfigured')
-                  : $t('settings.sandbox.cubeApiKeyOptional') }}
-              </p>
-              <a class="inline-guide-link" :href="clusterGuideUrl" target="_blank" rel="noopener noreferrer">
-                <t-icon name="link" />
-                {{ $t('settings.sandbox.cubeApiKeyWhere') }}
-              </a>
-            </div>
-          </t-form-item>
-          <t-form-item :label="$t('settings.sandbox.cubeDnsServers')"
-            :help="$t('settings.sandbox.cubeDnsServersHelp')">
-            <t-tag-input v-model="cube.dns_servers" :placeholder="$t('settings.sandbox.cubeDnsServersPlaceholder')"
-              :disabled="retargetFrozen" clearable @change="invalidateConnection" />
-          </t-form-item>
-        </template>
-
-        <template v-else-if="backend === 'e2b'">
+        <template v-if="backend === 'e2b'">
           <t-form-item :label="requiredLabel('apiKey')" :status="fieldStatus('api_key')"
             :tips="fieldTip('api_key')">
             <t-input v-model="e2b.api_key" type="password" :placeholder="secretInputPlaceholder('e2b')"
@@ -397,16 +358,12 @@
             <template v-if="isRemoteBackend">
               <t-form-item :label="$t('settings.sandbox.httpTimeout')"
                 :tips="$t('settings.sandbox.httpTimeoutHelp')">
-                <t-input-number v-if="backend === 'cube'" v-model="cube.http_timeout_sec" :min="0"
-                  theme="column" placeholder="30" />
-                <t-input-number v-else v-model="e2b.http_timeout_sec" :min="0" theme="column"
+                <t-input-number v-model="e2b.http_timeout_sec" :min="0" theme="column"
                   placeholder="30" />
               </t-form-item>
               <t-form-item :label="$t('settings.sandbox.sandboxTtl')"
                 :tips="$t('settings.sandbox.sandboxTtlHelp')">
-                <t-input-number v-if="backend === 'cube'" v-model="cube.cube_sandbox_ttl_seconds"
-                  :min="0" theme="column" placeholder="1800" />
-                <t-input-number v-else v-model="e2b.e2b_sandbox_ttl_seconds" :min="0"
+                <t-input-number v-model="e2b.e2b_sandbox_ttl_seconds" :min="0"
                   theme="column" placeholder="300" />
               </t-form-item>
             </template>
@@ -519,119 +476,6 @@
             <p class="section-help">{{ $t('settings.sandbox.denyOutHelp') }}</p>
           </div>
         </template>
-
-        <div v-if="backend === 'cube'" class="net-list">
-          <div class="section-title-row">
-            <span class="net-list__title">{{ $t('settings.sandbox.cubeL7Rules') }}</span>
-            <t-button variant="text" size="small" @click="addCubeRule()">
-              <template #icon><t-icon name="add" /></template>
-              {{ $t('settings.sandbox.addRule') }}
-            </t-button>
-          </div>
-          <p class="section-help">{{ $t('settings.sandbox.cubeL7RulesHelp') }}</p>
-          <div v-for="(rule, index) in cubeRules" :key="rule.key"
-            class="net-rule net-rule--collapsible" :class="{ 'is-open': rule.expanded }">
-            <div class="net-rule__bar">
-              <button
-                type="button"
-                class="net-rule__toggle"
-                :aria-expanded="rule.expanded"
-                :aria-label="rule.expanded
-                  ? $t('settings.sandbox.collapseRule')
-                  : $t('settings.sandbox.expandRule')"
-                @click="rule.expanded = !rule.expanded"
-              >
-                <t-icon :name="rule.expanded ? 'chevron-down' : 'chevron-right'" size="14px" />
-                <span class="net-rule__name" :class="{ 'is-empty': !rule.name.trim() }">
-                  {{ rule.name.trim() || $t('settings.sandbox.ruleUntitled') }}
-                </span>
-              </button>
-              <div class="net-rule__actions">
-                <button type="button" class="net-rule__move"
-                  :disabled="index === 0"
-                  :aria-label="$t('settings.sandbox.moveRuleUp')"
-                  @click="moveCubeRule(index, -1)">
-                  <t-icon name="chevron-up" size="14px" />
-                </button>
-                <button type="button" class="net-rule__move"
-                  :disabled="index === cubeRules.length - 1"
-                  :aria-label="$t('settings.sandbox.moveRuleDown')"
-                  @click="moveCubeRule(index, 1)">
-                  <t-icon name="chevron-down" size="14px" />
-                </button>
-                <button type="button" class="net-rule__remove"
-                  :aria-label="$t('common.delete')" @click="cubeRules.splice(index, 1)">
-                  <t-icon name="close" size="14px" />
-                </button>
-              </div>
-            </div>
-            <div v-if="rule.expanded" class="net-rule__body">
-              <div class="form-grid form-grid--two">
-                <t-form-item :label="$t('settings.sandbox.ruleName')">
-                  <t-input v-model="rule.name" placeholder="allow-payment-api" />
-                </t-form-item>
-                <t-form-item :label="$t('settings.sandbox.ruleScheme')">
-                  <t-select v-model="rule.scheme" clearable>
-                    <t-option value="https" label="https" />
-                    <t-option value="http" label="http" />
-                  </t-select>
-                </t-form-item>
-                <t-form-item :label="$t('settings.sandbox.ruleSni')">
-                  <t-input v-model="rule.sni" placeholder="api.example.com" />
-                </t-form-item>
-                <t-form-item :label="$t('settings.sandbox.ruleHost')">
-                  <t-input v-model="rule.host" placeholder="api.example.com" />
-                </t-form-item>
-                <t-form-item :label="$t('settings.sandbox.ruleMethods')">
-                  <t-input v-model="rule.methodsText" placeholder="POST, GET" />
-                </t-form-item>
-                <t-form-item :label="$t('settings.sandbox.rulePath')">
-                  <t-input v-model="rule.path" placeholder="/v1/*" />
-                </t-form-item>
-                <t-form-item :label="$t('settings.sandbox.ruleAction')">
-                  <t-select v-model="rule.deny">
-                    <t-option :value="false" :label="$t('settings.sandbox.ruleAllow')" />
-                    <t-option :value="true" :label="$t('settings.sandbox.ruleDeny')" />
-                  </t-select>
-                </t-form-item>
-                <t-form-item :label="$t('settings.sandbox.ruleAudit')">
-                  <t-select v-model="rule.audit" clearable>
-                    <t-option value="metadata" label="metadata" />
-                    <t-option value="full" label="full" />
-                    <t-option value="none" label="none" />
-                  </t-select>
-                </t-form-item>
-              </div>
-              <div v-if="!rule.deny" class="net-inject">
-                <span class="net-list__title">{{ $t('settings.sandbox.ruleInject') }}</span>
-                <div v-for="(inject, injectIndex) in rule.inject" :key="`inject-${injectIndex}`"
-                  class="net-row net-row--triple">
-                  <t-input v-model="inject.header" :placeholder="$t('settings.sandbox.headerName')" />
-                  <t-input v-model="inject.secret" type="password"
-                    :placeholder="isStoredNetworkSecretRecoverable(
-                      inject,
-                      inject.originalRuleName,
-                      inject.originalHeader,
-                      rule.name,
-                      inject.header,
-                    )
-                      ? $t('settings.sandbox.secretKeepHint')
-                      : $t('settings.sandbox.headerValue')" />
-                  <t-input v-model="inject.format" placeholder="Bearer ${SECRET}" />
-                  <t-button variant="text" shape="square" size="small"
-                    :aria-label="$t('common.delete')" @click="rule.inject.splice(injectIndex, 1)">
-                    <t-icon name="close" />
-                  </t-button>
-                </div>
-                <t-button variant="text" size="small"
-                  @click="rule.inject.push({ header: '', secret: '', format: '' })">
-                  <template #icon><t-icon name="add" /></template>
-                  {{ $t('settings.sandbox.addHeader') }}
-                </t-button>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div v-if="backend === 'e2b'" class="net-list">
           <div class="section-title-row">
@@ -778,7 +622,6 @@ import {
   type SandboxConfig,
   type SandboxConfigRecord,
   type SandboxConflict,
-  type SandboxCubeConfig,
   type SandboxE2BConfig,
   type SandboxDockerConfig,
   type SandboxNetworkPolicy,
@@ -815,7 +658,7 @@ const isMaskedSecret = (value?: string) => value === secretPlaceholder
 // Mirrors DefaultDockerImage on the server, including why it tracks main
 // instead of latest: the latest tag still carries an image whose /workspace
 // the sandbox account cannot write.
-const defaultDockerImage = 'wechatopenai/weknora-sandbox:main'
+const defaultDockerImage = 'knowledge-hub-sandbox:main'
 
 const clusterGuideUrl = docsUrl('sandboxDeployment')
 const e2bApiKeysUrl = 'https://e2b.dev/dashboard?tab=keys'
@@ -844,12 +687,11 @@ const backend = ref('')
 const defaultTimeoutSec = ref<number | undefined>(undefined)
 const terminalIdleDisconnectSec = ref<number | undefined>(undefined)
 const allowPrivateEndpoints = ref(false)
-const cube = reactive<SandboxCubeConfig>({})
 const e2b = reactive<SandboxE2BConfig>({})
 const docker = reactive<SandboxDockerConfig>({})
 // Tracks which secrets the tenant already has stored, so an empty input can
 // mean "keep the saved key" instead of "no key configured".
-const storedSecrets = reactive({ cube: false, e2b: false })
+const storedSecrets = reactive({ e2b: false })
 const envRows = ref<{ key: string; value: string; stored?: boolean }[]>([])
 const skillRollout = ref<'next_turn' | 'new_session'>('next_turn')
 // Both defaults are the zero value on the server too: egress allowed, inbound
@@ -858,26 +700,6 @@ const denyEgressByDefault = ref(false)
 const allowOutRows = ref<string[]>([])
 const denyOutRows = ref<string[]>([])
 
-type CubeRuleForm = {
-  key: string
-  name: string
-  scheme?: string
-  sni?: string
-  host?: string
-  methodsText: string
-  path?: string
-  deny: boolean
-  audit?: string
-  expanded: boolean
-  inject: {
-    header: string
-    secret: string
-    format: string
-    stored?: boolean
-    originalRuleName?: string
-    originalHeader?: string
-  }[]
-}
 type E2BRuleForm = {
   host: string
   expanded: boolean
@@ -889,14 +711,7 @@ type E2BRuleForm = {
     originalName?: string
   }[]
 }
-const cubeRules = ref<CubeRuleForm[]>([])
 const e2bHostRules = ref<E2BRuleForm[]>([])
-let cubeRuleKeySeq = 0
-
-function newCubeRuleKey(): string {
-  cubeRuleKeySeq += 1
-  return `cube-rule-${cubeRuleKeySeq}`
-}
 
 function isStoredNetworkSecretRecoverable(
   row: { stored?: boolean },
@@ -908,22 +723,6 @@ function isStoredNetworkSecretRecoverable(
   return row.stored === true
     && originalParentIdentity === currentParentIdentity.trim()
     && originalChildIdentity === currentChildIdentity.trim()
-}
-
-function addCubeRule() {
-  for (const rule of cubeRules.value) rule.expanded = false
-  cubeRules.value.push({
-    key: newCubeRuleKey(),
-    name: '', scheme: 'https', sni: '', host: '',
-    methodsText: '', path: '', deny: false, audit: '', expanded: true, inject: [],
-  })
-}
-
-function moveCubeRule(index: number, delta: number) {
-  const next = index + delta
-  if (next < 0 || next >= cubeRules.value.length) return
-  const [row] = cubeRules.value.splice(index, 1)
-  cubeRules.value.splice(next, 0, row)
 }
 
 function addE2BHostRule() {
@@ -962,10 +761,10 @@ let templatePollTimer: ReturnType<typeof setTimeout> | undefined
 
 // Remote backends additionally expose a template catalog and control-plane
 // settings. Cube, E2B and Docker still share the same save/check API.
-const isRemoteBackend = computed(() => backend.value === 'cube' || backend.value === 'e2b')
+const isRemoteBackend = computed(() => backend.value === 'e2b')
 const hasImageCatalog = computed(() => isRemoteBackend.value || backend.value === 'docker')
 const currentTemplateId = computed(() => (
-  backend.value === 'cube' ? cube.template_id : backend.value === 'e2b' ? e2b.template_id : ''
+  backend.value === 'e2b' ? e2b.template_id : ''
 )?.trim() || '')
 const selectedTemplate = computed(() => templates.value.find((item) => item.id === currentTemplateId.value))
 const clusterStandardTemplate = computed(() => templates.value.find((item) => item.standard && item.id))
@@ -1080,7 +879,7 @@ function checkDetail(item: SandboxCheckItem): string {
   if (!item.reason) return ''
   return t(`settings.sandbox.skipReasons.${item.reason}`, item.reason)
 }
-const secretInputPlaceholder = (target: 'cube' | 'e2b') => (
+const secretInputPlaceholder = (target: 'e2b') => (
   storedSecrets[target] ? t('settings.sandbox.secretKeepHint') : t('settings.sandbox.apiKeyPlaceholder')
 )
 
@@ -1088,7 +887,6 @@ const secretInputPlaceholder = (target: 'cube' | 'e2b') => (
 // the server stays the authority, this only spares the admin a round-trip and
 // points at the offending input instead of showing one combined message.
 const REQUIRED_FIELDS: Record<string, string[]> = {
-  cube: ['api_url', 'proxy_url', 'sandbox_domain', 'template_id'],
   e2b: ['api_key', 'template_id'],
   docker: ['image'],
 }
@@ -1115,7 +913,6 @@ function onConnectionInput(field: string) {
 // Snapshot of the active backend block as it will be submitted, so a secret the
 // admin left blank on purpose still counts as filled in.
 function submittedBackendValues(): Record<string, unknown> {
-  if (backend.value === 'cube') return withStoredSecret({ ...cube }, storedSecrets.cube)
   if (backend.value === 'e2b') return withStoredSecret({ ...e2b }, storedSecrets.e2b)
   return { ...docker }
 }
@@ -1139,7 +936,7 @@ const affectedSessionCount = computed(() => conflict.value?.inventory?.session_i
 function defaultBackendType(): string {
   const fromRecord = props.record?.config?.sandbox_type || props.presetType || ''
   if (isNamedSandboxBackend(fromRecord)) return fromRecord
-  return 'cube'
+  return 'e2b'
 }
 
 function reset() {
@@ -1155,19 +952,14 @@ function reset() {
   allowPrivateEndpoints.value = cfg.allow_private_endpoints === true
   // Replace rather than merge: a reused reactive object would otherwise carry
   // the previously edited config's fields into the next one opened.
-  Object.keys(cube).forEach((key) => delete (cube as Record<string, unknown>)[key])
   Object.keys(e2b).forEach((key) => delete (e2b as Record<string, unknown>)[key])
   Object.keys(docker).forEach((key) => delete (docker as Record<string, unknown>)[key])
-  Object.assign(cube, cfg.cube || {})
   Object.assign(e2b, cfg.e2b || {})
   Object.assign(docker, cfg.docker || {})
-  if (!Array.isArray(cube.dns_servers)) cube.dns_servers = []
   if (backend.value === 'docker' && !docker.image) {
     docker.image = defaultDockerImage
   }
-  storedSecrets.cube = isMaskedSecret(cube.api_key)
   storedSecrets.e2b = isMaskedSecret(e2b.api_key)
-  if (storedSecrets.cube) cube.api_key = ''
   if (storedSecrets.e2b) e2b.api_key = ''
   envRows.value = Object.entries(cfg.env_vars || {}).map(([key, value]) => (
     isMaskedSecret(value) ? { key, value: '', stored: true } : { key, value }
@@ -1177,28 +969,6 @@ function reset() {
   denyEgressByDefault.value = net.deny_egress_by_default === true
   allowOutRows.value = [...(net.allow_out || [])]
   denyOutRows.value = [...(net.deny_out || [])]
-  cubeRules.value = (net.cube_rules || []).map((rule) => ({
-    key: newCubeRuleKey(),
-    name: rule.name || '',
-    scheme: rule.scheme || '',
-    sni: rule.sni || '',
-    host: rule.host || '',
-    methodsText: (rule.methods || []).join(', '),
-    path: rule.path || '',
-    deny: rule.deny === true,
-    audit: rule.audit || '',
-    expanded: false,
-    inject: (rule.inject || []).map((inject) => ({
-      header: inject.header || '',
-      // A stored secret arrives masked; keep the input empty and say
-      // "configured", exactly like the env var rows do.
-      secret: isMaskedSecret(inject.secret) ? '' : (inject.secret || ''),
-      format: inject.format || '',
-      stored: isMaskedSecret(inject.secret),
-      originalRuleName: rule.name?.trim() || '',
-      originalHeader: inject.header?.trim() || '',
-    })),
-  }))
   e2bHostRules.value = (net.e2b_host_rules || []).map((rule) => ({
     host: rule.host || '',
     expanded: false,
@@ -1259,9 +1029,7 @@ watch(() => props.visible, (open) => {
 
 function connectionReady(): boolean {
   if (!isRemoteBackend.value) return true
-  const required = backend.value === 'cube'
-    ? ['api_url', 'proxy_url', 'sandbox_domain']
-    : ['api_key']
+  const required = ['api_key']
   const values = submittedBackendValues()
   const errors: Record<string, string> = {}
   for (const field of required) {
@@ -1274,13 +1042,11 @@ function connectionReady(): boolean {
 }
 
 function selectTemplate(value: string | number) {
-  if (backend.value === 'cube') cube.template_id = String(value)
-  else e2b.template_id = String(value)
+  e2b.template_id = String(value)
   onFieldInput('template_id')
 }
 
 function clearTemplateSelection() {
-  if (backend.value === 'cube') cube.template_id = ''
   if (backend.value === 'e2b') e2b.template_id = ''
   delete fieldErrors.value.template_id
 }
@@ -1552,7 +1318,6 @@ function collectPayload(): SandboxConfig {
   }
   // Send only the selected backend's block so an unused one cannot fail
   // validation (e.g. a stale private URL left in the other tab).
-  if (backend.value === 'cube') payload.cube = withStoredSecret({ ...cube }, storedSecrets.cube)
   if (backend.value === 'e2b') payload.e2b = withStoredSecret({ ...e2b }, storedSecrets.e2b)
   if (backend.value === 'docker') payload.docker = { ...docker }
   return payload
@@ -1576,41 +1341,6 @@ function collectNetworkPolicy(): SandboxNetworkPolicy {
     if (denyOut.length) policy.deny_out = denyOut
   }
 
-  if (backend.value === 'cube' && cubeRules.value.length) {
-    policy.cube_rules = cubeRules.value.map((rule) => ({
-      name: rule.name.trim(),
-      scheme: rule.scheme || undefined,
-      sni: rule.sni?.trim() || undefined,
-      host: rule.host?.trim() || undefined,
-      methods: rule.methodsText
-        .split(',')
-        .map((method) => method.trim().toUpperCase())
-        .filter(Boolean),
-      path: rule.path?.trim() || undefined,
-      deny: rule.deny || undefined,
-      audit: rule.audit || undefined,
-      inject: rule.deny
-        ? undefined
-        : rule.inject
-          .filter((inject) => inject.header.trim())
-          .map((inject) => ({
-            header: inject.header.trim(),
-            // Re-attach the placeholder only while the server-side lookup key
-            // remains the identity under which this credential was loaded.
-            secret: isStoredNetworkSecretRecoverable(
-              inject,
-              inject.originalRuleName,
-              inject.originalHeader,
-              rule.name,
-              inject.header,
-            )
-              && inject.secret === ''
-              ? secretPlaceholder
-              : inject.secret,
-            format: inject.format?.trim() || undefined,
-          })),
-    }))
-  }
   if (backend.value === 'e2b' && e2bHostRules.value.length) {
     policy.e2b_host_rules = e2bHostRules.value.map((rule) => {
       const headers: Record<string, string> = {}

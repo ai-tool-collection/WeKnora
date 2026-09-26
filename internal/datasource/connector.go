@@ -3,7 +3,7 @@ package datasource
 import (
 	"context"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Connector is the interface that all external data source connectors must implement.
@@ -56,7 +56,7 @@ type Connector interface {
 // (bounding memory to one item instead of the whole wiki) and to persist the
 // connector cursor at page boundaries, so a sync that times out mid-traversal
 // resumes from the last checkpoint instead of restarting from scratch
-// (Tencent/WeKnora#2136).
+// (historical issue #2136).
 type StreamHandler interface {
 	// Emit ingests a single fetched item. Returning an error aborts the
 	// stream: the connector stops fetching and propagates the error, since a
@@ -174,38 +174,6 @@ type ConnectorMetadata struct {
 // GetConnectorMetadata returns metadata for all available connectors
 // This is used by the frontend to display connector options
 var ConnectorMetadataRegistry = map[string]ConnectorMetadata{
-	types.ConnectorTypeFeishu: {
-		Type:         types.ConnectorTypeFeishu,
-		Name:         "Feishu (飞书)",
-		Description:  "Sync documents, wikis, and content from Feishu",
-		Priority:     0,
-		AuthType:     "oauth2",
-		Capabilities: []string{"incremental", "deletion_sync"},
-	},
-	types.ConnectorTypeLark: {
-		Type:         types.ConnectorTypeLark,
-		Name:         "Lark",
-		Description:  "Sync documents, wikis, and content from Lark (Feishu international)",
-		Priority:     0,
-		AuthType:     "oauth2",
-		Capabilities: []string{"incremental", "deletion_sync"},
-	},
-	types.ConnectorTypeFeishuDrive: {
-		Type:         types.ConnectorTypeFeishuDrive,
-		Name:         "Feishu Drive (飞书云盘)",
-		Description:  "Sync documents and files from a Feishu Drive folder",
-		Priority:     0,
-		AuthType:     "oauth2",
-		Capabilities: []string{"incremental", "deletion_sync"},
-	},
-	types.ConnectorTypeLarkDrive: {
-		Type:         types.ConnectorTypeLarkDrive,
-		Name:         "Lark Drive",
-		Description:  "Sync documents and files from a Lark Drive folder",
-		Priority:     0,
-		AuthType:     "oauth2",
-		Capabilities: []string{"incremental", "deletion_sync"},
-	},
 	types.ConnectorTypeNotion: {
 		Type:         types.ConnectorTypeNotion,
 		Name:         "Notion",
@@ -219,22 +187,6 @@ var ConnectorMetadataRegistry = map[string]ConnectorMetadata{
 		Name:         "Confluence",
 		Description:  "Sync spaces and pages from Atlassian Confluence",
 		Priority:     2,
-		AuthType:     "api_key",
-		Capabilities: []string{"incremental", "deletion_sync"},
-	},
-	types.ConnectorTypeYuque: {
-		Type:         types.ConnectorTypeYuque,
-		Name:         "Yuque (语雀)",
-		Description:  "Sync knowledge bases and documents from Yuque",
-		Priority:     3,
-		AuthType:     "api_key",
-		Capabilities: []string{"incremental"},
-	},
-	types.ConnectorTypeIMA: {
-		Type:         types.ConnectorTypeIMA,
-		Name:         "Tencent IMA (ima.qq.com)",
-		Description:  "Sync knowledge bases and documents from Tencent IMA",
-		Priority:     3,
 		AuthType:     "api_key",
 		Capabilities: []string{"incremental", "deletion_sync"},
 	},
@@ -261,14 +213,6 @@ var ConnectorMetadataRegistry = map[string]ConnectorMetadata{
 		Priority:     6,
 		AuthType:     "oauth2",
 		Capabilities: []string{"incremental"},
-	},
-	types.ConnectorTypeDingTalk: {
-		Type:         types.ConnectorTypeDingTalk,
-		Name:         "DingTalk (钉钉)",
-		Description:  "Sync online documents from DingTalk knowledge bases",
-		Priority:     7,
-		AuthType:     "oauth2",
-		Capabilities: []string{"incremental", "deletion_sync"},
 	},
 	types.ConnectorTypeWebCrawler: {
 		Type:         types.ConnectorTypeWebCrawler,

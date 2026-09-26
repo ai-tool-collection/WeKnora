@@ -13,7 +13,7 @@ func TestMakeDirTreeCreatesEachParentAndTreatsExistsAsSuccess(t *testing.T) {
 	existing := map[string]bool{"/workspace": true}
 	err := makeDirTree("/workspace/.skills/host-probe/abc123/scripts", func(dir string) error {
 		if existing[dir] {
-			return NewRemoteError(SandboxTypeCube, "MakeDir", RemoteErrorKindInternal,
+			return NewRemoteError(SandboxTypeE2B, "MakeDir", RemoteErrorKindInternal,
 				"failed to make dir "+dir+": directory already exists: "+dir, nil)
 		}
 		if dir != "/workspace" && !existing[path.Dir(dir)] {

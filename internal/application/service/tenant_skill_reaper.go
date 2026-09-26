@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/application/repository"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/tracing/langfuse"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/application/repository"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/tracing/langfuse"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/robfig/cron/v3"
 )
 
@@ -474,9 +474,6 @@ func configuredSandboxTTL(cfg *types.TenantSandboxConfig) time.Duration {
 		return 0
 	}
 	seconds := 0
-	if cfg.Cube != nil && cfg.Cube.CubeSandboxTTLSeconds > seconds {
-		seconds = cfg.Cube.CubeSandboxTTLSeconds
-	}
 	if cfg.E2B != nil && cfg.E2B.E2BSandboxTTLSeconds > seconds {
 		seconds = cfg.E2B.E2BSandboxTTLSeconds
 	}

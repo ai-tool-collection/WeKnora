@@ -10,13 +10,13 @@ import (
 	"sync"
 	"time"
 
-	agenttools "github.com/Tencent/WeKnora/internal/agent/tools"
-	"github.com/Tencent/WeKnora/internal/common"
-	"github.com/Tencent/WeKnora/internal/event"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/modelcontext"
-	"github.com/Tencent/WeKnora/internal/tracing/langfuse"
-	"github.com/Tencent/WeKnora/internal/types"
+	agenttools "github.com/ai-tool-collection/WeKnora/internal/agent/tools"
+	"github.com/ai-tool-collection/WeKnora/internal/common"
+	"github.com/ai-tool-collection/WeKnora/internal/event"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/modelcontext"
+	"github.com/ai-tool-collection/WeKnora/internal/tracing/langfuse"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -163,33 +163,33 @@ func dataKeys(data map[string]interface{}) []string {
 
 // toolDisplayNames maps internal tool names to user-friendly display labels.
 var toolDisplayNames = map[string]string{
-	agenttools.ToolDiscoverMCPTools:          "查看外部工具",
-	agenttools.ToolCallMCPTool:               "调用外部工具",
-	agenttools.ToolThinking:                  "深度思考",
-	agenttools.ToolTodoWrite:                 "制定计划",
-	agenttools.ToolSearchKnowledge:           "检索知识库",
-	agenttools.ToolReadDocument:              "阅读文档",
-	agenttools.ToolListDocuments:             "浏览文档列表",
-	agenttools.ToolQueryKnowledgeGraph:       "查询知识图谱",
-	agenttools.LegacyToolGrepChunks:          "关键词搜索",
-	agenttools.LegacyToolKnowledgeSearch:     "知识搜索",
-	agenttools.LegacyToolListKnowledgeChunks: "查看文档分块",
-	agenttools.LegacyToolGetDocumentInfo:     "获取文档信息",
-	agenttools.ToolSearchConversations:       "回顾历史对话",
-	agenttools.ToolSearchMemory:              "查询长期记忆",
-	agenttools.ToolDatabaseQuery:             "查询数据",
-	agenttools.ToolDataAnalysis:              "数据分析",
-	agenttools.ToolDataSchema:                "查看数据结构",
-	agenttools.ToolWebSearch:                 "搜索网页",
-	agenttools.ToolWebFetch:                  "获取网页",
-	agenttools.LegacyToolExecuteSkillScript:  "执行技能脚本",
-	agenttools.LegacyToolReadSkill:           "读取技能",
-	agenttools.ToolReadFile:                  "读取文件",
-	agenttools.ToolListSandboxFiles:          "列出沙箱文件",
-	agenttools.LegacyToolReadSandboxFile:     "读取沙箱文件",
-	agenttools.ToolWriteSandboxFile:          "写入沙箱文件",
-	agenttools.ToolEditSandboxFile:           "编辑沙箱文件",
-	agenttools.ToolShellExec:                 "执行沙箱命令",
+	agenttools.ToolDiscoverMCPTools:          "Discover external tools",
+	agenttools.ToolCallMCPTool:               "Call external tool",
+	agenttools.ToolThinking:                  "Think",
+	agenttools.ToolTodoWrite:                 "Make a plan",
+	agenttools.ToolSearchKnowledge:           "Search knowledge",
+	agenttools.ToolReadDocument:              "Read document",
+	agenttools.ToolListDocuments:             "Browse documents",
+	agenttools.ToolQueryKnowledgeGraph:       "Query knowledge graph",
+	agenttools.LegacyToolGrepChunks:          "Keyword search",
+	agenttools.LegacyToolKnowledgeSearch:     "Knowledge search",
+	agenttools.LegacyToolListKnowledgeChunks: "View document chunks",
+	agenttools.LegacyToolGetDocumentInfo:     "Get document details",
+	agenttools.ToolSearchConversations:       "Search conversations",
+	agenttools.ToolSearchMemory:              "Search memory",
+	agenttools.ToolDatabaseQuery:             "Query data",
+	agenttools.ToolDataAnalysis:              "Analyze data",
+	agenttools.ToolDataSchema:                "View data schema",
+	agenttools.ToolWebSearch:                 "Search web",
+	agenttools.ToolWebFetch:                  "Fetch web page",
+	agenttools.LegacyToolExecuteSkillScript:  "Run skill script",
+	agenttools.LegacyToolReadSkill:           "Read skill",
+	agenttools.ToolReadFile:                  "Read file",
+	agenttools.ToolListSandboxFiles:          "List sandbox files",
+	agenttools.LegacyToolReadSandboxFile:     "Read sandbox file",
+	agenttools.ToolWriteSandboxFile:          "Write sandbox file",
+	agenttools.ToolEditSandboxFile:           "Edit sandbox file",
+	agenttools.ToolShellExec:                 "Run sandbox command",
 }
 
 // toolHintSensitiveArgs lists tools whose arguments should NOT be shown in hints

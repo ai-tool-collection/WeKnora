@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/common/redislock"
+	"github.com/ai-tool-collection/WeKnora/internal/common/redislock"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
@@ -211,7 +211,7 @@ func TestRedisSessionSandboxBindingFailsClosedWhenRedisStops(t *testing.T) {
 	require.Error(t, err)
 	_, err = store.Create(context.Background(), key, binding)
 	require.Error(t, err)
-	_, err = store.DeleteIfMatch(context.Background(), key, SandboxTypeCube, "sandbox-a")
+	_, err = store.DeleteIfMatch(context.Background(), key, SandboxTypeE2B, "sandbox-a")
 	require.Error(t, err)
 
 	called := false

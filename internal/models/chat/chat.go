@@ -10,15 +10,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/api/anthropicmessages"
-	"github.com/Tencent/WeKnora/internal/models/api/googlegenai"
-	"github.com/Tencent/WeKnora/internal/models/api/openaicompletions"
-	"github.com/Tencent/WeKnora/internal/models/api/openairesponses"
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
-	"github.com/Tencent/WeKnora/internal/models/utils/ollama"
-	"github.com/Tencent/WeKnora/internal/types"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api/anthropicmessages"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api/googlegenai"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api/openaicompletions"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api/openairesponses"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/models/utils/ollama"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // Message and the other aliases below re-export the request model defined
@@ -96,7 +96,7 @@ type ChatConfig struct {
 // ConfigFromModel 根据 types.Model 构造 ChatConfig。
 // 保证生产路径（service 层根据 DB 中的模型配置拉起实例）和测试路径
 // （handler 层根据前端表单临时拉起实例）走完全相同的字段映射。
-// appID / appSecret 是已经解密/解析好的 WeKnoraCloud 凭证，调用方负责传入。
+// appID and appSecret are legacy optional credentials supplied by the caller.
 func ConfigFromModel(m *types.Model, appID, appSecret string) *ChatConfig {
 	if m == nil {
 		return nil

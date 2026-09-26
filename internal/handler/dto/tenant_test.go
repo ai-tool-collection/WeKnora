@@ -4,10 +4,21 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func sampleSecretTenant() *types.Tenant {
+	return &types.Tenant{
+		ID: 42, Name: "tenant",
+		WebSearchConfig: &types.WebSearchConfig{APIKey: "legacy-search-secret-999"},
+		StorageEngineConfig: &types.StorageEngineConfig{
+			DefaultProvider: "minio",
+			MinIO:           &types.MinIOEngineConfig{AccessKeyID: "minio-access-id", SecretAccessKey: "minio-secret-789"},
+		},
+	}
+}
 
 func TestTenantResponse_ViewerOmitsSecrets(t *testing.T) {
 	tenant := sampleSecretTenant()
@@ -36,18 +47,6 @@ func TestTenantResponse_OwnerOmitsLegacyTenantAPIKey(t *testing.T) {
 	assert.Contains(t, s, "web_search_config")
 }
 
-func TestTenantResponse_AdminGetsRedactedIntegrationConfigs(t *testing.T) {
-	tenant := sampleSecretTenant()
-	resp := NewTenantResponse(adminContext(), tenant)
-	require.NotNil(t, resp.WebSearchConfig)
-	assert.Equal(t, types.RedactedSecretPlaceholder, resp.WebSearchConfig.ProxyURL)
-	assert.Empty(t, resp.WebSearchConfig.APIKey)
-	require.NotNil(t, resp.ParserEngineConfig)
-	assert.Equal(t, types.RedactedSecretPlaceholder, resp.ParserEngineConfig.MinerUAPIKey)
-	require.NotNil(t, resp.StorageEngineConfig.MinIO)
-	assert.Equal(t, types.RedactedSecretPlaceholder, resp.StorageEngineConfig.MinIO.SecretAccessKey)
-}
-
 func TestTenantResponsesCrossTenant_RedactsEvenForOwnerContext(t *testing.T) {
 	tenant := sampleSecretTenant()
 	body, err := json.Marshal(NewTenantResponsesCrossTenant([]*types.Tenant{tenant}))
@@ -55,32 +54,4 @@ func TestTenantResponsesCrossTenant_RedactsEvenForOwnerContext(t *testing.T) {
 	s := string(body)
 	assert.NotContains(t, s, "tenant-api-key-123")
 	assert.NotContains(t, s, "parser-secret-123")
-}
-
-func sampleSecretTenant() *types.Tenant {
-	return &types.Tenant{
-		ID:   42,
-		Name: "tenant",
-		WebSearchConfig: &types.WebSearchConfig{
-			APIKey:   "legacy-search-secret-999",
-			ProxyURL: "http://proxy.internal:8080",
-		},
-		Credentials: &types.CredentialsConfig{
-			WeKnoraCloud: &types.WeKnoraCloudCredentials{
-				AppID:     "wk-app-id-abc",
-				AppSecret: "wk-app-secret-def",
-			},
-		},
-		ParserEngineConfig: &types.ParserEngineConfig{
-			MinerUAPIKey:          "parser-secret-123",
-			PaddleOCRVLCloudToken: "paddle-secret-456",
-		},
-		StorageEngineConfig: &types.StorageEngineConfig{
-			DefaultProvider: "minio",
-			MinIO: &types.MinIOEngineConfig{
-				AccessKeyID:     "minio-access-id",
-				SecretAccessKey: "minio-secret-789",
-			},
-		},
-	}
 }

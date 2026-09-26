@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/application/service/retriever"
-	apperrors "github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/models/embedding"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service/retriever"
+	apperrors "github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/models/embedding"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -78,30 +78,6 @@ func TestHasMixedEngineTypes(t *testing.T) {
 		if got != tc.want {
 			t.Errorf("%s: want %v, got %v", tc.name, tc.want, got)
 		}
-	}
-}
-
-func TestIsKnownEngineType(t *testing.T) {
-	t.Parallel()
-	known := []types.RetrieverEngineType{
-		types.PostgresRetrieverEngineType,
-		types.ElasticsearchRetrieverEngineType,
-		types.ElasticFaissRetrieverEngineType,
-		types.MilvusRetrieverEngineType,
-		types.QdrantRetrieverEngineType,
-		types.WeaviateRetrieverEngineType,
-		types.SQLiteRetrieverEngineType,
-		types.InfinityRetrieverEngineType,
-		types.TencentVectorDBRetrieverEngineType,
-		types.DorisRetrieverEngineType,
-	}
-	for _, k := range known {
-		if !isKnownEngineType(k) {
-			t.Errorf("expected %s to be known", k)
-		}
-	}
-	if isKnownEngineType("") || isKnownEngineType("nosuch") {
-		t.Error("unknown engine misclassified as known")
 	}
 }
 

@@ -13,7 +13,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // MCPServiceResponse mirrors types.MCPService for response bodies, omitting

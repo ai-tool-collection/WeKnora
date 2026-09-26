@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // ErrSkillSourceInvalid marks every rejection of a registry / git / URL
@@ -24,7 +24,7 @@ var ErrSkillSourceInvalid = errors.New("skill source is invalid")
 
 const (
 	defaultSkillRegistryOrigin = "https://clawhub.ai"
-	skillSourceUserAgent       = "WeKnora-SkillInstaller (+https://github.com/Tencent/WeKnora)"
+	skillSourceUserAgent       = "KnowledgeHub-SkillInstaller (+https://github.com/ai-tool-collection/WeKnora)"
 	skillSourceFetchTimeout    = 5 * time.Minute
 	skillSourceMaxHops         = 3
 )
@@ -52,7 +52,7 @@ const skillsShRefPrefix = "skills-sh:"
 // have been applied, and before any bytes are fetched.
 type parsedSkillSource struct {
 	Kind      skillSourceKind
-	Registry  string // origin, e.g. https://clawhub.ai or a SkillHub host
+	Registry  string // origin, e.g. https://clawhub.ai or a private registry
 	Slug      string
 	Version   string
 	Owner     string // GitHub/GitLab owner, or ClawHub ownerHandle
@@ -89,7 +89,7 @@ type skillSourceArchiveHandoff struct {
 	DownloadURL string `json:"downloadUrl"`
 }
 
-// InstallSkillFromSource resolves a ClawHub / SkillHub / skills.sh / git /
+// InstallSkillFromSource resolves a ClawHub / skills.sh / git /
 // direct-zip locator to a skill bundle and runs the same install as an upload.
 //
 // Every fetch is anonymous. Private registries are deliberately out of scope:
@@ -159,7 +159,7 @@ func fetchNormalizedSkillBundle(
 //	                     through ClawHub's install API to a pinned GitHub
 //	                     commit; the GitHub path is often deeper than the
 //	                     URL slug (e.g. tools/image/ai-image-generation).
-//	https://…            host decides (GitHub / GitLab / ClawHub / SkillHub /
+//	https://…            host decides (GitHub / GitLab / ClawHub /
 //	                     skills.sh / zip|SKILL.md / self-hosted registry)
 func parseSkillSource(raw string) (parsedSkillSource, error) {
 	input := strings.TrimSpace(raw)
@@ -179,7 +179,7 @@ func parseSkillSource(raw string) (parsedSkillSource, error) {
 	}
 	if strings.Contains(input, "/") {
 		return parsedSkillSource{}, fmt.Errorf(
-			"%w: %q is ambiguous; use @%s for ClawHub, or paste a github.com / gitlab.com / skills.sh / skillhub URL",
+			"%w: %q is ambiguous; use @%s for ClawHub, or paste a GitHub, GitLab, or skills.sh URL",
 			ErrSkillSourceInvalid, input, input)
 	}
 	return parseRegistrySlug(defaultSkillRegistryOrigin, input)
@@ -207,7 +207,7 @@ func parseSkillSourceURL(raw string) (parsedSkillSource, error) {
 	case isClawHubHost(host):
 		return parseRegistryURL(parsedURL)
 	case isSkillHubCNHost(host):
-		return parseSkillHubCNURL(parsedURL)
+		return parsedSkillSource{}, fmt.Errorf("%w: this registry is not supported", ErrSkillSourceInvalid)
 	default:
 		if isDirectArchivePath(parsedURL.Path) {
 			return parsedSkillSource{Kind: skillSourceDirect, DirectURL: parsedURL.String()}, nil
@@ -225,8 +225,6 @@ func isClawHubHost(host string) bool {
 	}
 }
 
-const skillHubCNAPIOrigin = "https://api.skillhub.cn"
-
 func isSkillHubCNHost(host string) bool {
 	switch strings.ToLower(host) {
 	case "skillhub.cn", "www.skillhub.cn", "api.skillhub.cn":
@@ -234,49 +232,6 @@ func isSkillHubCNHost(host string) bool {
 	default:
 		return false
 	}
-}
-
-// parseSkillHubCNURL maps public SkillHub.cn pages onto the download API.
-// Page URLs look like /skills/{slug} or /skills/{publisher}/{slug}; the API
-// keys downloads by the skill name only, on api.skillhub.cn (www is an SPA).
-func parseSkillHubCNURL(u *url.URL) (parsedSkillSource, error) {
-	trimmed := strings.Trim(u.Path, "/")
-	if strings.HasPrefix(trimmed, "api/v1/download") {
-		direct := skillHubCNAPIOrigin + "/api/v1/download"
-		if u.RawQuery != "" {
-			direct += "?" + u.RawQuery
-		}
-		return parsedSkillSource{
-			Kind:      skillSourceDirect,
-			Registry:  skillHubCNAPIOrigin,
-			DirectURL: direct,
-		}, nil
-	}
-	parts := splitPath(trimmed)
-	if len(parts) >= 1 && strings.EqualFold(parts[0], "skills") {
-		parts = parts[1:]
-	}
-	if len(parts) == 0 || len(parts) > 2 {
-		return parsedSkillSource{}, fmt.Errorf("%w: unrecognized registry path", ErrSkillSourceInvalid)
-	}
-	slug := parts[len(parts)-1]
-	version := strings.TrimSpace(u.Fragment)
-	if qVersion := strings.TrimSpace(u.Query().Get("version")); qVersion != "" {
-		version = qVersion
-	}
-	slug, fromSpec := splitTrailingVersion(slug)
-	if fromSpec != "" {
-		version = fromSpec
-	}
-	if slug == "" {
-		return parsedSkillSource{}, fmt.Errorf("%w: skill slug is required", ErrSkillSourceInvalid)
-	}
-	return parsedSkillSource{
-		Kind:     skillSourceRegistry,
-		Registry: skillHubCNAPIOrigin,
-		Slug:     slug,
-		Version:  version,
-	}, nil
 }
 
 func parseRegistryURL(u *url.URL) (parsedSkillSource, error) {

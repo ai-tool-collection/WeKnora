@@ -10,7 +10,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -74,22 +74,6 @@ func TestParseSkillSource(t *testing.T) {
 			want: parsedSkillSource{
 				Kind: skillSourceRegistry, Registry: "https://skillhub.example.com",
 				Slug: "my-skill", Version: "1.2.0",
-			},
-		},
-		{
-			name: "skillhub.cn publisher page",
-			in:   "https://skillhub.cn/skills/clawhub_pskoett/self-improving-agent",
-			want: parsedSkillSource{
-				Kind: skillSourceRegistry, Registry: skillHubCNAPIOrigin,
-				Slug: "self-improving-agent",
-			},
-		},
-		{
-			name: "skillhub.cn slug page",
-			in:   "https://skillhub.cn/skills/evez-api-gateway",
-			want: parsedSkillSource{
-				Kind: skillSourceRegistry, Registry: skillHubCNAPIOrigin,
-				Slug: "evez-api-gateway",
 			},
 		},
 		{
@@ -322,12 +306,9 @@ func TestClawHubOwnerSlugMapsToDownloadAPI(t *testing.T) {
 	}
 }
 
-func TestSkillHubCNMapsToDownloadAPI(t *testing.T) {
-	got, err := parseSkillSource("https://skillhub.cn/skills/clawhub_pskoett/self-improving-agent")
-	require.NoError(t, err)
-	u, err := got.fetchURL()
-	require.NoError(t, err)
-	require.Equal(t, skillHubCNAPIOrigin+"/api/v1/download?slug=self-improving-agent", u)
+func TestSkillHubCNIsRejected(t *testing.T) {
+	_, err := parseSkillSource("https://skillhub.cn/skills/example")
+	require.ErrorIs(t, err, ErrSkillSourceInvalid)
 }
 
 func TestFetchSkillArchiveFromSkillsShInstallResolver(t *testing.T) {

@@ -83,8 +83,6 @@ async function fixture(options: {
         } },
       }
       if (name === '@/stores/modelProviders') return { useModelProvidersStore: () => providersStore }
-      if (name === '@/api/model') return { getWeKnoraCloudStatus: async () => ({ has_models: true, needs_reinit: false }) }
-      if (name === '@/utils/weknoraCloudModels') return require('../utils/weknoraCloudModels.ts')
       if (name === '@/utils/docsUrl') return require('../utils/docsUrl.ts')
       if (name === '@/stores/modelProvidersState') return require('../stores/modelProvidersState.ts')
       if (name === '@/utils/reasoningEffort') return require('../utils/reasoningEffort.ts')
@@ -354,9 +352,9 @@ for (const edit of [false, true]) {
 const plain = (value: unknown) => JSON.parse(JSON.stringify(value))
 
 const catalogProviders = [{
-  value: 'lkeap', label: 'Tencent Cloud LKEAP', labels: { 'zh-CN': '腾讯云 LKEAP' }, description: '', order: 1,
+  value: 'vendor-x', label: 'Vendor X', labels: { 'zh-CN': 'Vendor X' }, description: '', order: 1,
   icon: 'data:image/svg+xml;base64,PHN2Zy8+',
-  defaultUrls: { chat: 'https://api.lkeap.cloud.tencent.com/v1', rerank: 'https://lkeap.tencentcloudapi.com' },
+  defaultUrls: { chat: 'https://api.vendor-x.example.com/v1', rerank: 'https://rerank.vendor-x.example.com' },
   modelTypes: ['chat', 'rerank'],
   extraFields: [
     { key: 'secret_key', label: 'Secret Key', type: 'password', required: true, model_types: ['Rerank'], secret: true },
@@ -364,7 +362,7 @@ const catalogProviders = [{
     { key: 'api_version', label: 'API Version', type: 'string', default: '2024-10-21' },
   ],
   models: [
-    { id: 'deepseek-v3.1', name: 'DeepSeek V3.1', type: 'chat', reasoning: true, input: ['text', 'image'], context_window: 128000, max_output_tokens: 8192, thinking_levels: ['off', 'auto'] },
+    { id: 'acme-v3.1', name: 'Acme V3.1', type: 'chat', reasoning: true, input: ['text', 'image'], context_window: 128000, max_output_tokens: 8192, thinking_levels: ['off', 'auto'] },
   ],
   thinking: { format: 'thinking.type', levels: ['off', 'auto'] },
 }]
@@ -372,10 +370,10 @@ const catalogProviders = [{
 test('vendor extra fields: defaults are pre-filled per model type, secrets go to app_secret, and both reach the connection test', async () => {
   const f = await fixture({ type: 'rerank', providers: catalogProviders })
   try {
-    f.vm.formData.provider = 'lkeap'
-    f.vm.handleProviderChange('lkeap')
+    f.vm.formData.provider = 'vendor-x'
+    f.vm.handleProviderChange('vendor-x')
     await nextTick()
-    assert.equal(f.vm.formData.baseUrl, 'https://lkeap.tencentcloudapi.com')
+    assert.equal(f.vm.formData.baseUrl, 'https://rerank.vendor-x.example.com')
     assert.deepEqual(f.vm.plainExtraFields.map((x: any) => x.key), ['region', 'api_version'])
     assert.equal(f.vm.secretExtraField.key, 'secret_key')
     assert.equal(f.vm.formData.extraConfig.region, 'ap-guangzhou')
@@ -399,8 +397,8 @@ test('vendor extra fields: defaults are pre-filled per model type, secrets go to
 test('required vendor extra fields block saving until filled', async () => {
   const f = await fixture({ type: 'rerank', providers: catalogProviders })
   try {
-    f.vm.formData.provider = 'lkeap'
-    f.vm.handleProviderChange('lkeap')
+    f.vm.formData.provider = 'vendor-x'
+    f.vm.handleProviderChange('vendor-x')
     await nextTick()
     f.vm.formData.modelName = 'lke-reranker-base'
     await f.vm.handleConfirm()
@@ -415,12 +413,12 @@ test('required vendor extra fields block saving until filled', async () => {
 test('picking a catalog model fills blank capability fields only', async () => {
   const f = await fixture({ type: 'chat', providers: catalogProviders })
   try {
-    f.vm.formData.provider = 'lkeap'
+    f.vm.formData.provider = 'vendor-x'
     await nextTick()
-    assert.deepEqual(f.vm.catalogModelOptions.map((o: any) => o.value), ['draft-model', 'deepseek-v3.1'])
+    assert.deepEqual(f.vm.catalogModelOptions.map((o: any) => o.value), ['draft-model', 'acme-v3.1'])
     f.vm.formData.contextWindow = 32000
-    f.vm.formData.modelName = 'deepseek-v3.1'
-    f.vm.handleCatalogModelChange('deepseek-v3.1')
+    f.vm.formData.modelName = 'acme-v3.1'
+    f.vm.handleCatalogModelChange('acme-v3.1')
     assert.equal(f.vm.formData.contextWindow, 32000, 'user value wins')
     assert.equal(f.vm.formData.maxOutputTokens, 8192)
     assert.equal(f.vm.formData.supportsVision, true)
@@ -434,16 +432,16 @@ test('resolve panel is refreshed once per 400ms burst of edits and ignored while
   const f = await fixture({ type: 'chat', providers: catalogProviders })
   try {
     f.resolves.length = 0
-    f.vm.formData.provider = 'lkeap'
+    f.vm.formData.provider = 'vendor-x'
     await nextTick()
-    f.vm.formData.modelName = 'deepseek-v3'
+    f.vm.formData.modelName = 'acme-v3'
     await nextTick()
-    f.vm.formData.modelName = 'deepseek-v3.1'
+    f.vm.formData.modelName = 'acme-v3.1'
     await nextTick()
     assert.equal(f.resolves.length, 0, 'debounced')
     await new Promise(resolve => setTimeout(resolve, 450))
     assert.equal(f.resolves.length, 1)
-    assert.equal(f.resolves[0].model, 'deepseek-v3.1')
+    assert.equal(f.resolves[0].model, 'acme-v3.1')
     assert.equal(f.resolves[0].model_type, 'chat')
     assert.equal(f.vm.resolved.api, 'openai-completions')
     f.props.visible = false
@@ -459,7 +457,7 @@ for (const type of ['embedding', 'rerank', 'asr']) {
     const f = await fixture({ type, providers: catalogProviders })
     try {
       f.resolves.length = 0
-      f.vm.formData.provider = 'lkeap'
+      f.vm.formData.provider = 'vendor-x'
       await nextTick()
       f.vm.formData.modelName = 'whatever'
       await new Promise(resolve => setTimeout(resolve, 450))
@@ -474,7 +472,7 @@ test('vllm keeps the catalog diagnosis panel', async () => {
   const f = await fixture({ type: 'vllm', providers: catalogProviders })
   try {
     f.resolves.length = 0
-    f.vm.formData.provider = 'lkeap'
+    f.vm.formData.provider = 'vendor-x'
     await nextTick()
     await new Promise(resolve => setTimeout(resolve, 450))
     assert.equal(f.vm.showResolvedPanel, true)
@@ -494,15 +492,15 @@ test('an out-of-order resolve response cannot overwrite a newer one', async () =
     },
   })
   try {
-    f.vm.formData.provider = 'lkeap'
+    f.vm.formData.provider = 'vendor-x'
     f.vm.formData.modelName = 'first-model'
     await new Promise(resolve => setTimeout(resolve, 450))
     f.vm.formData.modelName = 'second-model'
     await new Promise(resolve => setTimeout(resolve, 450))
     assert.equal(pendings.length, 2, 'both requests are in flight')
-    pendings[1].resolve({ provider: 'lkeap', api: 'openai-completions', cataloged: true, capabilities: {} })
+    pendings[1].resolve({ provider: 'vendor-x', api: 'openai-completions', cataloged: true, capabilities: {} })
     await nextTick()
-    pendings[0].resolve({ provider: 'lkeap', api: 'anthropic-messages', cataloged: false, capabilities: {} })
+    pendings[0].resolve({ provider: 'vendor-x', api: 'anthropic-messages', cataloged: false, capabilities: {} })
     await new Promise(resolve => setTimeout(resolve, 10))
     assert.equal(f.vm.resolved.remote_model, 'second-model', 'the stale answer must be dropped')
     assert.equal(f.vm.resolved.api, 'openai-completions')
@@ -513,7 +511,7 @@ test('an out-of-order resolve response cannot overwrite a newer one', async () =
 test('a resolve failure without a readable message shows no [object Object]', async () => {
   const f = await fixture({ type: 'chat', providers: catalogProviders, resolve: async () => { throw { code: 500 } } })
   try {
-    f.vm.formData.provider = 'lkeap'
+    f.vm.formData.provider = 'vendor-x'
     await nextTick()
     await new Promise(resolve => setTimeout(resolve, 450))
     assert.equal(f.vm.resolveFailed, true)
@@ -539,8 +537,8 @@ test('editing preserves extra_config keys the current vendor does not declare', 
     f.props.visible = false
     await nextTick()
     f.props.modelData = {
-      id: 'legacy-extra', modelName: 'deepseek-v3.1', name: '', source: 'remote',
-      baseUrl: 'https://api.lkeap.cloud.tencent.com/v1', provider: 'lkeap', isDefault: false,
+      id: 'legacy-extra', modelName: 'acme-v3.1', name: '', source: 'remote',
+      baseUrl: 'https://api.vendor-x.example.com/v1', provider: 'vendor-x', isDefault: false,
       extraConfig: { api_version: 'v1', retired_knob: 'keep-me' },
       spec: { reasoning: true, context_window: 64000, compat: { max_tokens_field: 'max_tokens' } },
     }
@@ -562,7 +560,7 @@ test('editing preserves extra_config keys the current vendor does not declare', 
 test('advanced overrides: invalid compat JSON blocks save, valid JSON and protocol override are persisted', async () => {
   const f = await fixture({ type: 'chat', providers: catalogProviders })
   try {
-    f.vm.formData.provider = 'lkeap'
+    f.vm.formData.provider = 'vendor-x'
     f.vm.setExtraConfig('api', 'openai-responses')
     f.vm.setExtraConfig('remote_model_name', '')
     f.vm.formData.specCompat = '{ not json'
@@ -590,8 +588,8 @@ test('editing a legacy row keeps thinking_control until the user clears it', asy
     f.props.visible = false
     await nextTick()
     f.props.modelData = {
-      id: 'legacy', modelName: 'qwen3-32b', name: '', source: 'remote', baseUrl: 'https://example.com/v1',
-      provider: 'aliyun', isDefault: false, thinkingControl: 'enable_thinking',
+      id: 'legacy', modelName: 'llama3-32b', name: '', source: 'remote', baseUrl: 'https://example.com/v1',
+      provider: 'acmecloud', isDefault: false, thinkingControl: 'enable_thinking',
       extraConfig: { thinking_control: 'enable_thinking', api_version: 'v1' },
       spec: { compat: { max_tokens_field: 'max_tokens' }, context_window: 1 },
     }
@@ -659,8 +657,8 @@ test('parent save sends an empty extra_config so cleared vendor fields really cl
   assert.equal(creates.length, 0)
 })
 
-// Two vendors that share one model id (deepseek-v4-pro is sold by DeepSeek,
-// Aliyun, Volcengine and the gateways alike) and one that does not.
+// Two vendors that share one model id (acme-v4-pro is sold by Acme,
+// Acme Cloud, Gateway and the gateways alike) and one that does not.
 const switchProviders = [
   {
     value: 'vendor-a', label: 'Vendor A', description: '', order: 1, modelTypes: ['chat'],
@@ -768,49 +766,6 @@ test('the vision picker lists the vendor models the backend scoped to it', async
     await nextTick()
     assert.deepEqual(f.vm.catalogModelOptions.map((o: any) => o.value), ['sees-images'])
     assert.equal(f.vm.catalogModelOptions[0].vision, true)
-  } finally { f.close() }
-})
-
-const cloudProvider = {
-  value: 'weknoracloud', label: 'WeKnora Cloud', description: '', order: 1,
-  modelTypes: ['chat', 'embedding', 'rerank', 'vllm'],
-  defaultUrls: Object.fromEntries(['chat', 'embedding', 'rerank', 'vllm'].map(type => [type, 'https://weknora.weixin.qq.com'])),
-  models: [],
-}
-
-for (const [type, modelName] of [['chat', 'chat'], ['embedding', 'embedding'], ['rerank', 'rerank'], ['vllm', 'vlm']]) {
-  test(`WeKnora Cloud ${type}: an empty catalog still offers the managed model`, async () => {
-    const f = await fixture({ type, providers: [cloudProvider] })
-    try {
-      f.vm.formData.provider = 'weknoracloud'
-      f.vm.handleProviderChange('weknoracloud')
-      await nextTick()
-      await f.vm.checkWkcCredentialStatus()
-      assert.equal(f.vm.wkcCredentialState, 'configured')
-      assert.deepEqual(Array.from(f.vm.catalogModelOptions, (o: any) => o.value), [modelName])
-      assert.equal(f.vm.catalogModelOptions[0].vision, type === 'vllm')
-      f.vm.formData.modelName = modelName
-      f.vm.handleCatalogModelChange(modelName)
-      await nextTick()
-      await f.vm.checkRemoteAPI()
-      assert.equal(f.requests[0].modelName, modelName)
-      assert.equal(f.requests[0].provider, 'weknoracloud')
-      assert.equal(f.vm.formData.contextWindow, undefined)
-      assert.equal(f.vm.formData.dimension, undefined)
-    } finally { f.close() }
-  })
-}
-
-test('switching WeKnora Cloud model types updates the managed choices', async () => {
-  const f = await fixture({ providers: [cloudProvider] })
-  try {
-    f.vm.formData.provider = 'weknoracloud'
-    f.vm.handleProviderChange('weknoracloud')
-    await nextTick()
-    f.vm.formData.modelName = 'chat'
-    await f.vm.selectModelType('vllm')
-    assert.equal(f.vm.formData.modelName, '')
-    assert.deepEqual(Array.from(f.vm.catalogModelOptions, (o: any) => o.value), ['vlm'])
   } finally { f.close() }
 })
 

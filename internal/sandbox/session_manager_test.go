@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 func TestExecutionOutputDir(t *testing.T) {
@@ -55,12 +55,12 @@ func TestExecutionOutputDir(t *testing.T) {
 }
 
 func TestSessionBoundManagerExecuteEnsuresOutputDir(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	checker := &fakeSessionExistenceChecker{exists: true}
 	// DefaultConfig carries no Cube template on purpose; the deployment baseline
 	// or the named config supplies it.
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,
@@ -109,9 +109,9 @@ func TestWorkspaceBootstrapPreservesExistingData(t *testing.T) {
 // The agent can delete /workspace/output between turns. Preparing only once
 // per process would leave later writes failing until WeKnora restarted.
 func TestSessionBoundManagerPreparesWorkspaceOnEveryCall(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,
@@ -146,9 +146,9 @@ func TestSessionBoundManagerPreparesWorkspaceOnEveryCall(t *testing.T) {
 // answers "as whom does model-authored input run" without having to trust that
 // all three adapters agree on what a blank user means.
 func TestSessionBoundManagerShellExecRunsAsSandboxUser(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,
@@ -316,10 +316,10 @@ func TestExecShellCommandAllowsTemporaryWorkDir(t *testing.T) {
 // it, not only through the lifecycle it wraps.
 func TestSessionBoundManagerInvalidateConfigSandboxesRebuildsOnNextUse(t *testing.T) {
 	ctx := context.WithValue(context.Background(), types.TenantIDContextKey, uint64(10000))
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	store := NewMemorySessionSandboxBindingStore()
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,
@@ -353,10 +353,10 @@ func TestSessionBoundManagerEndSessionTurnIgnoresCancel(t *testing.T) {
 	ctx := context.WithValue(context.Background(), types.TenantIDContextKey, uint64(10000))
 	store := NewMemorySessionSandboxBindingStore()
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
-		Client:          newFakeRemoteClient(SandboxTypeCube),
+		Client:          newFakeRemoteClient(SandboxTypeE2B),
 		Store:           store,
 		Checker:         &fakeSessionExistenceChecker{exists: true},
 		SkipHealthProbe: true,
@@ -482,7 +482,7 @@ func TestWriteSessionFileSucceedsWhenInstallDirectoryAlreadyExists(t *testing.T)
 func TestBuildSessionCreateRequestCarriesNetworkPolicy(t *testing.T) {
 	denied := false
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-1"
+	cfg.E2BTemplate = "tpl-1"
 	cfg.E2BTemplate = "tpl-1"
 	cfg.DockerImage = "img-1"
 	cfg.Network = RemoteNetworkPolicy{
@@ -492,7 +492,7 @@ func TestBuildSessionCreateRequestCarriesNetworkPolicy(t *testing.T) {
 	}
 
 	for _, provider := range []RemoteProvider{
-		SandboxTypeCube, SandboxTypeE2B, SandboxTypeDocker,
+		SandboxTypeE2B, SandboxTypeE2B, SandboxTypeDocker,
 	} {
 		request, err := buildSessionCreateRequest(provider, cfg)
 		require.NoError(t, err, "provider %s", provider)
@@ -508,9 +508,9 @@ func TestBuildSessionCreateRequestCarriesNetworkPolicy(t *testing.T) {
 func newSessionManagerExecTestHarness(t *testing.T) (*SessionBoundManager, *fakeRemoteClient) {
 	t.Helper()
 
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,
@@ -557,10 +557,10 @@ func TestOpenSessionDesktopUnsupportedBackend(t *testing.T) {
 }
 
 func TestBoundSandboxIDReadsBindingWithoutConnect(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	store := NewMemorySessionSandboxBindingStore()
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,
@@ -604,10 +604,10 @@ func TestHasActiveTurnReportsLeaseState(t *testing.T) {
 	ctx := context.WithValue(context.Background(), types.TenantIDContextKey, uint64(10000))
 	store := NewMemorySessionSandboxBindingStore()
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
-		Client:          newFakeRemoteClient(SandboxTypeCube),
+		Client:          newFakeRemoteClient(SandboxTypeE2B),
 		Store:           store,
 		Checker:         &fakeSessionExistenceChecker{exists: true},
 		SkipHealthProbe: true,
@@ -628,10 +628,10 @@ func TestTryLockRewindIsExclusive(t *testing.T) {
 	ctx := context.WithValue(context.Background(), types.TenantIDContextKey, uint64(10000))
 	store := NewMemorySessionSandboxBindingStore()
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
-		Client:          newFakeRemoteClient(SandboxTypeCube),
+		Client:          newFakeRemoteClient(SandboxTypeE2B),
 		Store:           store,
 		Checker:         &fakeSessionExistenceChecker{exists: true},
 		SkipHealthProbe: true,
@@ -649,10 +649,10 @@ func TestBeginSessionTurnFailsWhenRewindLocked(t *testing.T) {
 	ctx := context.WithValue(context.Background(), types.TenantIDContextKey, uint64(10000))
 	store := NewMemorySessionSandboxBindingStore()
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
-		Client:          newFakeRemoteClient(SandboxTypeCube),
+		Client:          newFakeRemoteClient(SandboxTypeE2B),
 		Store:           store,
 		Checker:         &fakeSessionExistenceChecker{exists: true},
 		SkipHealthProbe: true,
@@ -673,10 +673,10 @@ func TestTryLockRewindFailsWhenTurnActive(t *testing.T) {
 	ctx := context.WithValue(context.Background(), types.TenantIDContextKey, uint64(10000))
 	store := NewMemorySessionSandboxBindingStore()
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
-		Client:          newFakeRemoteClient(SandboxTypeCube),
+		Client:          newFakeRemoteClient(SandboxTypeE2B),
 		Store:           store,
 		Checker:         &fakeSessionExistenceChecker{exists: true},
 		SkipHealthProbe: true,
@@ -696,10 +696,10 @@ func TestHasActiveTurnWithoutLeaseStoreIsNotBusy(t *testing.T) {
 	ctx := context.WithValue(context.Background(), types.TenantIDContextKey, uint64(10000))
 	store := leaseFreeBindingStore{SessionSandboxBindingStore: NewMemorySessionSandboxBindingStore()}
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
-		Client:          newFakeRemoteClient(SandboxTypeCube),
+		Client:          newFakeRemoteClient(SandboxTypeE2B),
 		Store:           store,
 		Checker:         &fakeSessionExistenceChecker{exists: true},
 		SkipHealthProbe: true,
@@ -712,11 +712,11 @@ func TestHasActiveTurnWithoutLeaseStoreIsNotBusy(t *testing.T) {
 }
 
 func TestCreateForkSnapshotSnapshotsBoundSandboxWithoutProvisioning(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	client.capabilities.SupportsSnapshots = true
 	store := NewMemorySessionSandboxBindingStore()
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,
@@ -746,10 +746,10 @@ func TestCreateForkSnapshotSnapshotsBoundSandboxWithoutProvisioning(t *testing.T
 }
 
 func TestCreateForkSnapshotErrorsWhenUnbound(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	client.capabilities.SupportsSnapshots = true
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,
@@ -769,10 +769,10 @@ func TestCreateForkSnapshotErrorsWhenUnbound(t *testing.T) {
 }
 
 func TestCreateForkSnapshotErrorsWhenUnsupported(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	store := NewMemorySessionSandboxBindingStore()
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,
@@ -813,12 +813,12 @@ func (c *recordingForkSnapshotClient) CreateForkSnapshot(
 }
 
 func TestCreateForkSnapshotPrefersClientCreateForkSnapshot(t *testing.T) {
-	inner := newFakeRemoteClient(SandboxTypeCube)
+	inner := newFakeRemoteClient(SandboxTypeE2B)
 	inner.capabilities.SupportsSnapshots = true
 	client := &recordingForkSnapshotClient{fakeRemoteClient: inner}
 	store := NewMemorySessionSandboxBindingStore()
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,
@@ -898,11 +898,11 @@ var _ SessionBootstrapper = (*clientBoundRecordingBootstrapper)(nil)
 var _ SessionBootstrapperWithClient = (*clientBoundRecordingBootstrapper)(nil)
 
 func TestNewSessionBoundManagerBindsBootstrapperToClient(t *testing.T) {
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	state := &clientBoundRecordingState{}
 	boot := &clientBoundRecordingBootstrapper{state: state}
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,

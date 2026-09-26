@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	infra "github.com/Tencent/WeKnora/internal/infrastructure/web_search"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	infra "github.com/ai-tool-collection/WeKnora/internal/infrastructure/web_search"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 	"github.com/stretchr/testify/require"
 )
 

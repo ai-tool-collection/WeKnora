@@ -13,9 +13,9 @@ help:
 	@echo "  clean             清理构建文件"
 	@echo ""
 	@echo "Docker 命令:"
-	@echo "  docker-build-app       构建应用 Docker 镜像 (wechatopenai/weknora-app)"
-	@echo "  docker-build-docreader 构建文档读取器镜像 (wechatopenai/weknora-docreader)"
-	@echo "  docker-build-frontend  构建前端镜像 (wechatopenai/weknora-ui)"
+	@echo "  docker-build-app       构建应用 Docker 镜像 (knowledge-hub-app)"
+	@echo "  docker-build-docreader 构建文档读取器镜像 (knowledge-hub-docreader)"
+	@echo "  docker-build-frontend  构建前端镜像 (knowledge-hub-ui)"
 	@echo "  docker-build-all       构建所有 Docker 镜像"
 	@echo "  docker-run            运行 Docker 容器"
 	@echo "  docker-stop           停止 Docker 容器"
@@ -47,7 +47,7 @@ help:
 	@echo "模型厂商目录:"
 	@echo "  model-catalog-check   校验厂商目录（不变量 + 新旧行为对照 + 厂商测试）"
 	@echo "  model-catalog-diff    对比 models.dev，输出模型元数据差异报告（需人工审阅）"
-	@echo "                        可选: make model-catalog-diff VENDOR=deepseek"
+	@echo "                        Example: make model-catalog-diff VENDOR=openai"
 	@echo ""
 	@echo "环境检查:"
 	@echo "  check-env         检查环境配置"
@@ -77,7 +77,7 @@ BINARY_NAME=WeKnora
 MAIN_PATH=./cmd/server
 
 # Docker related variables
-DOCKER_IMAGE=wechatopenai/weknora-app
+DOCKER_IMAGE=knowledge-hub-app
 DOCKER_TAG=latest
 
 # Platform detection
@@ -148,14 +148,14 @@ docker-build-app:
 
 # Build docreader Docker image
 docker-build-docreader:
-	docker build --platform $(PLATFORM) -f docker/Dockerfile.docreader -t wechatopenai/weknora-docreader:latest .
+	docker build --platform $(PLATFORM) -f docker/Dockerfile.docreader -t knowledge-hub-docreader:latest .
 
 # Build frontend Docker image (multi-stage: npm runs inside the builder stage)
 docker-build-frontend:
 	@eval $$(./scripts/get_version.sh env); \
 	docker build --platform $(PLATFORM) \
 		--build-arg VITE_FRONTEND_COMMIT="$$COMMIT_ID" \
-		-f frontend/Dockerfile -t wechatopenai/weknora-ui:latest frontend/
+		-f frontend/Dockerfile -t knowledge-hub-ui:latest frontend/
 
 # Build all Docker images
 docker-build-all: docker-build-app docker-build-docreader docker-build-frontend
@@ -247,10 +247,10 @@ migrate-goto:
 
 # Generate API documentation (Swagger)
 docs:
-	@echo "生成 Swagger API 文档..."
+	@echo "Generating Swagger API documentation..."
 	swag init -g $(MAIN_PATH)/main.go -o ./docs --parseDependency --parseInternal
-	@echo "文档已生成到 ./docs 目录"
-	@echo "启动服务后访问 http://localhost:8080/swagger/index.html 查看文档"
+	python scripts/sanitize_swagger.py
+	@echo "Swagger documentation generated in ./docs"
 
 # Install swagger tool
 install-swagger:
@@ -280,7 +280,7 @@ build-prod:
 	CGO_LDFLAGS="$$(if [ "$$(uname)" = 'Darwin' ]; then echo '-Wl,-no_warn_duplicate_libraries'; fi)" \
 	BUILD_TIME=$${BUILD_TIME:-unknown}; \
 	GO_VERSION=$${GO_VERSION:-unknown}; \
-	LDFLAGS="-X 'github.com/Tencent/WeKnora/internal/handler.Version=$$VERSION' -X 'github.com/Tencent/WeKnora/internal/handler.Edition=standard' -X 'github.com/Tencent/WeKnora/internal/handler.CommitID=$$COMMIT_ID' -X 'github.com/Tencent/WeKnora/internal/handler.BuildTime=$$BUILD_TIME' -X 'github.com/Tencent/WeKnora/internal/handler.GoVersion=$$GO_VERSION' -X 'google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn'"; \
+	LDFLAGS="-X 'github.com/ai-tool-collection/WeKnora/internal/handler.Version=$$VERSION' -X 'github.com/ai-tool-collection/WeKnora/internal/handler.Edition=standard' -X 'github.com/ai-tool-collection/WeKnora/internal/handler.CommitID=$$COMMIT_ID' -X 'github.com/ai-tool-collection/WeKnora/internal/handler.BuildTime=$$BUILD_TIME' -X 'github.com/ai-tool-collection/WeKnora/internal/handler.GoVersion=$$GO_VERSION' -X 'google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn'"; \
 	go build -tags "$(GO_BUILD_TAGS)" -ldflags="-w -s $$LDFLAGS" -o $(BINARY_NAME) $(MAIN_PATH)
 
 # Build Lite version (single binary, SQLite + in-memory queue)

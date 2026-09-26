@@ -13,9 +13,9 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/Tencent/WeKnora/internal/models"
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -57,10 +57,6 @@ func newUpstream(t *testing.T) *upstream {
 	t.Cleanup(server.Close)
 	u.url = server.URL
 
-	// LKEAP's SDK always calls the public API host; point it here.
-	savedEndpoint, savedScheme := lkeapEndpoint, lkeapScheme
-	lkeapEndpoint, lkeapScheme = strings.TrimPrefix(server.URL, "http://"), "HTTP"
-	t.Cleanup(func() { lkeapEndpoint, lkeapScheme = savedEndpoint, savedScheme })
 	return u
 }
 
@@ -156,7 +152,6 @@ func TestRerankWireFormatPerVendor(t *testing.T) {
 		}
 		return body
 	}
-	const volcInstruction = "Whether the document answers the query or matches the content retrieval intent"
 
 	cases := []struct {
 		name       string
@@ -187,28 +182,6 @@ func TestRerankWireFormatPerVendor(t *testing.T) {
 			wantBody: cohere("jina-reranker-v3", three, map[string]any{"return_documents": true}),
 		},
 		{
-			name: "zhipu on its full rerank URL", provider: "zhipu", model: "rerank", base: "/api/paas/v4/rerank",
-			wantPath: "/api/paas/v4/rerank", wantAuth: [2]string{"Authorization", "Bearer k"},
-			wantBody: cohere("rerank", three, map[string]any{"return_documents": true}),
-		},
-		{
-			name: "zhipu splits at 128 documents", provider: "zhipu", model: "rerank", base: "/api/paas/v4/rerank",
-			docs: documents(129), wantRequests: 2,
-			wantPath: "/api/paas/v4/rerank", wantAuth: [2]string{"Authorization", "Bearer k"},
-			wantBody: cohere("rerank", documents(128), map[string]any{"return_documents": true}),
-		},
-		{
-			name: "siliconflow", provider: "siliconflow", model: "BAAI/bge-reranker-v2-m3", base: "/v1",
-			wantPath: "/v1/rerank", wantAuth: [2]string{"Authorization", "Bearer k"},
-			wantBody: cohere("BAAI/bge-reranker-v2-m3", three, nil),
-		},
-		{
-			name: "qianfan splits at 64 documents", provider: "qianfan", model: "bce-reranker-base", base: "/v2",
-			docs: documents(65), wantRequests: 2,
-			wantPath: "/v2/rerank", wantAuth: [2]string{"Authorization", "Bearer k"},
-			wantBody: cohere("bce-reranker-base", documents(64), nil),
-		},
-		{
 			name: "gpustack sends the row's truncation budget and answers logits", provider: "gpustack",
 			model: "bge-reranker-v2-m3", base: "/v1",
 			extra:      map[string]string{models.ExtraTruncatePromptTokens: "256"},
@@ -237,23 +210,6 @@ func TestRerankWireFormatPerVendor(t *testing.T) {
 			wantBody: cohere("cohere/rerank-v3.5", three, nil),
 		},
 		{
-			name: "weknoracloud signs its own path", provider: "weknoracloud", model: "rerank",
-			appID: "app", appSecret: "s",
-			wantPath: "/api/v1/rerank", wantAuth: [2]string{"X-APPID", "app"},
-			wantBody: cohere("rerank", three, nil),
-		},
-		{
-			name: "aliyun wraps input and parameters", provider: "aliyun", model: "gte-rerank-v2",
-			base:     "/api/v1/services/rerank/text-rerank/text-rerank",
-			wantPath: "/api/v1/services/rerank/text-rerank/text-rerank",
-			wantAuth: [2]string{"Authorization", "Bearer k"},
-			wantBody: map[string]any{
-				"model":      "gte-rerank-v2",
-				"input":      map[string]any{"query": query, "documents": anyStrings(three)},
-				"parameters": map[string]any{"return_documents": true, "top_n": float64(3)},
-			},
-		},
-		{
 			name: "nvidia sends passages and answers logits", provider: "nvidia",
 			model: "nvidia/nv-rerankqa-mistral-4b-v3", base: "/v1/retrieval/nvidia/reranking", logitScale: true,
 			wantPath: "/v1/retrieval/nvidia/reranking", wantAuth: [2]string{"Authorization", "Bearer k"},
@@ -265,26 +221,6 @@ func TestRerankWireFormatPerVendor(t *testing.T) {
 				},
 				"truncate": "END",
 			},
-		},
-		{
-			name: "volcengine through the Knowledge Service SDK", provider: "volcengine", model: "doubao-seed-rerank",
-			appSecret: "secret-test",
-			wantPath:  "/api/knowledge/service/rerank", wantAuth: [2]string{"Authorization", "Credential=k/"},
-			wantBody: map[string]any{
-				"rerank_model":       "doubao-seed-rerank",
-				"rerank_instruction": volcInstruction,
-				"datas": []any{
-					map[string]any{"query": query, "content": "a"},
-					map[string]any{"query": query, "content": "bbb"},
-					map[string]any{"query": query, "content": "cc"},
-				},
-			},
-		},
-		{
-			name: "lkeap through the Tencent Cloud SDK", provider: "lkeap", model: "lke-reranker-base",
-			appSecret: "secret-test",
-			wantPath:  "/", wantAuth: [2]string{"Authorization", "Credential=k/"},
-			wantBody: map[string]any{"Query": query, "Docs": anyStrings(three), "Model": "lke-reranker-base"},
 		},
 	}
 

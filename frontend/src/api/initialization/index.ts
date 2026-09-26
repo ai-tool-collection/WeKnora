@@ -9,11 +9,6 @@ export interface ModelCredentialStatus {
     apiKey?: boolean;
 }
 
-export interface COSCredentialStatus {
-    secretId?: boolean;
-    secretKey?: boolean;
-}
-
 // 初始化配置数据类型
 export interface InitializationConfig {
     llm: {
@@ -43,7 +38,7 @@ export interface InitializationConfig {
     };
     multimodal: {
         enabled: boolean;
-        storageType: 'cos' | 'minio';
+        storageType: 'minio';
         vlm?: {
             modelName: string;
             baseUrl: string;
@@ -51,17 +46,6 @@ export interface InitializationConfig {
             apiKey?: string;
             interfaceType?: string; // "ollama" or "openai"
             credentials?: ModelCredentialStatus;
-        };
-        cos?: {
-            region: string;
-            bucketName: string;
-            appId: string;
-            pathPrefix?: string;
-            /** @deprecated Use credentials from GET responses */
-            secretId?: string;
-            /** @deprecated Use credentials from GET responses */
-            secretKey?: string;
-            credentials?: COSCredentialStatus;
         };
         minio?: {
             bucketName: string;
@@ -82,7 +66,7 @@ export interface InitializationConfig {
         languages?: string[];
     };
     // Frontend-only hint for storage selection UI
-    storageType?: 'cos' | 'minio';
+    storageType?: 'minio';
     nodeExtract: {
         enabled: boolean,
         text: string,
@@ -146,7 +130,7 @@ export interface KBModelConfigRequest {
     multimodal: {
         enabled: boolean
     }
-    /** 存储引擎选择："local" | "minio" | "cos" | "obs" 等，影响文档上传与文档内图片存储 */
+    /** Storage engine selection for documents and extracted images. */
     storageBackendId?: string
     storageProvider?: string
     nodeExtract: {
@@ -309,7 +293,7 @@ interface BaseModelTestPayload {
     customHeaders?: Record<string, string>;
     extraConfig?: Record<string, string>;
     interfaceType?: string;
-    /** 第二段密钥（如 LKEAP Rerank 的腾讯云 SecretKey） */
+    /** Optional second credential for provider-specific authentication. */
     appSecret?: string;
 }
 
@@ -413,14 +397,7 @@ export function testMultimodalFunction(testData: {
     vlm_base_url: string;
     vlm_api_key?: string;
     vlm_interface_type?: string;
-    storage_type?: 'cos' | 'minio';
-    // COS optional fields (required only when storage_type === 'cos')
-    cos_secret_id?: string;
-    cos_secret_key?: string;
-    cos_region?: string;
-    cos_bucket_name?: string;
-    cos_app_id?: string;
-    cos_path_prefix?: string;
+    storage_type?: 'minio';
     // MinIO optional fields
     minio_bucket_name?: string;
     minio_path_prefix?: string;
@@ -447,15 +424,6 @@ export function testMultimodalFunction(testData: {
         }
         if (testData.storage_type) {
             formData.append('storage_type', testData.storage_type);
-        }
-        // Append COS fields only when storage_type is COS
-        if (testData.storage_type === 'cos') {
-            if (testData.cos_secret_id) formData.append('cos_secret_id', testData.cos_secret_id);
-            if (testData.cos_secret_key) formData.append('cos_secret_key', testData.cos_secret_key);
-            if (testData.cos_region) formData.append('cos_region', testData.cos_region);
-            if (testData.cos_bucket_name) formData.append('cos_bucket_name', testData.cos_bucket_name);
-            if (testData.cos_app_id) formData.append('cos_app_id', testData.cos_app_id);
-            if (testData.cos_path_prefix) formData.append('cos_path_prefix', testData.cos_path_prefix);
         }
         // MinIO fields
         if (testData.minio_bucket_name) formData.append('minio_bucket_name', testData.minio_bucket_name);
@@ -581,7 +549,7 @@ export function fabriTag(request: FabriTagRequest): Promise<FabriTagResponse> {
     });
 }
 
-// 厂商额外配置字段（Azure api_version、LKEAP secret_key 等）。
+// Additional provider configuration fields, such as Azure API versions.
 // Mirrors internal/models/catalog.ExtraField.
 export interface ModelProviderExtraFieldOption {
     label: string;
@@ -591,9 +559,8 @@ export interface ModelProviderExtraFieldOption {
 
 /**
  * Renames the primary credential input for vendors whose API does not take a
- * plain API key. LKEAP and Volcengine sign their rerank requests with a
- * CAM / IAM key pair, so the first field is a SecretId / Access Key ID.
- * The vendor declares the wording so the editor needs no vendor table.
+ * plain API key. The provider declares its own credential labels so the
+ * editor does not need a provider-specific table.
  */
 export interface ModelProviderCredentialLabel {
     label: string;

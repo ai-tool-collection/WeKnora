@@ -36,7 +36,7 @@ func (b *recordingBootstrapper) AfterCreate(
 
 func newLifecycleForTest(t *testing.T) (*remoteSessionLifecycle, *fakeRemoteClient, SessionSandboxBindingStore) {
 	t.Helper()
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	store := NewMemorySessionSandboxBindingStore()
 	lc := newTestRemoteSessionLifecycle(
 		t, client, store, &fakeSessionExistenceChecker{exists: true},
@@ -146,7 +146,7 @@ func TestCreateFailureWithOverrideNotifiesBootstrapper(t *testing.T) {
 	}
 	lc.bootstrapper = handler
 	client.createErr = NewRemoteError(
-		SandboxTypeCube, "Create", RemoteErrorKindNotFound, "template gone", nil,
+		SandboxTypeE2B, "Create", RemoteErrorKindNotFound, "template gone", nil,
 	)
 
 	_, err := lc.Resolve(context.Background(), testSessionKey)
@@ -162,7 +162,7 @@ func TestCreateFailureWithoutOverrideDoesNotNotifyBootstrapper(t *testing.T) {
 	handler := &recordingCreateFailureHandler{}
 	lc.bootstrapper = handler
 	client.createErr = NewRemoteError(
-		SandboxTypeCube, "Create", RemoteErrorKindNotFound, "template gone", nil,
+		SandboxTypeE2B, "Create", RemoteErrorKindNotFound, "template gone", nil,
 	)
 
 	_, err := lc.Resolve(context.Background(), testSessionKey)
@@ -178,7 +178,7 @@ func TestTransientCreateFailureWithOverrideStillNotifiesBootstrapper(t *testing.
 	}
 	lc.bootstrapper = handler
 	client.createErr = NewRemoteError(
-		SandboxTypeCube, "Create", RemoteErrorKindUnavailable, "provider down", nil,
+		SandboxTypeE2B, "Create", RemoteErrorKindUnavailable, "provider down", nil,
 	)
 
 	_, err := lc.Resolve(context.Background(), testSessionKey)

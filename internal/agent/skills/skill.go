@@ -42,7 +42,7 @@ type Skill struct {
 	// Metadata (Level 1) - always loaded
 	Name        string `yaml:"name"`
 	Description string `yaml:"description"`
-	// Slug is an optional filesystem-safe id. ClawHub / SkillHub often put a
+	// Slug is an optional filesystem-safe id. External registries often put a
 	// display title in name ("Word / DOCX") and the install id in slug
 	// ("word-docx"). When name is not a valid install identity, slug wins.
 	Slug string `yaml:"slug,omitempty"`

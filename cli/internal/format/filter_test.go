@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/Tencent/WeKnora/cli/internal/format"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/format"
 )
 
 // A malformed --jq expression must surface as *format.JQError so the cmdutil

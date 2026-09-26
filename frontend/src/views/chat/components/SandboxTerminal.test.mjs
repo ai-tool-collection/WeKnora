@@ -71,7 +71,7 @@ test('panel open looks up a running sandbox and only provisions on an explicit c
   assert.doesNotMatch(terminal, /not_started/)
 })
 
-test('interactive bash defines Debian-style ls aliases', () => {
+test('interactive bash defines Debian-style ls aliases', { skip: process.platform === 'win32' }, () => {
   const out = execFileSync('bash', [
     '--norc',
     '--noprofile',

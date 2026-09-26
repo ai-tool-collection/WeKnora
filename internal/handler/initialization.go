@@ -14,23 +14,22 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/application/repository"
-	chatpipeline "github.com/Tencent/WeKnora/internal/application/service/chat_pipeline"
-	"github.com/Tencent/WeKnora/internal/assets"
-	"github.com/Tencent/WeKnora/internal/config"
-	"github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/handler/dto"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/middleware"
-	"github.com/Tencent/WeKnora/internal/models/asr"
-	"github.com/Tencent/WeKnora/internal/models/chat"
-	"github.com/Tencent/WeKnora/internal/models/embedding"
-	"github.com/Tencent/WeKnora/internal/models/providers"
-	"github.com/Tencent/WeKnora/internal/models/rerank"
-	"github.com/Tencent/WeKnora/internal/models/utils/ollama"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/application/repository"
+	chatpipeline "github.com/ai-tool-collection/WeKnora/internal/application/service/chat_pipeline"
+	"github.com/ai-tool-collection/WeKnora/internal/assets"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
+	"github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/handler/dto"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/middleware"
+	"github.com/ai-tool-collection/WeKnora/internal/models/asr"
+	"github.com/ai-tool-collection/WeKnora/internal/models/chat"
+	"github.com/ai-tool-collection/WeKnora/internal/models/embedding"
+	"github.com/ai-tool-collection/WeKnora/internal/models/rerank"
+	"github.com/ai-tool-collection/WeKnora/internal/models/utils/ollama"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/ollama/ollama/api"
@@ -126,7 +125,7 @@ type KBModelConfigRequest struct {
 		Enabled bool `json:"enabled"`
 	} `json:"multimodal"`
 
-	// 存储引擎选择（"local" | "minio" | "cos"），影响文档上传与文档内图片存储，参数从全局设置读取
+	// 存储引擎选择（"local" | "minio" | "s3"），影响文档上传与文档内图片存储，参数从全局设置读取
 	StorageProvider  string `json:"storageProvider"`
 	StorageBackendID string `json:"storageBackendId"`
 
@@ -181,15 +180,7 @@ type InitializationRequest struct {
 			InterfaceType string `json:"interfaceType"` // "ollama" or "openai"
 		} `json:"vlm,omitempty"`
 		StorageType string `json:"storageType"`
-		COS         *struct {
-			SecretID   string `json:"secretId"`
-			SecretKey  string `json:"secretKey"`
-			Region     string `json:"region"`
-			BucketName string `json:"bucketName"`
-			AppID      string `json:"appId"`
-			PathPrefix string `json:"pathPrefix"`
-		} `json:"cos,omitempty"`
-		Minio *struct {
+		Minio       *struct {
 			BucketName string `json:"bucketName"`
 			PathPrefix string `json:"pathPrefix"`
 		} `json:"minio,omitempty"`
@@ -719,13 +710,6 @@ func (h *InitializationHandler) validateMultimodalConfig(ctx context.Context, re
 	}
 
 	switch storageType {
-	case "cos":
-		if req.Multimodal.COS == nil || req.Multimodal.COS.SecretID == "" || req.Multimodal.COS.SecretKey == "" ||
-			req.Multimodal.COS.Region == "" || req.Multimodal.COS.BucketName == "" ||
-			req.Multimodal.COS.AppID == "" {
-			logger.Error(ctx, "COS configuration incomplete")
-			return errors.NewBadRequestError("COS配置不完整")
-		}
 	case "minio":
 		if req.Multimodal.Minio == nil || req.Multimodal.Minio.BucketName == "" ||
 			os.Getenv("MINIO_ACCESS_KEY_ID") == "" || os.Getenv("MINIO_SECRET_ACCESS_KEY") == "" {
@@ -972,24 +956,10 @@ func (h *InitializationHandler) applyKnowledgeBaseInitialization(
 			ModelID: vlmModelID,
 		}
 		switch req.Multimodal.StorageType {
-		case "cos":
-			if req.Multimodal.COS != nil {
-				kb.SetStorageProvider("cos")
-				// Legacy: also write to cos_config for backward compat with old code paths
-				kb.StorageConfig = types.StorageConfig{
-					Provider:   req.Multimodal.StorageType,
-					BucketName: req.Multimodal.COS.BucketName,
-					AppID:      req.Multimodal.COS.AppID,
-					PathPrefix: req.Multimodal.COS.PathPrefix,
-					SecretID:   req.Multimodal.COS.SecretID,
-					SecretKey:  req.Multimodal.COS.SecretKey,
-					Region:     req.Multimodal.COS.Region,
-				}
-			}
 		case "minio":
 			if req.Multimodal.Minio != nil {
 				kb.SetStorageProvider("minio")
-				// Legacy: also write to cos_config for backward compat with old code paths
+				// Store the selected object storage settings with the knowledge base.
 				kb.StorageConfig = types.StorageConfig{
 					Provider:   req.Multimodal.StorageType,
 					BucketName: req.Multimodal.Minio.BucketName,
@@ -1678,7 +1648,7 @@ func (h *InitializationHandler) buildConfigResponse(ctx context.Context, models 
 		}
 		config["documentSplitting"] = ds
 
-		// 添加多模态的存储配置信息（优先读新字段，兼容旧 cos_config）
+		// Include the selected storage settings for multimodal processing.
 		effectiveProvider := kb.GetStorageProvider()
 		if kb.StorageConfig.SecretID != "" || (effectiveProvider != "" && effectiveProvider != "local") {
 			if config["multimodal"] == nil {
@@ -1689,17 +1659,6 @@ func (h *InitializationHandler) buildConfigResponse(ctx context.Context, models 
 			multimodal := config["multimodal"].(map[string]interface{})
 			multimodal["storageType"] = effectiveProvider
 			switch effectiveProvider {
-			case "cos":
-				multimodal["cos"] = map[string]interface{}{
-					"region":     kb.StorageConfig.Region,
-					"bucketName": kb.StorageConfig.BucketName,
-					"appId":      kb.StorageConfig.AppID,
-					"pathPrefix": kb.StorageConfig.PathPrefix,
-					"credentials": map[string]bool{
-						"secretId":  kb.StorageConfig.SecretID != "",
-						"secretKey": kb.StorageConfig.SecretKey != "",
-					},
-				}
 			case "minio":
 				multimodal["minio"] = map[string]interface{}{
 					"bucketName": kb.StorageConfig.BucketName,
@@ -1708,7 +1667,7 @@ func (h *InitializationHandler) buildConfigResponse(ctx context.Context, models 
 			}
 			if !ownWorkspace {
 				// Bucket locations are the owner's infrastructure too.
-				for _, provider := range []string{"cos", "minio"} {
+				for _, provider := range []string{"minio"} {
 					if detail, ok := multimodal[provider].(map[string]interface{}); ok {
 						for _, field := range []string{"region", "bucketName", "appId", "pathPrefix"} {
 							delete(detail, field)
@@ -1842,18 +1801,6 @@ func (h *InitializationHandler) fillSecretsFromStoredModel(ctx context.Context, 
 type RemoteModelCheckRequest = ModelTestRequest
 
 // decryptModelAppSecret 解密模型 Parameters 中的 AppSecret（与 modelService 行为一致）。
-func decryptModelAppSecret(encrypted string) string {
-	if encrypted == "" {
-		return encrypted
-	}
-	if key := utils.GetAESKey(); key != nil {
-		if plain, err := utils.DecryptAESGCM(encrypted, key); err == nil {
-			return plain
-		}
-	}
-	return encrypted
-}
-
 // buildTestModel 把测试连接请求转成一个临时的 *types.Model（不落库），
 // 供 ConfigFromModel 使用。source 为空时按 defaultSource 兜底（chat/rerank/asr
 // 默认 remote，embedding 会根据前端传入的 source 决定）。
@@ -1884,22 +1831,6 @@ func (h *InitializationHandler) buildTestModel(
 			},
 		},
 	}
-}
-
-// resolveTenantWeKnoraCloudCreds 从当前空间上下文里取出 WeKnoraCloud 凭证，
-// 供测试连接端点补齐 appID/appSecret。与 service.resolveWeKnoraCloudCredentials
-// 对应，但因为 handler 还没有被注入 tenantService（历史原因），暂时从
-// TenantInfoFromContext 读取，等效果相同。
-func (h *InitializationHandler) resolveTenantWeKnoraCloudCreds(ctx context.Context) (string, string, bool) {
-	tenantInfo, ok := types.TenantInfoFromContext(ctx)
-	if !ok {
-		return "", "", false
-	}
-	creds := tenantInfo.Credentials.GetWeKnoraCloud()
-	if creds == nil {
-		return "", "", true
-	}
-	return creds.AppID, creds.AppSecret, true
 }
 
 // CheckRemoteModel godoc
@@ -1938,12 +1869,7 @@ func (h *InitializationHandler) CheckRemoteModel(c *gin.Context) {
 		c.Error(errors.NewBadRequestError(utils.FormatSSRFError("Base URL", req.BaseURL, err)))
 		return
 	}
-	appID, appSecret, ok := h.resolveTenantWeKnoraCloudCreds(ctx)
-	if !ok {
-		logger.Error(ctx, "Tenant info not found")
-		c.Error(errors.NewBadRequestError("空间信息未找到"))
-		return
-	}
+	appID, appSecret := "", ""
 
 	model := h.buildTestModel(&req, types.ModelTypeKnowledgeQA, types.ModelSourceRemote)
 	available, message := h.checkChatModelConnection(ctx, model, appID, appSecret)
@@ -1995,29 +1921,7 @@ func (h *InitializationHandler) TestEmbeddingModel(c *gin.Context) {
 		}
 	}
 
-	// 阿里云多模态 Embedding 模型暂不支持
-	if strings.ToLower(req.Provider) == "aliyun" {
-		modelNameLower := strings.ToLower(req.ModelName)
-		if strings.Contains(modelNameLower, "vision") || strings.Contains(modelNameLower, "multimodal") {
-			logger.Infof(ctx, "Aliyun multimodal embedding model not supported: %s", req.ModelName)
-			c.JSON(http.StatusOK, gin.H{
-				"success": true,
-				"data": gin.H{
-					"available": false,
-					"message":   "阿里云多模态 Embedding 模型暂不支持，请使用纯文本 Embedding 模型（如 text-embedding-v4）",
-					"dimension": 0,
-				},
-			})
-			return
-		}
-	}
-
-	appID, appSecret, ok := h.resolveTenantWeKnoraCloudCreds(ctx)
-	if !ok {
-		logger.Error(ctx, "Tenant info not found")
-		c.Error(errors.NewBadRequestError("空间信息未找到"))
-		return
-	}
+	appID, appSecret := "", ""
 
 	model := h.buildTestModel(&req, types.ModelTypeEmbedding, types.ModelSourceRemote)
 	emb, err := embedding.NewEmbedder(embedding.ConfigFromModel(model, appID, appSecret), h.pooler, h.ollamaService)
@@ -2164,20 +2068,9 @@ func (h *InitializationHandler) CheckRerankModel(c *gin.Context) {
 		return
 	}
 
-	appID, appSecret, ok := h.resolveTenantWeKnoraCloudCreds(ctx)
-	if !ok {
-		logger.Error(ctx, "Tenant info not found")
-		c.Error(errors.NewBadRequestError("空间信息未找到"))
-		return
-	}
+	appID, appSecret := "", ""
 
 	model := h.buildTestModel(&req, types.ModelTypeRerank, types.ModelSourceRemote)
-	// LKEAP and Volcengine rerank sign with a key pair stored on the row
-	// itself, not with the tenant's WeKnora Cloud credentials.
-	if p := model.Parameters.Provider; p == providers.LkeapID || p == providers.VolcengineID {
-		appID = ""
-		appSecret = decryptModelAppSecret(model.Parameters.AppSecret)
-	}
 	available, message := h.checkRerankModelConnection(ctx, model, appID, appSecret)
 
 	logger.Infof(ctx, "Rerank model check completed, available: %v, message: %s", available, message)
@@ -2228,8 +2121,8 @@ func (h *InitializationHandler) CheckASRModel(c *gin.Context) {
 		return
 	}
 
-	// 用统一构造器生成测试用 *types.Model（ASR 不涉及 WeKnoraCloud 凭证），
-	// 发送一段极短的静默 WAV 音频验证 /v1/audio/transcriptions 端点可达。
+	// Build the test model with the shared constructor.
+	// Send a short silent WAV file to verify the transcription endpoint.
 	model := h.buildTestModel(&req, types.ModelTypeASR, types.ModelSourceRemote)
 	asrInstance, err := asr.NewASR(asr.ConfigFromModel(model))
 	if err != nil {
@@ -2298,14 +2191,6 @@ type testMultimodalForm struct {
 
 	StorageType string `form:"storage_type"`
 
-	// COS 配置
-	COSSecretID   string `form:"cos_secret_id"`
-	COSSecretKey  string `form:"cos_secret_key"`
-	COSRegion     string `form:"cos_region"`
-	COSBucketName string `form:"cos_bucket_name"`
-	COSAppID      string `form:"cos_app_id"`
-	COSPathPrefix string `form:"cos_path_prefix"`
-
 	// MinIO 配置（当存储为 minio 时）
 	MinioBucketName string `form:"minio_bucket_name"`
 	MinioPathPrefix string `form:"minio_path_prefix"`
@@ -2327,7 +2212,7 @@ type testMultimodalForm struct {
 // @Param        vlm_base_url      formData  string  true   "VLM Base URL"
 // @Param        vlm_api_key       formData  string  false  "VLM API Key"
 // @Param        vlm_interface_type formData string  false  "VLM接口类型"
-// @Param        storage_type      formData  string  true   "存储类型(cos/minio)"
+// @Param        storage_type      formData  string  true   "存储类型(minio)"
 // @Success      200               {object}  map[string]interface{}  "测试结果"
 // @Failure      400               {object}  errors.AppError         "请求参数错误"
 // @Security     Bearer
@@ -2365,15 +2250,6 @@ func (h *InitializationHandler) TestMultimodalFunction(c *gin.Context) {
 	}
 
 	switch req.StorageType {
-	case "cos":
-		// 必填：SecretID/SecretKey/Region/BucketName/AppID；PathPrefix 可选
-		if req.COSSecretID == "" || req.COSSecretKey == "" ||
-			req.COSRegion == "" || req.COSBucketName == "" ||
-			req.COSAppID == "" {
-			logger.Error(ctx, "COS configuration is required")
-			c.Error(errors.NewBadRequestError("COS配置信息不能为空"))
-			return
-		}
 	case "minio":
 		if req.MinioBucketName == "" {
 			logger.Error(ctx, "MinIO configuration is required")

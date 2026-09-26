@@ -1,25 +1,25 @@
-// Package main is the main package for the WeKnora server
+// Package main is the main package for the Knowledge Hub server.
 // It contains the main function and the entry point for the server
 //
-// @title           WeKnora API
+// @title           Knowledge Hub API
 // @version         1.0
-// @description     WeKnora 知识库管理系统 API 文档
+// @description     Knowledge Hub API reference
 // @termsOfService  http://swagger.io/terms/
 //
-// @contact.name   WeKnora Github
-// @contact.url    https://github.com/Tencent/WeKnora
+// @contact.name   Knowledge Hub
+// @contact.url    https://github.com/ai-tool-collection/WeKnora
 //
 // @BasePath  /api/v1
 //
 // @securityDefinitions.apikey Bearer
 // @in header
 // @name Authorization
-// @description 用户登录认证：输入 Bearer {token} 格式的 JWT 令牌
+// @description User authentication with a Bearer JWT token.
 
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name X-API-Key
-// @description API Key 认证：空间 Key 固定访问所属空间；平台 Key 调用空间接口时需同时传 X-Tenant-ID
+// @description Workspace keys are scoped to one workspace; platform keys also require X-Tenant-ID.
 package main
 
 import (
@@ -32,12 +32,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Tencent/WeKnora/internal/application/service"
-	"github.com/Tencent/WeKnora/internal/config"
-	"github.com/Tencent/WeKnora/internal/container"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/runtime"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
+	"github.com/ai-tool-collection/WeKnora/internal/container"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 func main() {

@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 	// Not configurable by tenants — prevents SSRF.
 	defaultKeenableBaseURL = "https://api.keenable.ai"
 	// keenableTitle is the attribution tag Keenable segments integration traffic by.
-	keenableTitle = "WeKnora"
+	keenableTitle = "Knowledge Hub"
 	// defaultKeenableResults matches the fallback other providers use when the
 	// caller does not specify a positive maxResults.
 	defaultKeenableResults = 5

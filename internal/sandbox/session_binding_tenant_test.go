@@ -6,15 +6,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 func newTenantKeyTestManager(t *testing.T) (*SessionBoundManager, *fakeRemoteClient) {
 	t.Helper()
 
-	client := newFakeRemoteClient(SandboxTypeCube)
+	client := newFakeRemoteClient(SandboxTypeE2B)
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,
 		Client:          client,

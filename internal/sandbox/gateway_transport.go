@@ -127,7 +127,7 @@ func gatewayEndpointFor(cfg *Config) (gatewayURL, controlURL string) {
 	case SandboxTypeE2B:
 		return cfg.E2BProxyURL, cfg.E2BAPIURL
 	default:
-		return cfg.CubeProxyURL, cfg.CubeAPIURL
+		return "", ""
 	}
 }
 

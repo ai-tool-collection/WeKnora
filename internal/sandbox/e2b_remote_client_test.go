@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	e2b "github.com/matiasinsaurralde/go-e2b"
 	"github.com/stretchr/testify/require"
 )
@@ -1664,7 +1664,7 @@ func TestE2BRemoteClientRejectsForeignHandle(t *testing.T) {
 	client := newTestE2BRemoteClient(t, newE2BMockServer(t))
 	_, err := client.ReadFile(
 		context.Background(),
-		&contractHandle{id: "cube-1", provider: SandboxTypeCube},
+		&contractHandle{id: "cube-1", provider: SandboxTypeE2B},
 		"/workspace/file",
 	)
 	require.True(t, IsRemoteInvalidRequest(err))

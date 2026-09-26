@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/models"
-	"github.com/Tencent/WeKnora/internal/models/providers"
+	"github.com/ai-tool-collection/WeKnora/internal/models"
+	"github.com/ai-tool-collection/WeKnora/internal/models/providers"
 )
 
 // Initialize is the application composition entry point. A failed deployment

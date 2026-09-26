@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
 	"github.com/redis/go-redis/v9"
 )
 

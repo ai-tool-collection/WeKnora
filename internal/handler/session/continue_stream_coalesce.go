@@ -3,7 +3,7 @@ package session
 import (
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 // coalesceReplayEvents merges each run of consecutive, unfinished delta

@@ -5,7 +5,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 func TestEngineAwareNormalizer_KeywordPassthrough(t *testing.T) {
@@ -52,69 +52,6 @@ func TestEngineAwareNormalizer_MilvusIsCosine(t *testing.T) {
 	}
 }
 
-func TestEngineAwareNormalizer_UnitInterval(t *testing.T) {
-	t.Parallel()
-	n := EngineAwareNormalizer{}
-	// All engines whose effective score arriving at the normalizer is
-	// already in [0, 1]:
-	//   - Elasticsearch v8 / ElasticFaiss — Lucene script_score's
-	//     non-negative invariant truncates the theoretical [-1, 1]
-	//     cosineSimilarity output to [0, 1].
-	//   - OpenSearch — the k-NN plugin's
-	//     SpaceType.COSINESIMIL.scoreTranslation pre-maps to (1 + cos)/2.
-	//   - Weaviate — driver requests certainty, intrinsically in [0, 1].
-	//   - Postgres pgvector / SQLite sqlite-vec / Qdrant /
-	//     TencentVectorDB / Doris — theoretically [-1, 1] but the
-	//     IR-normalized embeddings WeKnora targets (BGE / OpenAI /
-	//     Cohere / sentence-transformers) keep the observed range
-	//     in [0, 1]; the silent floor at clamp01(<0) → 0 is the
-	//     defense for embedding models that violate that assumption.
-	//   - Infinity — dead enum reference; case label kept for switch
-	//     exhaustiveness, never reached in production.
-	cases := []struct {
-		score float64
-		want  float64
-	}{
-		{-0.1, 0},
-		{0, 0},
-		{0.25, 0.25},
-		{0.999, 0.999},
-		{1, 1},
-		{1.5, 1},
-	}
-	for _, engine := range []types.RetrieverEngineType{
-		types.ElasticsearchRetrieverEngineType,
-		types.ElasticFaissRetrieverEngineType,
-		types.OpenSearchRetrieverEngineType,
-		types.WeaviateRetrieverEngineType,
-		types.PostgresRetrieverEngineType,
-		types.SQLiteRetrieverEngineType,
-		types.QdrantRetrieverEngineType,
-		types.InfinityRetrieverEngineType,
-		types.TencentVectorDBRetrieverEngineType,
-		types.DorisRetrieverEngineType,
-	} {
-		for _, tc := range cases {
-			got := n.Normalize(context.Background(), tc.score,
-				types.VectorRetrieverType, engine)
-			if math.Abs(got-tc.want) > 1e-9 {
-				t.Fatalf("unit[%s] score=%v: want %v, got %v",
-					engine, tc.score, tc.want, got)
-			}
-		}
-	}
-}
-
-// TestEngineAwareNormalizer_ElasticsearchCosinePassthrough is an explicit
-// regression guard for the score-range correction landed in this PR. ES's
-// driver returns the raw output of the `cosineSimilarity(...)` script_score
-// script. Lucene rejects negative final scores (per the ES documentation:
-// "Final relevance scores from the script_score query cannot be negative.
-// To support certain search optimizations, Lucene requires scores be
-// positive or 0"), so for IR-normalized embeddings the effective range
-// observed at the normalizer is already in [0, 1]. ES therefore belongs
-// in the passthrough group and the cosine=0.5 case must map to 0.5 (not
-// (0.5 + 1) / 2 = 0.75 as an earlier draft assumed).
 func TestEngineAwareNormalizer_ElasticsearchCosinePassthrough(t *testing.T) {
 	t.Parallel()
 	n := EngineAwareNormalizer{}

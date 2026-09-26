@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/agent"
-	"github.com/Tencent/WeKnora/internal/agent/skills"
-	"github.com/Tencent/WeKnora/internal/agent/tools"
-	"github.com/Tencent/WeKnora/internal/models/chat"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/agent"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/skills"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/tools"
+	"github.com/ai-tool-collection/WeKnora/internal/models/chat"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -154,7 +154,7 @@ func TestCreateAgentEngineOpensSandboxToolsOnlyForInstallMode(t *testing.T) {
 		svc := &agentService{
 			sandboxResolver: stubSandboxResolver{
 				mgr: &capableManager{
-					typ:   sandbox.SandboxTypeCube,
+					typ:   sandbox.SandboxTypeE2B,
 					shell: &stubShellExecutor{},
 					// The manager advertises a session file store, the way
 					// every real remote backend does. The installer still
@@ -192,7 +192,7 @@ func TestCreateAgentEngineOpensSandboxToolsOnlyForInstallMode(t *testing.T) {
 		svc := &agentService{
 			sandboxResolver: stubSandboxResolver{
 				mgr: &capableManager{
-					typ:          sandbox.SandboxTypeCube,
+					typ:          sandbox.SandboxTypeE2B,
 					shell:        &stubShellExecutor{},
 					files:        stubSessionFileStore{},
 					installShell: &stubInstallShellExecutor{},
@@ -223,7 +223,7 @@ func TestCreateAgentEngineOpensSandboxToolsOnlyForInstallMode(t *testing.T) {
 		svc := &agentService{
 			sandboxResolver: stubSandboxResolver{
 				mgr: &capableManager{
-					typ:   sandbox.SandboxTypeCube,
+					typ:   sandbox.SandboxTypeE2B,
 					shell: &stubShellExecutor{},
 					files: stubSessionFileStore{},
 				},
@@ -254,7 +254,7 @@ func TestCreateAgentEngineOpensSandboxToolsOnlyForInstallMode(t *testing.T) {
 		svc := &agentService{
 			sandboxResolver: stubSandboxResolver{
 				mgr: &capableManager{
-					typ:   sandbox.SandboxTypeCube,
+					typ:   sandbox.SandboxTypeE2B,
 					shell: &stubShellExecutor{},
 					files: stubSessionFileStore{},
 				},
@@ -287,7 +287,7 @@ func TestCreateAgentEngineOpensSandboxToolsOnlyForInstallMode(t *testing.T) {
 		svc := &agentService{
 			sandboxResolver: stubSandboxResolver{
 				mgr: &capableManager{
-					typ:   sandbox.SandboxTypeCube,
+					typ:   sandbox.SandboxTypeE2B,
 					shell: &stubShellExecutor{},
 					files: stubSessionFileStore{},
 				},
@@ -326,7 +326,7 @@ func TestSkillToolsFollowSkillsEnabled(t *testing.T) {
 		registry := tools.NewToolRegistry()
 		svc := &agentService{
 			sandboxResolver: stubSandboxResolver{
-				mgr: &capableManager{typ: sandbox.SandboxTypeCube, shell: &stubShellExecutor{}},
+				mgr: &capableManager{typ: sandbox.SandboxTypeE2B, shell: &stubShellExecutor{}},
 			},
 		}
 		ctx := context.WithValue(context.Background(), types.TenantIDContextKey, uint64(7))
@@ -348,7 +348,7 @@ func TestSkillToolsFollowSkillsEnabled(t *testing.T) {
 		registry := tools.NewToolRegistry()
 		svc := &agentService{
 			sandboxResolver: stubSandboxResolver{
-				mgr: &capableManager{typ: sandbox.SandboxTypeCube, shell: &stubShellExecutor{}},
+				mgr: &capableManager{typ: sandbox.SandboxTypeE2B, shell: &stubShellExecutor{}},
 			},
 		}
 		ctx := context.WithValue(context.Background(), types.TenantIDContextKey, uint64(7))
@@ -378,7 +378,7 @@ func TestCreateAgentEngineShellFollowsSkillsEnabledWithoutInstalledSkills(t *tes
 	svc := &agentService{
 		sandboxResolver: stubSandboxResolver{
 			mgr: &capableManager{
-				typ:          sandbox.SandboxTypeCube,
+				typ:          sandbox.SandboxTypeE2B,
 				shell:        &stubShellExecutor{},
 				files:        stubSessionFileStore{},
 				installShell: &stubInstallShellExecutor{},
@@ -416,7 +416,7 @@ func TestSkillsManagerOffersTheInjectedInstalledSkills(t *testing.T) {
 	newSvc := func() *agentService {
 		return &agentService{
 			sandboxResolver: stubSandboxResolver{
-				mgr: &capableManager{typ: sandbox.SandboxTypeCube, shell: &stubShellExecutor{}},
+				mgr: &capableManager{typ: sandbox.SandboxTypeE2B, shell: &stubShellExecutor{}},
 			},
 		}
 	}

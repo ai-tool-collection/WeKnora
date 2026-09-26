@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Tencent/WeKnora/cli/internal/xdg"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/xdg"
 )
 
 func TestPath_HonorsEnv(t *testing.T) {

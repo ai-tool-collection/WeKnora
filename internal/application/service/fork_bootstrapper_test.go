@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,7 +33,7 @@ type fakeHandle struct {
 }
 
 func (h fakeHandle) ID() string                       { return h.id }
-func (h fakeHandle) Provider() sandbox.RemoteProvider { return sandbox.SandboxTypeCube }
+func (h fakeHandle) Provider() sandbox.RemoteProvider { return sandbox.SandboxTypeE2B }
 func (h fakeHandle) Metadata() map[string]string      { return nil }
 
 func pendingForkSession() *types.Session {
@@ -119,7 +119,7 @@ func TestAfterCreateConsumesWhenSnapshotDeleteFailsAfterReset(t *testing.T) {
 	sessions := newFakeSessionStore(pendingForkSession())
 	runner := &fakeShellRunner{result: &sandbox.ExecuteResult{ExitCode: 0}}
 	snapshots := &fakeSnapshotDeleter{err: sandbox.NewRemoteError(
-		sandbox.SandboxTypeCube, "DeleteSnapshot", sandbox.RemoteErrorKindConflict,
+		sandbox.SandboxTypeE2B, "DeleteSnapshot", sandbox.RemoteErrorKindConflict,
 		"CubeMaster returned error code 130409: template attempt is already in progress: "+
 			"snapshot snap-1 still has 2 active runtime ref(s): src@host, fork@host (HTTP 500)",
 		nil,
@@ -302,7 +302,7 @@ func TestOnCreateFailedAbandonsWhenSnapshotIsGone(t *testing.T) {
 	b := NewForkBootstrapper(sessions, nil, nil, snapshots)
 
 	b.OnCreateFailed(context.Background(), forkKey(), sandbox.NewRemoteError(
-		sandbox.SandboxTypeCube, "Create", sandbox.RemoteErrorKindNotFound, "template gone", nil,
+		sandbox.SandboxTypeE2B, "Create", sandbox.RemoteErrorKindNotFound, "template gone", nil,
 	))
 
 	require.True(t, sessions.bootstrapCleared)
@@ -320,7 +320,7 @@ func TestOnCreateFailedAbandonsWhenTemplateIsInvalid(t *testing.T) {
 
 	// Create HTTP 404 is classified as invalid_request, not not_found.
 	b.OnCreateFailed(context.Background(), forkKey(), sandbox.NewRemoteError(
-		sandbox.SandboxTypeCube, "Create", sandbox.RemoteErrorKindInvalidRequest, "unknown template", nil,
+		sandbox.SandboxTypeE2B, "Create", sandbox.RemoteErrorKindInvalidRequest, "unknown template", nil,
 	))
 
 	require.True(t, sessions.bootstrapCleared)
@@ -333,7 +333,7 @@ func TestOnCreateFailedKeepsBootstrapOnTransientError(t *testing.T) {
 	b := NewForkBootstrapper(sessions, nil, nil, snapshots)
 
 	b.OnCreateFailed(context.Background(), forkKey(), sandbox.NewRemoteError(
-		sandbox.SandboxTypeCube, "Create", sandbox.RemoteErrorKindUnavailable, "provider down", nil,
+		sandbox.SandboxTypeE2B, "Create", sandbox.RemoteErrorKindUnavailable, "provider down", nil,
 	))
 
 	require.False(t, sessions.bootstrapCleared)
@@ -350,7 +350,7 @@ func TestOnCreateFailedIsNoOpWithoutPendingBootstrap(t *testing.T) {
 	b := NewForkBootstrapper(sessions, nil, nil, snapshots)
 
 	b.OnCreateFailed(context.Background(), forkKey(), sandbox.NewRemoteError(
-		sandbox.SandboxTypeCube, "Create", sandbox.RemoteErrorKindNotFound, "template gone", nil,
+		sandbox.SandboxTypeE2B, "Create", sandbox.RemoteErrorKindNotFound, "template gone", nil,
 	))
 
 	require.False(t, sessions.bootstrapCleared)
@@ -389,7 +389,7 @@ type recordingRemoteClient struct {
 	execErr    error
 }
 
-func (c *recordingRemoteClient) Provider() sandbox.RemoteProvider { return sandbox.SandboxTypeCube }
+func (c *recordingRemoteClient) Provider() sandbox.RemoteProvider { return sandbox.SandboxTypeE2B }
 func (c *recordingRemoteClient) Capabilities() sandbox.RemoteSandboxCapabilities {
 	return sandbox.RemoteSandboxCapabilities{}
 }

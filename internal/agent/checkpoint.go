@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/agent/compaction"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/compaction"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // SetContextCheckpointSink enables persisting compaction checkpoints. Nil (the

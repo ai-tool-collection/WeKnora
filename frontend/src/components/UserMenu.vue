@@ -500,7 +500,7 @@ const openDocs = () => {
 // 打开 GitHub
 const openGithub = () => {
   menuVisible.value = false
-  window.open('https://github.com/Tencent/WeKnora', '_blank')
+  window.open('https://github.com/ai-tool-collection/WeKnora', '_blank')
 }
 
 // 注销

@@ -5,8 +5,8 @@
 package adapter
 
 import (
-	"github.com/Tencent/WeKnora/internal/localsandbox"
-	"github.com/Tencent/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/localsandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
 )
 
 // LayoutFor maps a resolved workspace onto the layout the agent tools consume.

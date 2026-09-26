@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/Tencent/WeKnora/cli/internal/compat"
-	sdk "github.com/Tencent/WeKnora/client"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/compat"
+	sdk "github.com/ai-tool-collection/WeKnora/client"
 )
 
 type fakeProbeClient struct {

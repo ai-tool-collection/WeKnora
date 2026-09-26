@@ -25,8 +25,8 @@ package providers
 import (
 	_ "embed"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 //go:embed assets/jina.svg
@@ -68,7 +68,7 @@ func newJinaProvider() *Definition {
 				// sent. task is deliberately not declared: the adapter it selects
 				// changes the document vectors, so turning it on would leave every
 				// existing index half in one space and half in another
-				// (Tencent/WeKnora#1401).
+				// (historical issue #1401).
 				DimensionsField: api.Ptr("dimensions"),
 				TruncateField:   api.Ptr("truncate"),
 				TruncateValue:   api.Ptr("true"),

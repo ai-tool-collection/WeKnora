@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/datasource"
+	"github.com/ai-tool-collection/WeKnora/internal/datasource"
 )
 
 type client struct {

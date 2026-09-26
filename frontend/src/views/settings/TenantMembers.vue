@@ -785,7 +785,7 @@ function formatDate(s: string | undefined): string {
   if (!s) return '-'
   try {
     const d = new Date(s)
-    return new Intl.DateTimeFormat(locale.value || 'zh-CN', {
+    return new Intl.DateTimeFormat(locale.value || 'en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -1004,7 +1004,7 @@ const auditColumns = computed(() => [
 function formatAuditDatePart(s: string | undefined): string {
   if (!s) return '-'
   try {
-    return new Intl.DateTimeFormat(locale.value || 'zh-CN', {
+    return new Intl.DateTimeFormat(locale.value || 'en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -1017,7 +1017,7 @@ function formatAuditDatePart(s: string | undefined): string {
 function formatAuditTimePart(s: string | undefined): string {
   if (!s) return ''
   try {
-    return new Intl.DateTimeFormat(locale.value || 'zh-CN', {
+    return new Intl.DateTimeFormat(locale.value || 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',

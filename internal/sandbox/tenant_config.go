@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // ResolveEffectiveConfig returns the Config to build a tenant's sandbox manager
@@ -72,25 +72,6 @@ func ResolveEffectiveConfig(
 	if tenantCfg.EnvVars != nil {
 		effective.EnvVars = cloneMetadata(tenantCfg.EnvVars)
 	}
-	if cube := tenantCfg.Cube; cube != nil {
-		if err := overrideURL(&effective.CubeAPIURL, cube.APIURL, effective.AllowPrivateEndpoints); err != nil {
-			return nil, err
-		}
-		if err := overrideURL(&effective.CubeProxyURL, cube.ProxyURL, effective.AllowPrivateEndpoints); err != nil {
-			return nil, err
-		}
-		overrideString(&effective.CubeSandboxDomain, cube.SandboxDomain)
-		overrideString(&effective.CubeAPIKey, cube.APIKey)
-		overrideString(&effective.CubeTemplate, cube.TemplateID)
-		overrideSeconds(&effective.CubeHTTPTimeout, cube.HTTPTimeoutSec)
-		overrideSeconds(&effective.CubeSandboxTTL, cube.CubeSandboxTTLSeconds)
-		dns, err := NormalizeCubeDNSServers(cube.DNSServers)
-		if err != nil {
-			return nil, err
-		}
-		effective.CubeDNSServers = dns
-	}
-
 	if e2bCfg := tenantCfg.E2B; e2bCfg != nil {
 		if err := overrideURL(&effective.E2BAPIURL, e2bCfg.APIURL, effective.AllowPrivateEndpoints); err != nil {
 			return nil, err
@@ -128,8 +109,6 @@ func ResolveEffectiveConfig(
 	}
 
 	switch effective.Type {
-	case SandboxTypeCube:
-		applyCubeRuntimeDefaults(&effective)
 	case SandboxTypeE2B:
 		applyE2BRuntimeDefaults(&effective)
 	case SandboxTypeDocker:
@@ -140,12 +119,6 @@ func ResolveEffectiveConfig(
 	// Everything downstream keeps reading CubeTemplate / E2BTemplate /
 	// DockerImage and needs no knowledge of skills.
 	switch effective.Type {
-	case SandboxTypeCube:
-		if snapshot := skillImageTemplateOverride(
-			tenantCfg.SkillImage, "cube", effective.CubeAPIKey, effective.CubeAPIURL,
-		); snapshot != "" {
-			effective.CubeTemplate = snapshot
-		}
 	case SandboxTypeE2B:
 		if snapshot := skillImageTemplateOverride(
 			tenantCfg.SkillImage, "e2b", effective.E2BAPIKey, effective.E2BAPIURL,
@@ -207,15 +180,6 @@ func clearProviderFields(cfg *Config) {
 	cfg.DockerPidsLimit = 0
 	cfg.DockerIdleTTL = 0
 	cfg.DockerHTTPTimeout = 0
-	cfg.CubeAPIURL = ""
-	cfg.CubeProxyURL = ""
-	cfg.CubeSandboxDomain = ""
-	cfg.CubeAPIKey = ""
-	cfg.CubeTemplate = ""
-	cfg.CubeSandboxTTL = 0
-	cfg.CubeHTTPTimeout = 0
-	cfg.CubeDNSServers = nil
-
 	cfg.E2BAPIURL = ""
 	cfg.E2BProxyURL = ""
 	cfg.E2BSandboxDomain = ""
@@ -236,8 +200,6 @@ var ErrUnsupportedSandboxType = errors.New("sandbox: unsupported sandbox type")
 // silently disabling that tenant's sandbox at first use.
 func ParseSandboxType(raw string) (SandboxType, error) {
 	switch SandboxType(raw) {
-	case SandboxTypeCube:
-		return SandboxTypeCube, nil
 	case SandboxTypeE2B:
 		return SandboxTypeE2B, nil
 	case SandboxTypeDocker:
@@ -257,8 +219,6 @@ func EffectiveTemplateID(cfg *Config) string {
 		return ""
 	}
 	switch cfg.Type {
-	case SandboxTypeCube:
-		return cfg.CubeTemplate
 	case SandboxTypeE2B:
 		return cfg.E2BTemplate
 	case SandboxTypeDocker:
@@ -347,26 +307,6 @@ func resolveNetworkPolicy(stored *types.SandboxNetworkPolicy) RemoteNetworkPolic
 		policy.DenyOut = append(policy.DenyOut, types.DenyAllIPv4)
 	}
 
-	for _, rule := range stored.CubeRules {
-		converted := RemoteCubeEgressRule{
-			Name:    rule.Name,
-			Scheme:  rule.Scheme,
-			SNI:     rule.SNI,
-			Host:    rule.Host,
-			Methods: append([]string(nil), rule.Methods...),
-			Path:    rule.Path,
-			Allow:   !rule.Deny,
-			Audit:   rule.Audit,
-		}
-		for _, inject := range rule.Inject {
-			converted.Inject = append(converted.Inject, RemoteHeaderInject{
-				Header: inject.Header,
-				Secret: inject.Secret,
-				Format: inject.Format,
-			})
-		}
-		policy.CubeRules = append(policy.CubeRules, converted)
-	}
 	for _, rule := range stored.E2BHostRules {
 		converted := RemoteE2BHostRule{Host: rule.Host}
 		if len(rule.Headers) > 0 {

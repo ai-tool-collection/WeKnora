@@ -12,7 +12,7 @@ package agentcmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/Tencent/WeKnora/cli/internal/cmdutil"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/cmdutil"
 )
 
 // NewCmd builds the `weknora agent` parent and registers leaves. Called

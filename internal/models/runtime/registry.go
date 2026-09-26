@@ -5,12 +5,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Tencent/WeKnora/internal/models"
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/catalog"
-	"github.com/Tencent/WeKnora/internal/models/internal/configcopy"
-	"github.com/Tencent/WeKnora/internal/models/providers"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/catalog"
+	"github.com/ai-tool-collection/WeKnora/internal/models/internal/configcopy"
+	"github.com/ai-tool-collection/WeKnora/internal/models/providers"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Provider combines a provider definition with a catalog from the same runtime

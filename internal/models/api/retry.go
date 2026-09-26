@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
 )
 
 // RetryPolicy describes how often to retry a failed request and how long to
@@ -45,7 +45,7 @@ func (p RetryPolicy) delay(attempt int) time.Duration {
 // returned `(nil, err)` at the end, so writing `req, err := ...` inside the
 // loop shadowed the error, left the outer one nil, and handed the caller a
 // nil response with no error to check — a nil-pointer panic that took the
-// process down instead of reporting "connection refused" (Tencent/WeKnora#3484).
+// process down instead of reporting "connection refused" (historical issue #3484).
 // Here the last error is captured in the enclosing scope on purpose and the
 // function cannot fall through without it.
 //

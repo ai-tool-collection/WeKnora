@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/common"
-	"github.com/Tencent/WeKnora/internal/infrastructure/docparser"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/common"
+	"github.com/ai-tool-collection/WeKnora/internal/infrastructure/docparser"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/google/uuid"
 )
 
@@ -246,7 +246,7 @@ func (p *AttachmentProcessor) processWithDocumentReader(
 	}
 	overrides := getParserEngineOverridesFromContext(ctx)
 
-	// Engines that parse in this process (anydoc, MinerU, ...) are resolved
+	// Engines that parse in this process (such as anydoc) are resolved
 	// through the registry so a chat attachment honours the same engine rules
 	// as an ingested document. Anything the registry cannot build here — a
 	// cloud engine whose credentials this path cannot resolve — falls back to

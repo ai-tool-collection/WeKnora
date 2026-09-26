@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -46,18 +46,3 @@ func TestClassifyWeKnoraTemplatePrefersNameOverImage(t *testing.T) {
 		)
 	}
 }
-
-func TestClassifyWeKnoraTemplateNamelessImageUsesTag(t *testing.T) {
-	standard, desktop := classifyWeKnoraTemplate("", DefaultDockerImage)
-	if !standard || desktop {
-		t.Fatalf("CLI image with no name must be standard, got standard=%v desktop=%v", standard, desktop)
-	}
-	standard, desktop = classifyWeKnoraTemplate("", DefaultDesktopDockerImage)
-	if standard || !desktop {
-		t.Fatalf("desktop image with no name must be desktop, got standard=%v desktop=%v", standard, desktop)
-	}
-	standard, desktop = classifyWeKnoraTemplate("", DefaultCubeDesktopTemplateImage)
-	if standard || !desktop {
-		t.Fatalf("Cube desktop image with no name must be desktop, got standard=%v desktop=%v", standard, desktop)
-	}
-}

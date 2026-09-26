@@ -58,5 +58,5 @@ jobs:
           frontend_override="$(render_image templates/frontend.yaml --set frontend.image.tag=ui-test)"
           docreader_override="$(render_image templates/docreader.yaml --set docreader.image.tag=reader-test)"
 
-          test "$frontend_override" = "wechatopenai/weknora-ui:ui-test"
-          test "$docreader_override" = "wechatopenai/weknora-docreader:reader-test"
+          test "$frontend_override" = "knowledge-hub-ui:ui-test"
+          test "$docreader_override" = "knowledge-hub-docreader:reader-test"

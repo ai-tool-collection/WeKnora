@@ -7,8 +7,8 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/Tencent/WeKnora/internal/agent"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/agent"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Wiki work is enqueued from background paths (clone/move, reparse, internal

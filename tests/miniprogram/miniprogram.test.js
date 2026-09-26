@@ -116,12 +116,12 @@ test("URL import helper posts the selected URL payload", async () => {
     }
   };
 
-  await createKnowledgeFromURL("kb-1", "https://github.com/Tencent/WeKnora", true);
+  await createKnowledgeFromURL("kb-1", "https://github.com/ai-tool-collection/WeKnora", true);
 
   assert.equal(capturedRequest.method, "POST");
   assert.equal(capturedRequest.url, "https://weknora.example.com/api/v1/knowledge-bases/kb-1/knowledge/url");
   assert.deepEqual(capturedRequest.data, {
-    url: "https://github.com/Tencent/WeKnora",
+    url: "https://github.com/ai-tool-collection/WeKnora",
     enable_multimodel: true
   });
 });

@@ -3,7 +3,7 @@ package datasource
 import (
 	"testing"
 
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 func TestValidateConnectorBaseURLBlocksLoopback(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Tencent/WeKnora/cli/internal/cmdutil"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/cmdutil"
 )
 
 // TestAllReferencedCodesAreRegistered scans cli/cmd/ for every literal use of

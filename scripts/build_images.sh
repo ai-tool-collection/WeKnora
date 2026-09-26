@@ -21,7 +21,7 @@ SCRIPT_NAME=$(basename "$0")
 
 # 显示帮助信息
 show_help() {
-    echo -e "${GREEN}WeKnora 镜像构建脚本 v${VERSION}${NC}"
+    echo -e "${GREEN}Knowledge Hub image builder v${VERSION}${NC}"
     echo -e "${GREEN}用法:${NC} $0 [选项]"
     echo "选项:"
     echo "  -h, --help     显示帮助信息"
@@ -37,7 +37,7 @@ show_help() {
 
 # 显示版本信息
 show_version() {
-    echo -e "${GREEN}WeKnora 镜像构建脚本 v${VERSION}${NC}"
+    echo -e "${GREEN}Knowledge Hub image builder v${VERSION}${NC}"
     exit 0
 }
 
@@ -129,7 +129,7 @@ get_version_info() {
 
 # 构建应用镜像
 build_app_image() {
-    log_info "构建应用镜像 (weknora-app)..."
+    log_info "构建应用镜像 (knowledge-hub-app)..."
     
     cd "$PROJECT_ROOT"
     
@@ -139,15 +139,15 @@ build_app_image() {
     docker build \
         --platform $PLATFORM \
         --build-arg GOPRIVATE_ARG=${GOPRIVATE:-""} \
-        --build-arg GOPROXY_ARG=${GOPROXY:-"https://goproxy.cn,direct"} \
-        --build-arg GOSUMDB_ARG=${GOSUMDB:-"off"} \
+        --build-arg GOPROXY_ARG=${GOPROXY:-"https://proxy.golang.org,direct"} \
+        --build-arg GOSUMDB_ARG=${GOSUMDB:-"sum.golang.org"} \
         --build-arg VERSION_ARG="$VERSION" \
         --build-arg COMMIT_ID_ARG="$COMMIT_ID" \
         --build-arg BUILD_TIME_ARG="$BUILD_TIME" \
         --build-arg GO_VERSION_ARG="$GO_VERSION" \
         --build-arg WITH_ANYDOC=${WITH_ANYDOC:-1} \
         -f docker/Dockerfile.app \
-        -t wechatopenai/weknora-app:latest \
+        -t knowledge-hub-app:latest \
         .
     
     if [ $? -eq 0 ]; then
@@ -161,7 +161,7 @@ build_app_image() {
 
 # 构建文档读取器镜像
 build_docreader_image() {
-    log_info "构建文档读取器镜像 (weknora-docreader)..."
+    log_info "构建文档读取器镜像 (knowledge-hub-docreader)..."
     
     cd "$PROJECT_ROOT"
     
@@ -171,7 +171,7 @@ build_docreader_image() {
         --build-arg TARGETARCH=$TARGETARCH \
         --build-arg APT_MIRROR=${APT_MIRROR:-} \
         -f docker/Dockerfile.docreader \
-        -t wechatopenai/weknora-docreader:latest \
+        -t knowledge-hub-docreader:latest \
         .
     
     if [ $? -eq 0 ]; then
@@ -185,7 +185,7 @@ build_docreader_image() {
 
 # 构建前端镜像（多阶段：npm 在 builder 内执行，无需宿主机预构建 dist）
 build_frontend_image() {
-    log_info "构建前端镜像 (weknora-ui)..."
+    log_info "构建前端镜像 (knowledge-hub-ui)..."
     
     cd "$PROJECT_ROOT"
     
@@ -198,7 +198,7 @@ build_frontend_image() {
         ${NPM_REGISTRY:+--build-arg NPM_REGISTRY="$NPM_REGISTRY"} \
         ${NODE_MAX_OLD_SPACE_SIZE:+--build-arg NODE_MAX_OLD_SPACE_SIZE="$NODE_MAX_OLD_SPACE_SIZE"} \
         -f frontend/Dockerfile \
-        -t wechatopenai/weknora-ui:latest \
+        -t knowledge-hub-ui:latest \
         frontend/
     
     if [ $? -eq 0 ]; then
@@ -212,7 +212,7 @@ build_frontend_image() {
 
 # 构建沙箱镜像
 build_sandbox_image() {
-    log_info "构建沙箱镜像 (weknora-sandbox)..."
+    log_info "构建沙箱镜像 (knowledge-hub-sandbox)..."
 
     cd "$PROJECT_ROOT"
 
@@ -223,8 +223,8 @@ build_sandbox_image() {
         --build-arg TARGETPLATFORM=$PLATFORM \
         -f docker/Dockerfile.sandbox \
         --target sandbox \
-        -t wechatopenai/weknora-sandbox:latest \
-        -t wechatopenai/weknora-sandbox:main \
+        -t knowledge-hub-sandbox:latest \
+        -t knowledge-hub-sandbox:main \
         .
 
     if [ $? -ne 0 ]; then
@@ -232,37 +232,17 @@ build_sandbox_image() {
         return 1
     fi
 
-    # Cube 从镜像直接构建模板，并以 :49983/health 探活，缺 envd 必然失败，
-    # 因此 Cube 用的是注入了 envd 的变体镜像。详见 website-docs/06-development/04-sandbox-deployment.md。
-    # 固定 linux/amd64：envd 的来源镜像 cubesandbox-base 不发布 arm64。
-    log_info "构建沙箱镜像 Cube 变体 (weknora-sandbox:main-cube)..."
-
-    docker build \
-        --platform linux/amd64 \
-        --build-arg TARGETPLATFORM=linux/amd64 \
-        --build-arg TARGETARCH=amd64 \
-        -f docker/Dockerfile.sandbox \
-        --target cube \
-        -t wechatopenai/weknora-sandbox:latest-cube \
-        -t wechatopenai/weknora-sandbox:main-cube \
-        .
-
-    if [ $? -ne 0 ]; then
-        log_error "沙箱镜像 Cube 变体构建失败"
-        return 1
-    fi
-
     # Desktop variant: XFCE + x11vnc + websockify. Tagged for E2B template
     # builds; the Docker backend does not consume this image yet.
-    log_info "构建沙箱镜像桌面变体 (weknora-sandbox:main-desktop)..."
+    log_info "构建沙箱镜像桌面变体 (knowledge-hub-sandbox:main-desktop)..."
 
     docker build \
         --platform $PLATFORM \
         --build-arg TARGETPLATFORM=$PLATFORM \
         -f docker/Dockerfile.sandbox \
         --target desktop \
-        -t wechatopenai/weknora-sandbox:latest-desktop \
-        -t wechatopenai/weknora-sandbox:main-desktop \
+        -t knowledge-hub-sandbox:latest-desktop \
+        -t knowledge-hub-sandbox:main-desktop \
         .
 
     if [ $? -ne 0 ]; then
@@ -270,25 +250,8 @@ build_sandbox_image() {
         return 1
     fi
 
-    log_info "构建沙箱镜像桌面 Cube 变体 (weknora-sandbox:main-desktop-cube)..."
-
-    docker build \
-        --platform linux/amd64 \
-        --build-arg TARGETPLATFORM=linux/amd64 \
-        --build-arg TARGETARCH=amd64 \
-        -f docker/Dockerfile.sandbox \
-        --target desktop-cube \
-        -t wechatopenai/weknora-sandbox:latest-desktop-cube \
-        -t wechatopenai/weknora-sandbox:main-desktop-cube \
-        .
-
-    if [ $? -eq 0 ]; then
-        log_success "沙箱镜像构建成功"
-        return 0
-    else
-        log_error "沙箱镜像桌面 Cube 变体构建失败"
-        return 1
-    fi
+    log_success "Sandbox images built"
+    return 0
 }
 
 # 构建所有镜像
@@ -354,33 +317,29 @@ build_all_images() {
 
 # 清理本地镜像
 clean_images() {
-    log_info "清理本地WeKnora镜像..."
+    log_info "Removing local Knowledge Hub images..."
     
     # 停止相关容器
     log_info "停止相关容器..."
-    docker stop $(docker ps -q --filter "ancestor=wechatopenai/weknora-app:latest" 2>/dev/null) 2>/dev/null || true
-    docker stop $(docker ps -q --filter "ancestor=wechatopenai/weknora-docreader:latest" 2>/dev/null) 2>/dev/null || true
-    docker stop $(docker ps -q --filter "ancestor=wechatopenai/weknora-ui:latest" 2>/dev/null) 2>/dev/null || true
+    docker stop $(docker ps -q --filter "ancestor=knowledge-hub-app:latest" 2>/dev/null) 2>/dev/null || true
+    docker stop $(docker ps -q --filter "ancestor=knowledge-hub-docreader:latest" 2>/dev/null) 2>/dev/null || true
+    docker stop $(docker ps -q --filter "ancestor=knowledge-hub-ui:latest" 2>/dev/null) 2>/dev/null || true
     
     # 删除相关容器
     log_info "删除相关容器..."
-    docker rm $(docker ps -aq --filter "ancestor=wechatopenai/weknora-app:latest" 2>/dev/null) 2>/dev/null || true
-    docker rm $(docker ps -aq --filter "ancestor=wechatopenai/weknora-docreader:latest" 2>/dev/null) 2>/dev/null || true
-    docker rm $(docker ps -aq --filter "ancestor=wechatopenai/weknora-ui:latest" 2>/dev/null) 2>/dev/null || true
+    docker rm $(docker ps -aq --filter "ancestor=knowledge-hub-app:latest" 2>/dev/null) 2>/dev/null || true
+    docker rm $(docker ps -aq --filter "ancestor=knowledge-hub-docreader:latest" 2>/dev/null) 2>/dev/null || true
+    docker rm $(docker ps -aq --filter "ancestor=knowledge-hub-ui:latest" 2>/dev/null) 2>/dev/null || true
     
     # 删除镜像
     log_info "删除本地镜像..."
-    docker rmi wechatopenai/weknora-app:latest 2>/dev/null || true
-    docker rmi wechatopenai/weknora-docreader:latest 2>/dev/null || true
-    docker rmi wechatopenai/weknora-ui:latest 2>/dev/null || true
-    docker rmi wechatopenai/weknora-sandbox:latest 2>/dev/null || true
-    docker rmi wechatopenai/weknora-sandbox:latest-cube 2>/dev/null || true
-    docker rmi wechatopenai/weknora-sandbox:latest-desktop 2>/dev/null || true
-    docker rmi wechatopenai/weknora-sandbox:latest-desktop-cube 2>/dev/null || true
-    docker rmi wechatopenai/weknora-sandbox:main 2>/dev/null || true
-    docker rmi wechatopenai/weknora-sandbox:main-cube 2>/dev/null || true
-    docker rmi wechatopenai/weknora-sandbox:main-desktop 2>/dev/null || true
-    docker rmi wechatopenai/weknora-sandbox:main-desktop-cube 2>/dev/null || true
+    docker rmi knowledge-hub-app:latest 2>/dev/null || true
+    docker rmi knowledge-hub-docreader:latest 2>/dev/null || true
+    docker rmi knowledge-hub-ui:latest 2>/dev/null || true
+    docker rmi knowledge-hub-sandbox:latest 2>/dev/null || true
+    docker rmi knowledge-hub-sandbox:latest-desktop 2>/dev/null || true
+    docker rmi knowledge-hub-sandbox:main 2>/dev/null || true
+    docker rmi knowledge-hub-sandbox:main-desktop 2>/dev/null || true
     
     docker image prune -f
     

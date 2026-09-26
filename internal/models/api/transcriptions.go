@@ -6,23 +6,17 @@ import "context"
 // EmbeddingAPI it is its own type, so no other modality's value validates.
 type TranscriptionAPI string
 
-// The transcription protocols WeKnora speaks.
+// The transcription protocols supported by this build.
 const (
 	// TranscriptionOpenAI is POST {base}/audio/transcriptions as a multipart
 	// form carrying file and model, answering {text} — or {text, segments}
 	// when verbose_json is asked for.
 	TranscriptionOpenAI TranscriptionAPI = "openai-transcriptions"
-	// TranscriptionChatAudio is a dedicated speech-recognition model behind
-	// POST {base}/chat/completions: the audio goes in as a base64 data URI in
-	// an input_audio content part and the transcript comes back as the
-	// assistant message. Alibaba's qwen3-asr-flash and Xiaomi's mimo-v2.5-asr
-	// take no instruction; the model only transcribes.
-	TranscriptionChatAudio TranscriptionAPI = "openai-chat-audio"
 )
 
 // Known reports whether the value names a protocol this build implements.
 func (a TranscriptionAPI) Known() bool {
-	return a == TranscriptionOpenAI || a == TranscriptionChatAudio
+	return a == TranscriptionOpenAI
 }
 
 // TranscriptionSegment is one timed stretch of a transcript.

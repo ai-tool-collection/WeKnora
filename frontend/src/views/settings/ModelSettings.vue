@@ -447,7 +447,7 @@ const sourceLabel = (type: ModelType) => {
   return t('modelSettings.source.remote')
 }
 
-// Maps a backend `provider` id (e.g. "openai", "aliyun", "weknoracloud")
+// Maps a backend `provider` id (e.g. "openai", "anthropic")
 // to the vendor's localized name from the backend catalog (modelProviders
 // store), so the model card and the editor dropdown always agree. Falls
 // back to the raw id when the catalog has not loaded yet, and to '' when
@@ -466,13 +466,8 @@ const vendorIcon = (model: any): string => {
 // What the vendor chip on a card shows. Keeps the chip text uniformly
 // short so cards line up:
 //   local  → "Ollama"
-//   remote → provider's localized short name (e.g. "腾讯云 LKEAP",
-//            "阿里云 DashScope"). For the catch-all "generic" provider
-//            we render a single short word ("自定义" / "Custom") — the
-//            editor dropdown's longer "自定义 (OpenAI兼容接口)" label
-//            blows out the card chip row, and the "OpenAI 兼容" framing
-//            isn't meaningful to most end users (they didn't pick "I
-//            want OpenAI compatibility", they just pasted a base URL).
+//   remote → provider's localized short name. For the generic provider,
+//            use a short label so the card layout stays compact.
 const vendorLabel = (model: any): string => {
   if (model.source === 'local') return 'Ollama'
   if (model.provider === 'generic') {

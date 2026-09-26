@@ -60,7 +60,7 @@ func TestRAGFullLoop(t *testing.T) {
 	// immediately searchable. Use the server's builtin model IDs (they
 	// exist on every deployment that configures builtin_models.yaml).
 	embeddingModel := envOr("WEKNORA_E2E_EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-8B")
-	chatModel := envOr("WEKNORA_E2E_CHAT_MODEL", "deepseek-ai/DeepSeek-V3.2")
+	chatModel := envOr("WEKNORA_E2E_CHAT_MODEL", "gpt-4o-mini")
 	kbName := prefix + fmt.Sprintf("%d", time.Now().UnixNano())
 	var created struct {
 		OK   bool `json:"ok"`

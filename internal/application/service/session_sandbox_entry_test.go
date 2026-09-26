@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // stubSandboxResolver stands in for the per-config resolver. Its presence is
@@ -33,7 +33,7 @@ func (m *artifactFallbackManager) Execute(context.Context, *sandbox.ExecuteConfi
 func (m *artifactFallbackManager) Cleanup(context.Context) error { return nil }
 func (m *artifactFallbackManager) GetSandbox() sandbox.Sandbox   { return nil }
 func (m *artifactFallbackManager) GetType() sandbox.SandboxType {
-	return sandbox.SandboxTypeCube
+	return sandbox.SandboxTypeE2B
 }
 
 func (m *artifactFallbackManager) ListSessionFiles(ctx context.Context, sessionID, dir string) ([]sandbox.RemoteDirEntry, error) {

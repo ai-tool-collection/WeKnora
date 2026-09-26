@@ -3,7 +3,7 @@ package access
 import (
 	"context"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Context grants contain values, not mutable KB objects. Deriving a context

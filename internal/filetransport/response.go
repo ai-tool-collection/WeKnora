@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // Options defines response metadata for an already-authorized reader.

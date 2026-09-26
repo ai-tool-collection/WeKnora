@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // defaultSearxngTimeout is sized slightly above the SearXNG image's default
@@ -119,7 +119,7 @@ func (p *SearxngProvider) Search(
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "WeKnora/1.0")
+	req.Header.Set("User-Agent", "KnowledgeHub/1.0")
 
 	resp, err := p.client.Do(req)
 	if err != nil {

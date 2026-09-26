@@ -33,8 +33,8 @@ package providers
 import (
 	_ "embed"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 //go:embed assets/openrouter.svg
@@ -91,7 +91,7 @@ func newOpenrouterProvider() *Definition {
 				// search_document"), so its vocabulary is the upstream's, and on
 				// an asymmetric model it changes the document vectors. Not
 				// declared, for the reason Jina's task is not
-				// (Tencent/WeKnora#1401).
+				// (historical issue #1401).
 				SendEncodingFormat: api.Ptr(true),
 				DimensionsField:    api.Ptr("dimensions"),
 			},

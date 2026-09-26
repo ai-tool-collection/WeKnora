@@ -10,19 +10,13 @@ import (
 // pass validation.
 type EmbeddingAPI string
 
-// The embedding protocols WeKnora speaks.
+// The embedding protocols supported by this build.
 const (
 	// EmbeddingOpenAI is POST {base}/embeddings with {model, input[]} answering
 	// {data: [{embedding, index}]} — the shape OpenAI defined and every
-	// compatible gateway copied. Jina, NVIDIA, Azure and WeKnora Cloud speak
+	// compatible gateway copied. Jina, NVIDIA, and Azure speak
 	// it too, with their own optional fields, URL or credential.
 	EmbeddingOpenAI EmbeddingAPI = "openai-embeddings"
-	// EmbeddingDashScope is Alibaba Model Studio's native multimodal shape:
-	// input.contents, parameters.dimension, output.embeddings.
-	EmbeddingDashScope EmbeddingAPI = "dashscope-embeddings"
-	// EmbeddingArk is Volcengine Ark's multimodal shape, which fuses every
-	// input into one vector and therefore embeds one text per request.
-	EmbeddingArk EmbeddingAPI = "ark-embeddings"
 	// EmbeddingGoogle is Gemini's batchEmbedContents.
 	EmbeddingGoogle EmbeddingAPI = "google-embeddings"
 )
@@ -30,7 +24,7 @@ const (
 // Known reports whether the value names a protocol this build implements.
 func (a EmbeddingAPI) Known() bool {
 	switch a {
-	case EmbeddingOpenAI, EmbeddingDashScope, EmbeddingArk, EmbeddingGoogle:
+	case EmbeddingOpenAI, EmbeddingGoogle:
 		return true
 	}
 	return false
@@ -60,9 +54,8 @@ type Embedder interface {
 // not cover every input.
 //
 // Both halves matter. A vendor is free to answer out of order, so the index
-// has to be honoured rather than assumed — and reading the wrong field for it
-// silently collapses a whole batch onto slot 0, which is what
-// Tencent/WeKnora#3484 was. An unfilled slot then reaches the index as an
+// has to be honoured rather than assumed. Reading the wrong index silently
+// collapses a whole batch onto slot 0. An unfilled slot reaches the index as an
 // empty vector, where it is stored and poisons retrieval without anything
 // failing, so a gap is an error instead. So is an index reported twice: one
 // of the two vectors belongs to some other input.

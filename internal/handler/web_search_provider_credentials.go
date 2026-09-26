@@ -3,19 +3,19 @@ package handler
 import (
 	"net/http"
 
-	"github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/handler/dto"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/handler/dto"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
 // WebSearchProviderCredentialsHandler handles credentials for web search
 // providers via the dedicated /credentials subresource. Currently the only
 // recognized field is "api_key" — every provider that needs credentials uses
-// just one key (Bing / Google / Tavily / Ollama / Baidu), and DuckDuckGo /
+// just one key (Bing / Google / Tavily / Ollama), and DuckDuckGo /
 // SearXNG don't need credentials at all.
 type WebSearchProviderCredentialsHandler struct {
 	repo interfaces.WebSearchProviderRepository

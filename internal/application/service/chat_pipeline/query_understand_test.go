@@ -3,7 +3,7 @@ package chatpipeline
 import (
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 func TestApplyIntentPromptOverride_AgentOverrideWins(t *testing.T) {

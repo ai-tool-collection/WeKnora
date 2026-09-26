@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/cli/internal/text"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/text"
 )
 
 func TestFuzzyAgoStr(t *testing.T) {

@@ -8,13 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/api/openaichataudio"
-	"github.com/Tencent/WeKnora/internal/models/api/openaitranscriptions"
-	"github.com/Tencent/WeKnora/internal/models/providers"
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api/openaitranscriptions"
+	"github.com/ai-tool-collection/WeKnora/internal/models/providers"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // retryPolicy is the transport-error retry budget, which is none. The
@@ -92,10 +91,6 @@ func newASR(config *Config) (ASR, error) {
 	switch resolved.TranscriptionAPI {
 	case api.TranscriptionOpenAI:
 		client = openaitranscriptions.New(openaitranscriptions.Config{
-			Endpoint: endpoint, Settings: settings, Retry: retryPolicy(),
-		})
-	case api.TranscriptionChatAudio:
-		client = openaichataudio.New(openaichataudio.Config{
 			Endpoint: endpoint, Settings: settings, Retry: retryPolicy(),
 		})
 	default:

@@ -8,17 +8,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/mark3labs/mcp-go/client/transport"
 	"github.com/redis/go-redis/v9"
 )
 
 // clientRegistrationName is sent as client_name during dynamic client
 // registration (RFC 7591).
-const clientRegistrationName = "WeKnora"
+const clientRegistrationName = "Knowledge Hub"
 
 // oauthCallbackTimeout bounds token exchange after the browser lands on the
 // public callback route. The Gin request context is canceled once the client

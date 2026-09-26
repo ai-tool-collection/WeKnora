@@ -5,26 +5,23 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/models"
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/providers"
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/providers"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // expectedIDs is every built-in vendor this package links.
 var expectedIDs = []string{
-	"generic", "weknoracloud",
-	"aliyun", "zhipu", "volcengine", "hunyuan", "siliconflow", "deepseek",
-	"minimax", "moonshot", "mimo", "modelscope", "qianfan", "qiniu", "longcat", "lkeap",
-	"openai", "azure_openai", "anthropic", "gemini",
-	"openrouter", "litellm", "requesty",
-	"jina", "nvidia", "novita", "gpustack",
+	"generic", "openai", "azure_openai", "anthropic", "gemini",
+	"openrouter", "litellm", "requesty", "jina", "nvidia",
+	"novita", "gpustack",
 }
 
 func TestAllVendorsRegistered(t *testing.T) {
-	if len(expectedIDs) != 27 {
-		t.Fatalf("expected 27 vendor ids in the spec, got %d", len(expectedIDs))
+	if len(expectedIDs) != 12 {
+		t.Fatalf("expected 12 vendor ids in the spec, got %d", len(expectedIDs))
 	}
 	for _, id := range expectedIDs {
 		v, ok := modelruntime.Get(id)
@@ -133,9 +130,6 @@ func TestEveryCatalogEntryResolves(t *testing.T) {
 // and dated snapshots first of all, since they are never in models.json yet.
 func TestNamesInsideChatGlobsResolveForOtherTypes(t *testing.T) {
 	names := []struct{ provider, model string }{
-		{"aliyun", "qwen3.8-text-embedding"},
-		{"aliyun", "qwen3-embedding"},
-		{"aliyun", "qwen3.7-text-embedding-20260601"},
 		{"generic", "gpt-5-embed"},
 		{"openai", "gpt-5-embed"},
 	}
@@ -175,9 +169,6 @@ func TestDetectByURLRoundTrip(t *testing.T) {
 	// /v1-openai path must keep resolving for rows saved before the move.
 	if got := modelruntime.DetectByURL("http://your_gpustack_server_url/v1-openai"); got != "gpustack" {
 		t.Errorf("gpustack placeholder detected as %q", got)
-	}
-	if got := modelruntime.DetectByURL("https://api.moonshot.cn/v1"); got != "moonshot" {
-		t.Errorf("moonshot.cn detected as %q", got)
 	}
 }
 
@@ -247,36 +238,6 @@ func TestFamilyExpectations(t *testing.T) {
 	if r := resolve(t, "azure_openai", "gpt-5.1-prod"); !r.ThinkingLevels.Supports(api.ReasoningOff) {
 		t.Error("azure gpt-5* family (GPT-5.1 and later) should allow thinking off")
 	}
-	if r := resolve(t, "aliyun", "qwen3-max"); !r.OpenAICompletions.ThinkingAlwaysSend {
-		t.Error("aliyun/qwen3-max should always send the thinking switch")
-	}
-	if r := resolve(t, "aliyun", "qwen-plus-2026-01-01"); !r.OpenAICompletions.ThinkingAlwaysSend ||
-		!r.OpenAICompletions.ThinkingDisableOnNonStream {
-		t.Error("aliyun qwen-plus* family should carry the hybrid thinking flags")
-	}
-	if r := resolve(t, "aliyun", "qwq-plus"); r.ThinkingLevels.Supports(api.ReasoningOff) {
-		t.Error("aliyun/qwq-plus should not allow thinking off")
-	}
-	if r := resolve(t, "moonshot", "moonshot-v1-8k"); r.OpenAICompletions.FixedTemperature == nil ||
-		*r.OpenAICompletions.FixedTemperature != 1 {
-		t.Error("moonshot/moonshot-v1-8k should pin temperature to 1")
-	}
-	if r := resolve(t, "moonshot", "kimi-k2.6"); r.OpenAICompletions.SupportsTemperature {
-		t.Error("moonshot/kimi-k2.6 should not support temperature")
-	}
-	if r := resolve(t, "lkeap", "deepseek-r1"); r.ThinkingLevels.Supports(api.ReasoningOff) {
-		t.Error("lkeap/deepseek-r1 should not allow thinking off")
-	}
-	if r := resolve(t, "lkeap", "my-deepseek-v3-route"); !r.Spec.Reasoning ||
-		!r.ThinkingLevels.Supports(api.ReasoningOff) {
-		t.Error("lkeap *deepseek-v3* family should be switchable reasoning")
-	}
-	if r := resolve(t, "zhipu", "glm-5.2"); r.ThinkingLevels.Value(api.ReasoningMedium) != "high" {
-		t.Errorf("zhipu/glm-5.2 medium should map to high, got %q", r.ThinkingLevels.Value(api.ReasoningMedium))
-	}
-	if r := resolve(t, "zhipu", "glm-4.7"); r.ThinkingLevels.Value(api.ReasoningOff) != "none" {
-		t.Error("zhipu vendor map should spell off as none")
-	}
 	if r := resolve(t, "gemini", "gemini-2.5-flash"); r.API != api.APIGoogleGenerativeAI {
 		t.Errorf("gemini/gemini-2.5-flash API = %q", r.API)
 	}
@@ -298,56 +259,9 @@ func TestFamilyExpectations(t *testing.T) {
 		"anthropic" {
 		t.Error("openrouter anthropic/* family should use anthropic cache_control")
 	}
-	if r := resolve(t, "siliconflow", "deepseek-ai/DeepSeek-V4-Pro"); !r.OpenAICompletions.SupportsReasoningEffort ||
-		r.ThinkingLevels.Value(api.ReasoningMax) != "max" {
-		t.Error("siliconflow DeepSeek-V4-Pro should grade effort high/max")
-	}
-	if r := resolve(t, "siliconflow", "Pro/zai-org/GLM-5"); r.OpenAICompletions.SupportsReasoningEffort {
-		t.Error("siliconflow GLM-5 should not send reasoning_effort")
-	}
-	if r := resolve(t, "minimax", "MiniMax-M3"); r.OpenAICompletions.ThinkingEnabledValue != "adaptive" {
-		t.Error("minimax should enable thinking with type adaptive")
-	}
-	if r := resolve(t, "volcengine", "doubao-seed-1-6-251015"); r.OpenAICompletions.MaxTokensField !=
-		"max_completion_tokens" {
-		t.Error("volcengine must keep max_completion_tokens")
-	}
-	if r := resolve(t, "deepseek", "deepseek-reasoner"); r.ThinkingLevels.Supports(api.ReasoningOff) {
-		t.Error("deepseek/deepseek-reasoner should not allow thinking off")
-	}
-	// required / named tool choices 400 in thinking mode, which is the
-	// DeepSeek default, so neither may reach the wire.
-	if r := resolve(t, "deepseek", "deepseek-v4-pro"); r.OpenAICompletions.AllowsToolChoice("required") ||
-		r.OpenAICompletions.AllowsToolChoice("function") {
-		t.Error("deepseek should not send required or named tool choices")
-	}
-	// GLM-5.2 reads "minimal" as give-up-thinking and folds "low" to high, so
-	// rewriting minimal to low here would send the weakest rung as the
-	// strongest one.
-	if r := resolve(t, "zhipu", "glm-5.2"); r.ThinkingLevels.Value(api.ReasoningMinimal) != "minimal" {
-		t.Errorf("zhipu/glm-5.2 minimal should stay minimal, got %q", r.ThinkingLevels.Value(api.ReasoningMinimal))
-	}
-	// Both entries grade with a top-level reasoning_effort; the vendor
-	// default (chat_template_kwargs) would silently drop the level.
-	for _, model := range []string{"z-ai/glm-5.3", "moonshotai/kimi-k3"} {
-		r := resolve(t, "nvidia", model)
-		if r.OpenAICompletions.ThinkingFormat != api.ThinkingFormatOpenAI ||
-			!r.OpenAICompletions.SupportsReasoningEffort {
-			t.Errorf("nvidia/%s should grade with a top-level reasoning_effort", model)
-		}
-	}
 	if r := resolve(t, "nvidia", "nvidia/nemotron-3-ultra-550b-a55b"); r.OpenAICompletions.ThinkingFormat !=
 		api.ThinkingFormatChatTemplateKwargs {
 		t.Error("nvidia nemotron should keep the chat-template switch")
-	}
-	// DashScope errors when qwen3.8-max gets both fields.
-	for _, model := range []string{"qwen3.8-max", "qwen3.8-flash", "qwen3.8-plus-2026-09-01"} {
-		if r := resolve(t, "aliyun", model); !r.OpenAICompletions.ThinkingBudgetExcludesEffort {
-			t.Errorf("aliyun/%s should not send thinking_budget next to reasoning_effort", model)
-		}
-	}
-	if r := resolve(t, "aliyun", "qwen3-max"); r.OpenAICompletions.ThinkingBudgetExcludesEffort {
-		t.Error("aliyun/qwen3-max has no effort to conflict with and should keep the budget")
 	}
 }
 
@@ -403,20 +317,6 @@ func TestHooks(t *testing.T) {
 		t.Errorf("azure legacy embedding api-version = %q", q["api-version"])
 	}
 
-	wk, _ := modelruntime.Get("weknoracloud")
-	u, _ = wk.Endpoint(providers.EndpointRequest{
-		BaseURL: "https://weknora.weixin.qq.com/", ModelType: types.ModelTypeKnowledgeQA,
-	})
-	if u != "https://weknora.weixin.qq.com/api/v1/chat/completions" {
-		t.Errorf("weknoracloud endpoint = %q", u)
-	}
-	if wk.Auth != providers.AuthSigned || wk.Signer == nil {
-		t.Error("weknoracloud should use a signer")
-	}
-	if err := wk.ValidateConfig(&providers.Config{}); err != nil {
-		t.Errorf("weknoracloud validate should pass without key: %v", err)
-	}
-
 	generic, _ := modelruntime.Get("generic")
 	if err := generic.ValidateConfig(&providers.Config{ModelName: "m"}); err == nil {
 		t.Error("generic validate should require a base URL")
@@ -427,56 +327,5 @@ func TestHooks(t *testing.T) {
 	gpustack, _ := modelruntime.Get("gpustack")
 	if err := gpustack.ValidateConfig(&providers.Config{APIKey: "k", ModelName: "m"}); err == nil {
 		t.Error("gpustack validate should require a base URL")
-	}
-
-	for _, id := range []string{"volcengine", "lkeap"} {
-		v, _ := modelruntime.Get(id)
-		found := false
-		for _, f := range v.ExtraFields {
-			if f.Key == "secret_key" {
-				found = true
-				if !f.Secret || len(f.ModelTypes) != 1 || f.ModelTypes[0] != types.ModelTypeRerank {
-					t.Errorf("%s secret_key field should be secret and rerank-only", id)
-				}
-			}
-		}
-		if !found {
-			t.Errorf("%s should expose a secret_key extra field", id)
-		}
-	}
-}
-
-// TestSignedRerankCredentialLabels pins that the two signed rerank vendors
-// name their first credential after the identity it actually is. The editor
-// renders this instead of a hardcoded vendor table, so losing it silently
-// sends operators back to pasting an sk- key into a signature field.
-func TestSignedRerankCredentialLabels(t *testing.T) {
-	for _, tc := range []struct{ vendor, wantLabel string }{
-		{"lkeap", "SecretId"},
-		{"volcengine", "Access Key ID"},
-	} {
-		t.Run(tc.vendor, func(t *testing.T) {
-			v, ok := modelruntime.Get(tc.vendor)
-			if !ok {
-				t.Fatalf("vendor %s is not registered", tc.vendor)
-			}
-			label := v.CredentialLabelFor(types.ModelTypeRerank)
-			if label == nil {
-				t.Fatalf("rerank should override the credential label")
-			}
-			if label.Label != tc.wantLabel {
-				t.Errorf("rerank credential label = %q, want %q", label.Label, tc.wantLabel)
-			}
-			if label.LocalizedLabel("zh-CN") == label.Label {
-				t.Errorf("zh-CN label should differ from the default")
-			}
-			if label.Hint == "" {
-				t.Errorf("the hint is what stops an sk- key being pasted here")
-			}
-			// Chat and embedding on these vendors do take a plain API key.
-			if other := v.CredentialLabelFor(types.ModelTypeKnowledgeQA); other != nil {
-				t.Errorf("chat should keep the generic API-key wording, got %q", other.Label)
-			}
-		})
 	}
 }

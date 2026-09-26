@@ -31,18 +31,18 @@ func (c *desktopFakeClient) StartDesktopTTLRefresh(context.Context, RemoteSandbo
 func TestDesktopManagerFromRequiresBothSignals(t *testing.T) {
 	// Methods present but capability off: a provider that grew the method
 	// before the deployment was ready must still read as unsupported.
-	off := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube)}
+	off := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B)}
 	off.capabilities.SupportsDesktop = false
 	_, ok := DesktopManagerFrom(off)
 	require.False(t, ok, "capability flag alone must be able to veto")
 
 	// Capability on but no methods: the plain fake has no DialDesktop.
-	plain := newFakeRemoteClient(SandboxTypeCube)
+	plain := newFakeRemoteClient(SandboxTypeE2B)
 	plain.capabilities.SupportsDesktop = true
 	_, ok = DesktopManagerFrom(plain)
 	require.False(t, ok, "type assertion alone must be able to veto")
 
-	on := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube)}
+	on := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B)}
 	on.capabilities.SupportsDesktop = true
 	mgr, ok := DesktopManagerFrom(on)
 	require.True(t, ok)
@@ -55,12 +55,12 @@ func TestDesktopManagerFromNilClient(t *testing.T) {
 }
 
 func TestDesktopTTLRefresherFromRequiresTimeoutCapability(t *testing.T) {
-	off := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube)}
+	off := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B)}
 	off.capabilities.SupportsTimeoutRefresh = false
 	_, ok := DesktopTTLRefresherFrom(off)
 	require.False(t, ok, "Docker-like backends have the method via wrappers but no timeout to refresh")
 
-	on := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube)}
+	on := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B)}
 	on.capabilities.SupportsTimeoutRefresh = true
 	refresher, ok := DesktopTTLRefresherFrom(on)
 	require.True(t, ok)
@@ -97,7 +97,7 @@ func TestStartDesktopScriptFastPathRequiresVNCPort(t *testing.T) {
 }
 
 func TestStartDesktopScriptClosesLockFDInEveryDaemon(t *testing.T) {
-	// Reproduced against wechatopenai/weknora-sandbox:main-desktop: Xvfb,
+	// Reproduced against knowledge-hub-sandbox:main-desktop: Xvfb,
 	// xfce4-session, dbus-launch, x11vnc and websockify all inherited fd 9
 	// and kept holding the flock after the script exited. Killing x11vnc and
 	// websockify then left Xvfb/XFCE holding it, so the next run blocked on

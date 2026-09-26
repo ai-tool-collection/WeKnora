@@ -3,10 +3,10 @@ package router
 import (
 	"net/http"
 
-	"github.com/Tencent/WeKnora/internal/handler"
-	"github.com/Tencent/WeKnora/internal/mcpserver"
-	"github.com/Tencent/WeKnora/internal/middleware"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/handler"
+	"github.com/ai-tool-collection/WeKnora/internal/mcpserver"
+	"github.com/ai-tool-collection/WeKnora/internal/middleware"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 	"github.com/gin-gonic/gin"
 )
 

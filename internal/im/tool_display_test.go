@@ -11,7 +11,7 @@ func TestFormatIMToolLine_pendingWithQuery(t *testing.T) {
 		Pending:   true,
 		Arguments: map[string]any{"query": "文明6"},
 	})
-	if line != "正在调用 知识库检索..." {
+	if line != "Calling Search knowledge..." {
 		t.Fatalf("pending line = %q", line)
 	}
 }
@@ -28,10 +28,10 @@ func TestFormatIMToolLine_searchDoneWithQueryAndSummary(t *testing.T) {
 			"kb_counts": map[string]interface{}{"a": 1, "b": 1},
 		},
 	})
-	if !strings.Contains(line, "检索知识库：「文明6」") {
+	if !strings.Contains(line, "Search knowledge: 文明6") {
 		t.Fatalf("title missing query: %q", line)
 	}
-	if !strings.Contains(line, "找到 3 个结果，来自 2 个文件") {
+	if !strings.Contains(line, "Found 3 results from 2 files") {
 		t.Fatalf("summary missing: %q", line)
 	}
 }
@@ -48,7 +48,7 @@ func TestFormatIMToolLine_grepPatterns(t *testing.T) {
 			"document_count": float64(2),
 		},
 	})
-	if line != "搜索关键词：「文明、策略」 · 找到 5 个匹配片段，来自 2 个文档" {
+	if line != "Search keywords: 文明, 策略 · Found 5 matching chunks from 2 documents" {
 		t.Fatalf("grep line = %q", line)
 	}
 }
@@ -58,14 +58,14 @@ func TestFormatIMRagPipelineLine_queryUnderstand(t *testing.T) {
 		ToolName: "query_understand",
 		Pending:  true,
 	})
-	if pending != "正在理解问题..." {
+	if pending != "Understanding question..." {
 		t.Fatalf("pending = %q", pending)
 	}
 	done := FormatIMRagPipelineLine(IMToolStep{
 		ToolName: "query_understand",
 		Success:  true,
 	})
-	if done != "已完成问题理解" {
+	if done != "Question understood" {
 		t.Fatalf("done = %q", done)
 	}
 }
@@ -76,7 +76,7 @@ func TestFormatIMRagPipelineLine_searchWithQuery(t *testing.T) {
 		Pending:   true,
 		Arguments: map[string]any{"query": "讯飞开放平台"},
 	})
-	if line != "正在检索知识库：「讯飞开放平台」" {
+	if line != "Searching knowledge: 讯飞开放平台" {
 		t.Fatalf("line = %q", line)
 	}
 }
@@ -87,7 +87,7 @@ func TestFormatIMRagPipelineLine_webSearchWithQuery(t *testing.T) {
 		Pending:   true,
 		Arguments: map[string]any{"query": "任素汐演唱会", "search_source": "web"},
 	})
-	if line != "正在检索网络：「任素汐演唱会」" {
+	if line != "Searching web: 任素汐演唱会" {
 		t.Fatalf("line = %q", line)
 	}
 }
@@ -97,7 +97,7 @@ func TestIMGetQueryText_joinsUniqueQueries(t *testing.T) {
 		"query":   "foo",
 		"queries": []any{"foo", "bar"},
 	})
-	if got != "foo，bar" {
+	if got != "foo, bar" {
 		t.Fatalf("query text = %q", got)
 	}
 }
@@ -112,7 +112,7 @@ func TestFormatIMToolLine_writeSandboxPendingShowsDiffStat(t *testing.T) {
 			"removed_lines": 0,
 		},
 	})
-	if line != "写入沙箱文件：「/workspace/output/a.py」... +12" {
+	if line != "Write sandbox file: /workspace/output/a.py... +12" {
 		t.Fatalf("pending write line = %q", line)
 	}
 }

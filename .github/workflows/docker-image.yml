@@ -39,7 +39,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/weknora-ui
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/knowledge-hub-ui
 
       - name: Build ui Image
         uses: docker/build-push-action@v7
@@ -90,7 +90,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/weknora-docreader
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/knowledge-hub-docreader
 
       - name: Build docreader Image
         uses: docker/build-push-action@v7
@@ -123,7 +123,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/weknora-sandbox
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/knowledge-hub-sandbox
 
       - name: Build sandbox Image
         uses: docker/build-push-action@v7
@@ -138,36 +138,11 @@ jobs:
           cache-from: type=gha,scope=build-sandbox
           cache-to: type=gha,scope=build-sandbox,mode=max
 
-      # Cube builds templates straight from the image and gates the build on
-      # GET :49983/health, so it needs the variant with envd baked in.
-      - name: Docker meta (Cube variant)
-        id: meta-cube
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/weknora-sandbox
-          flavor: |
-            suffix=-cube,onlatest=true
-
-      # amd64 only: cubesandbox-base, the source of the envd binary, publishes
-      # no arm64 image.
-      - name: Build sandbox Cube Image
-        uses: docker/build-push-action@v7
-        with:
-          push: true
-          platforms: linux/amd64
-          file: docker/Dockerfile.sandbox
-          target: cube
-          context: .
-          labels: ${{ steps.meta-cube.outputs.labels }}
-          tags: ${{ steps.meta-cube.outputs.tags }}
-          cache-from: type=gha,scope=build-sandbox-cube
-          cache-to: type=gha,scope=build-sandbox-cube,mode=max
-
       - name: Docker meta (desktop variant)
         id: meta-desktop
         uses: docker/metadata-action@v6
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/weknora-sandbox
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/knowledge-hub-sandbox
           flavor: |
             suffix=-desktop,onlatest=true
 
@@ -183,28 +158,6 @@ jobs:
           tags: ${{ steps.meta-desktop.outputs.tags }}
           cache-from: type=gha,scope=build-sandbox-desktop
           cache-to: type=gha,scope=build-sandbox-desktop,mode=max
-
-      - name: Docker meta (desktop Cube variant)
-        id: meta-desktop-cube
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/weknora-sandbox
-          flavor: |
-            suffix=-desktop-cube,onlatest=true
-
-      # amd64 only: same cubesandbox-base constraint as the cube target.
-      - name: Build sandbox desktop Cube Image
-        uses: docker/build-push-action@v7
-        with:
-          push: true
-          platforms: linux/amd64
-          file: docker/Dockerfile.sandbox
-          target: desktop-cube
-          context: .
-          labels: ${{ steps.meta-desktop-cube.outputs.labels }}
-          tags: ${{ steps.meta-desktop-cube.outputs.tags }}
-          cache-from: type=gha,scope=build-sandbox-desktop-cube
-          cache-to: type=gha,scope=build-sandbox-desktop-cube,mode=max
 
   build-app:
     strategy:
@@ -235,7 +188,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/weknora-app
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/knowledge-hub-app
 
       - name: Prepare version info
         id: version
@@ -267,7 +220,7 @@ jobs:
             ${{ format('GO_VERSION_ARG={0}', steps.version.outputs.go_version) }}
             WITH_ANYDOC=1
           labels: ${{ steps.meta.outputs.labels }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/weknora-app
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/knowledge-hub-app
           cache-from: type=gha,scope=build-app-${{ env.PLATFORM_PAIR }}
           cache-to: type=gha,scope=build-app-${{ env.PLATFORM_PAIR }},mode=max
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
@@ -311,14 +264,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/weknora-app
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/knowledge-hub-app
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ secrets.DOCKERHUB_USERNAME }}/weknora-app@sha256:%s ' *)
+            $(printf '${{ secrets.DOCKERHUB_USERNAME }}/knowledge-hub-app@sha256:%s ' *)
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/weknora-app:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/knowledge-hub-app:${{ steps.meta.outputs.version }}

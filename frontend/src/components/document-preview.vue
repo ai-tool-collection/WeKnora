@@ -332,7 +332,7 @@ async function renderMarkdown(blob: Blob) {
 
   // 校验文本内容是否有效
   if (!text || typeof text !== 'string') {
-    markdownHtml.value = '<p style="color: var(--td-text-color-disabled); text-align: center; padding: 20px;">文档内容为空</p>';
+    markdownHtml.value = '<p style="color: var(--td-text-color-disabled); text-align: center; padding: 20px;">Document is empty</p>';
     return;
   }
 

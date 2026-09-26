@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	sdk "github.com/Tencent/WeKnora/client"
+	sdk "github.com/ai-tool-collection/WeKnora/client"
 )
 
 // Info is the cached server version snapshot.

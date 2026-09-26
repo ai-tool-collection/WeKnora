@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Tencent/WeKnora/internal/models"
-	"github.com/Tencent/WeKnora/internal/models/internal/configcopy"
+	"github.com/ai-tool-collection/WeKnora/internal/models"
+	"github.com/ai-tool-collection/WeKnora/internal/models/internal/configcopy"
 )
 
 //go:embed data/models.generated.json

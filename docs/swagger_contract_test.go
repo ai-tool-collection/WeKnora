@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	docs "github.com/Tencent/WeKnora/docs"
+	docs "github.com/ai-tool-collection/WeKnora/docs"
 	"gopkg.in/yaml.v3"
 )
 
@@ -136,7 +136,7 @@ func assertModelDeleteUsageContract(t *testing.T, data []byte, parse func([]byte
 		t.Fatal("model DELETE Swagger contract does not document the model-in-use 400 response")
 	}
 
-	const errorCodeDefinition = "github_com_Tencent_WeKnora_internal_errors.ErrorCode"
+	const errorCodeDefinition = "github_com_ai_tool_collection_WeKnora_internal_errors.ErrorCode"
 	errorCodes, ok := spec.Definitions[errorCodeDefinition]
 	if !ok {
 		t.Fatalf("generated Swagger document does not expose %s", errorCodeDefinition)

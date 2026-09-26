@@ -8,9 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/application/service"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -180,15 +179,6 @@ func (f *fakeTenantService) GetTenantByIDForUser(
 ) (*types.Tenant, error) {
 	return f.tenant, nil
 }
-
-func (f *fakeTenantService) GetWeKnoraCloudCredentials(ctx context.Context) *types.WeKnoraCloudCredentials {
-	return nil
-}
-
-var (
-	_ interfaces.EmbedChannelService = (*fakeEmbedChannelService)(nil)
-	_ interfaces.TenantService       = (*fakeTenantService)(nil)
-)
 
 func TestEmbedGlobalPerMinute(t *testing.T) {
 	tests := []struct {

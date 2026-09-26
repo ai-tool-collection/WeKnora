@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/agent/tools"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/agent/tools"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,10 +27,10 @@ type operationRequestClient struct {
 type operationRequestHandle struct{ id string }
 
 func (h operationRequestHandle) ID() string                    { return h.id }
-func (h operationRequestHandle) Provider() sandbox.SandboxType { return sandbox.SandboxTypeCube }
+func (h operationRequestHandle) Provider() sandbox.SandboxType { return sandbox.SandboxTypeE2B }
 func (h operationRequestHandle) Metadata() map[string]string   { return nil }
 
-func (c *operationRequestClient) Provider() sandbox.SandboxType { return sandbox.SandboxTypeCube }
+func (c *operationRequestClient) Provider() sandbox.SandboxType { return sandbox.SandboxTypeE2B }
 func (c *operationRequestClient) Capabilities() sandbox.RemoteSandboxCapabilities {
 	return sandbox.RemoteSandboxCapabilities{
 		SupportsReconnect: true, SupportsMetadata: true, SupportsListSandboxes: true,
@@ -94,7 +94,7 @@ func newOperationRequestManager(t *testing.T) (context.Context, *sandbox.Session
 	ctx := context.WithValue(context.Background(), types.TenantIDContextKey, uint64(42))
 	store := sandbox.NewMemorySessionSandboxBindingStore()
 	_, err := store.Create(ctx, sandbox.SessionSandboxKey{TenantID: 42, SessionID: "s1"}, sandbox.SessionSandboxBinding{
-		Version: sandbox.SessionSandboxBindingVersion, Provider: sandbox.SandboxTypeCube,
+		Version: sandbox.SessionSandboxBindingVersion, Provider: sandbox.SandboxTypeE2B,
 		TenantID: 42, SessionID: "s1", SandboxID: "sb1", TemplateID: "template", CreatedAt: time.Now(),
 	})
 	require.NoError(t, err)
@@ -103,7 +103,7 @@ func newOperationRequestManager(t *testing.T) (context.Context, *sandbox.Session
 		"/workspace/output/b.txt": []byte("second"),
 	}}
 	cfg := sandbox.DefaultConfig()
-	cfg.CubeTemplate = "template"
+	cfg.E2BTemplate = "template"
 	mgr, err := sandbox.NewSessionBoundManager(sandbox.SessionBoundManagerConfig{
 		Config: cfg, Client: client, Store: store, Checker: operationSessionChecker{}, SkipHealthProbe: true,
 	})

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
-	"github.com/Tencent/WeKnora/internal/types"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // VendorRef identifies the vendor a set of model parameters belongs to.
@@ -200,7 +200,7 @@ type ModelResponse struct {
 
 // ModelParametersDTO carries every parameter field EXCEPT the two secret
 // ones (APIKey, AppSecret). AppID is non-secret and stays — it's an account
-// identifier the WeKnora Cloud frontend renders. CustomHeaders is also kept
+// identifier retained for compatibility with existing records. CustomHeaders is also kept
 // (structural metadata, not a credential).
 type ModelParametersDTO struct {
 	BaseURL             string                    `json:"base_url"`

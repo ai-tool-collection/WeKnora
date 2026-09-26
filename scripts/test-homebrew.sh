@@ -62,8 +62,8 @@ echo "=== Step 3: Generate Formula ==="
 
 cat > "${TAP_DIR}/Formula/${FORMULA_NAME}.rb" << RUBY
 class WeknoraLiteTest < Formula
-  desc "WeKnora Lite (local test)"
-  homepage "https://github.com/Tencent/WeKnora"
+  desc "Knowledge Hub (local test)"
+  homepage "https://github.com/ai-tool-collection/WeKnora"
   version "${VERSION}"
   license "Apache-2.0"
 

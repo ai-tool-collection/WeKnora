@@ -17,7 +17,7 @@ func TestDockerBackendEnabledDefaultsOff(t *testing.T) {
 	if err := EnsureDockerBackendAllowed(SandboxTypeDocker); err != ErrDockerBackendDisabled {
 		t.Fatalf("EnsureDockerBackendAllowed(docker) = %v, want ErrDockerBackendDisabled", err)
 	}
-	if err := EnsureDockerBackendAllowed(SandboxTypeCube); err != nil {
+	if err := EnsureDockerBackendAllowed(SandboxTypeE2B); err != nil {
 		t.Fatalf("EnsureDockerBackendAllowed(cube) = %v, want nil", err)
 	}
 }

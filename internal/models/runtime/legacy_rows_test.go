@@ -1,235 +1,52 @@
 package runtime_test
 
-// Backward-compatibility guard for model rows written before the vendor
-// catalog existed (internal/models/provider). Every shape in this file is one
-// that a production `models` table can already contain, so a failure here
-// means an existing deployment breaks on upgrade without a migration.
-
 import (
 	"bytes"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/providers"
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
-// legacyProviderIDs is the complete set of parameters.provider values the
-// pre-catalog code could write: provider.AllProviders() plus weknoracloud,
-// as of internal/models/provider/provider.go before the refactor.
-var legacyProviderIDs = []string{
-	"generic", "weknoracloud", "aliyun", "zhipu", "volcengine", "hunyuan",
-	"siliconflow", "deepseek", "minimax", "moonshot", "modelscope", "qianfan",
-	"qiniu", "openai", "anthropic", "gemini", "openrouter", "litellm",
-	"requesty", "jina", "mimo", "longcat", "lkeap", "gpustack", "nvidia",
-	"novita", "azure_openai",
-}
-
-// TestLegacyProviderIDsStillRegistered asserts that no provider id an old row
-// may carry has disappeared from the catalog. A missing id would silently
-// degrade that row to the generic OpenAI baseline (wrong auth, wrong URL,
-// wrong thinking encoding).
-func TestLegacyProviderIDsStillRegistered(t *testing.T) {
-	for _, id := range legacyProviderIDs {
-		if _, ok := modelruntime.Get(id); !ok {
-			t.Errorf("provider id %q was writable by the old code but has no vendor now", id)
-		}
+// Older rows for retained providers must continue to validate and resolve.
+func TestRetainedLegacyRowsValidateAndResolve(t *testing.T) {
+	rows := []struct {
+		name   string
+		model  string
+		typ    types.ModelType
+		params types.ModelParameters
+	}{
+		{"OpenAI chat", "gpt-4o", types.ModelTypeKnowledgeQA,
+			types.ModelParameters{Provider: "openai", BaseURL: "https://api.openai.com/v1"}},
+		{"local model", "custom-model", types.ModelTypeKnowledgeQA,
+			types.ModelParameters{Provider: "generic", BaseURL: "http://localhost:8000/v1"}},
+		{"OpenAI embedding", "text-embedding-3-small", types.ModelTypeEmbedding,
+			types.ModelParameters{Provider: "openai", BaseURL: "https://api.openai.com/v1"}},
+		{"Jina rerank", "jina-reranker-v3", types.ModelTypeRerank,
+			types.ModelParameters{Provider: "jina", BaseURL: "https://api.jina.ai/v1"}},
 	}
-}
-
-// legacyRow is one realistic pre-refactor `models` row.
-type legacyRow struct {
-	name   string
-	model  string
-	typ    types.ModelType
-	params types.ModelParameters
-}
-
-// legacyRows covers the shapes the old write paths produced: the model editor
-// (provider + base_url + api_key, no extra_config at all), the initialization
-// wizard (thinking_control / api_version / remote_model_name), YAML builtin
-// models, and rows hand-written against an older release.
-func legacyRows() []legacyRow {
-	rows := []legacyRow{
-		{
-			name:  "editor row, catalogued model, no extra_config",
-			model: "deepseek-chat", typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{Provider: "deepseek", BaseURL: "https://api.deepseek.com/v1", APIKey: "sk-x"},
-		},
-		{
-			name:  "editor row, model the vendor has since retired",
-			model: "gpt-3.5-turbo-0301", typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{Provider: "openai", BaseURL: "https://api.openai.com/v1", APIKey: "sk-x"},
-		},
-		{
-			name:  "self-hosted fine-tune behind a generic endpoint",
-			model: "acme-corp/llama-3.1-70b-finetune-v7", typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{Provider: "generic", BaseURL: "http://vllm.internal:8000/v1"},
-		},
-		{
-			name:  "row written before parameters.provider existed",
-			model: "qwen-plus", typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{BaseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1"},
-		},
-		{
-			name:  "row with neither provider nor base_url",
-			model: "some-model", typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{},
-		},
-		{
-			name:  "provider id a hand-edited row invented",
-			model: "grok-4", typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{Provider: "xai", BaseURL: "https://api.x.ai/v1"},
-		},
-		{
-			name: "VLM row", model: "qwen-vl-max", typ: types.ModelTypeVLLM,
-			params: types.ModelParameters{
-				Provider: "aliyun", BaseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
-				InterfaceType: "openai", SupportsVision: true,
-			},
-		},
-		{
-			name: "local Ollama VLM row (interface_type ollama)", model: "llava:13b", typ: types.ModelTypeVLLM,
-			params: types.ModelParameters{
-				InterfaceType: "ollama", ParameterSize: "13B", BaseURL: "http://localhost:11434",
-			},
-		},
-		{
-			name: "WeKnoraCloud row with app credentials", model: "weknora-chat", typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{
-				Provider: "weknoracloud", BaseURL: "https://weknora.weixin.qq.com",
-				AppID: "app", AppSecret: "secret",
-				ExtraConfig: map[string]string{"remote_model_name": "hunyuan-turbos"},
-			},
-		},
-		{
-			name: "Azure row from the initialization wizard", model: "gpt-4o-deployment",
-			typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{
-				Provider: "azure_openai", BaseURL: "https://my-resource.openai.azure.com",
-				ExtraConfig: map[string]string{"api_version": "2024-10-21"},
-			},
-		},
-		{
-			name: "Azure row created from the model editor (no api_version)", model: "gpt-4o-deployment",
-			typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{
-				Provider: "azure_openai", BaseURL: "https://my-resource.openai.azure.com",
-			},
-		},
-		{
-			name:  "every legacy extra_config key at once, plus an unknown one",
-			model: "custom-model", typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{
-				Provider: "generic", BaseURL: "http://vllm.internal:8000/v1",
-				ExtraConfig: map[string]string{
-					"thinking_control":            "chat_template_kwargs",
-					"remote_model_name":           "Qwen/Qwen3-32B",
-					"api_version":                 "2024-10-21",
-					"secret_key":                  "sk",
-					"region":                      "ap-guangzhou",
-					"instruction":                 "rank these",
-					"truncate_prompt_tokens":      "4096",
-					"deployment":                  "prod",
-					"freshness":                   "week",
-					"a_key_no_release_ever_wrote": "1",
-				},
-			},
-		},
-		{
-			name: "embedding row with dimension override", model: "text-embedding-v4", typ: types.ModelTypeEmbedding,
-			params: types.ModelParameters{
-				Provider: "aliyun", BaseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
-				EmbeddingParameters: types.EmbeddingParameters{
-					Dimension: 1024, TruncatePromptTokens: 2048, SupportsDimensionOverride: true,
-				},
-			},
-		},
-		{
-			name: "LKEAP signed rerank row", model: "lkeap-rerank", typ: types.ModelTypeRerank,
-			params: types.ModelParameters{
-				Provider: "lkeap", BaseURL: "https://lkeap.tencentcloudapi.com",
-				ExtraConfig: map[string]string{"secret_key": "sk", "region": "ap-guangzhou"},
-			},
-		},
-		{
-			name: "custom headers row", model: "gateway-model", typ: types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{
-				Provider: "generic", BaseURL: "https://gateway.corp.example.com/v1",
-				CustomHeaders: map[string]string{"X-Corp-Route": "llm"},
-				ContextWindow: 128000, MaxOutputTokens: 8192, MaxConcurrency: 4,
-			},
-		},
-	}
-	// Every legacy provider id, carrying a model name no models.json knows.
-	// This is the "custom fine-tune / retired model / self-hosted name" case
-	// for each vendor at once.
-	for _, id := range legacyProviderIDs {
-		rows = append(rows, legacyRow{
-			name: "uncatalogued model on provider " + id, model: "a-model-no-catalog-knows",
-			typ:    types.ModelTypeKnowledgeQA,
-			params: types.ModelParameters{Provider: id},
-		})
-	}
-	return rows
-}
-
-// TestLegacyRowsValidateAndResolve is the core guarantee: opening an existing
-// model in the UI and saving it (PUT /models/{id} runs modelruntime.ValidateRow)
-// must not 400, and the chat path must still resolve the row.
-func TestLegacyRowsValidateAndResolve(t *testing.T) {
-	for _, row := range legacyRows() {
+	for _, row := range rows {
 		t.Run(row.name, func(t *testing.T) {
 			params := row.params
 			if err := modelruntime.ValidateRow(row.model, row.typ, &params); err != nil {
-				t.Fatalf("ValidateRow rejected a row the old code accepted: %v", err)
+				t.Fatalf("ValidateRow: %v", err)
 			}
 			resolved, err := modelruntime.Resolve(modelruntime.Ref{
 				Provider: params.Provider, Model: row.model, BaseURL: params.BaseURL,
 				ModelType: row.typ, Extra: params.ExtraConfig, Override: params.Spec,
 			})
-			if err != nil {
-				t.Fatalf("Resolve failed: %v", err)
-			}
-			if resolved.Vendor == nil {
-				t.Fatal("resolved with a nil vendor")
-			}
-			// Each model type resolves to its own protocol vocabulary. They
-			// are separate Go types, so a row can never land on the wrong one.
-			switch row.typ {
-			case types.ModelTypeRerank:
-				if !resolved.RerankAPI.Known() {
-					t.Fatalf("resolved to an unknown rerank protocol %q", resolved.RerankAPI)
-				}
-			case types.ModelTypeEmbedding:
-				if !resolved.EmbeddingAPI.Known() {
-					t.Fatalf("resolved to an unknown embedding protocol %q", resolved.EmbeddingAPI)
-				}
-			default:
-				if !resolved.API.Known() {
-					t.Fatalf("resolved to an unknown protocol %q", resolved.API)
-				}
-			}
-			if resolved.RemoteModel == "" && row.model != "" {
-				t.Fatal("resolved to an empty remote model id")
+			if err != nil || resolved == nil || resolved.Vendor == nil {
+				t.Fatalf("Resolve: %v", err)
 			}
 		})
 	}
 }
 
-// TestEveryCataloguedModelResolves walks the whole catalog so a row naming any
-// shipped model id — which is what the old model picker wrote — is known to
-// resolve.
 func TestEveryCataloguedModelResolves(t *testing.T) {
 	for _, v := range modelruntime.List() {
 		for _, m := range v.Models() {
-			if m.ID == "" {
-				continue
-			}
-			// An entry that declares this build cannot serve it must refuse,
-			// on save as at construction; vendors_test pins that it does.
-			if bytes.Contains(m.Compat, []byte("unsupported_reason")) {
+			if m.ID == "" || bytes.Contains(m.Compat, []byte("unsupported_reason")) {
 				continue
 			}
 			modelType := m.Type

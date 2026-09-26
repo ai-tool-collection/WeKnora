@@ -8,16 +8,20 @@ import (
 
 // EnvLanguage returns the WEKNORA_LANGUAGE environment variable value, or empty string if unset.
 func EnvLanguage() string {
-	return strings.TrimSpace(os.Getenv("WEKNORA_LANGUAGE"))
+	lang := strings.TrimSpace(os.Getenv("WEKNORA_LANGUAGE"))
+	if lang == "zh-CN" || lang == "zh" || lang == "zh-Hans" {
+		return "en-US"
+	}
+	return lang
 }
 
 // DefaultLanguage returns the configured default language locale.
-// It reads the WEKNORA_LANGUAGE environment variable; if unset, falls back to "zh-CN".
+// It reads the WEKNORA_LANGUAGE environment variable; if unset, falls back to English.
 func DefaultLanguage() string {
 	if lang := EnvLanguage(); lang != "" {
 		return lang
 	}
-	return "zh-CN"
+	return "en-US"
 }
 
 // TenantIDFromContext extracts the execution tenant ID from ctx.
@@ -368,10 +372,13 @@ func LanguageFromContext(ctx context.Context) (string, bool) {
 // instructions like "Write in ." and lets the model pick a language at random.
 func ResolveLanguage(ctx context.Context, locale string) string {
 	if locale = strings.TrimSpace(locale); locale != "" {
+		if locale == "zh-CN" || locale == "zh" || locale == "zh-Hans" {
+			return "en-US"
+		}
 		return locale
 	}
 	if ctxLocale, ok := LanguageFromContext(ctx); ok {
-		return ctxLocale
+		return ResolveLanguage(nil, ctxLocale)
 	}
 	return DefaultLanguage()
 }
@@ -402,8 +409,6 @@ func LanguageNameFromContext(ctx context.Context) string {
 // LanguageLocaleName maps a locale code to a human-readable language name for LLM prompts.
 func LanguageLocaleName(locale string) string {
 	switch locale {
-	case "zh-CN", "zh", "zh-Hans":
-		return "Chinese (Simplified)"
 	case "zh-TW", "zh-HK", "zh-Hant":
 		return "Chinese (Traditional)"
 	case "en-US", "en", "en-GB":

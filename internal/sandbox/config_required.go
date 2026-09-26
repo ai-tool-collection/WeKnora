@@ -4,14 +4,6 @@
 // synthesize has to be present in the workspace config itself, so this file
 // names those values once and both save and resolve paths check against it.
 //
-// Two classes are deliberately NOT required:
-//
-//   - Credentials a self-hosted deployment does not use. The common single-node
-//     Cube setup runs unauthenticated, so CubeAPIKey stays optional.
-//   - Values the SDK resolves by itself. go-e2b defaults both the API base URL
-//     and the sandbox domain when they are left empty, so demanding them would
-//     force operators to spell out constants they cannot verify.
-//
 // Everything else is required precisely because its absence fails late and
 // obscurely: a missing Cube proxy URL or sandbox domain still creates a sandbox
 // and only breaks when envd traffic is routed, which reads as a provider outage
@@ -45,11 +37,6 @@ func MissingRequiredFields(cfg *Config) []string {
 	// host and disabled have no provider fields to require: host runs locally
 	// with no endpoint or credential, so they fall through and return empty.
 	switch cfg.Type {
-	case SandboxTypeCube:
-		require("api_url", cfg.CubeAPIURL)
-		require("proxy_url", cfg.CubeProxyURL)
-		require("sandbox_domain", cfg.CubeSandboxDomain)
-		require("template_id", cfg.CubeTemplate)
 	case SandboxTypeE2B:
 		require("api_key", cfg.E2BAPIKey)
 		require("template_id", cfg.E2BTemplate)

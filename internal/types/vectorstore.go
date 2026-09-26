@@ -10,19 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 // EnvStoreIDPrefix is the prefix for virtual env store IDs.
 const EnvStoreIDPrefix = "__env_"
-
-const (
-	envTencentVectorDBReplicaNumber     = "TENCENT_VECTORDB_REPLICA_NUMBER"
-	defaultTencentVectorDBReplicaNumber = 1
-)
 
 // IsEnvStoreID checks if the given ID is an env store virtual ID.
 func IsEnvStoreID(id string) bool {
@@ -85,13 +80,12 @@ func (v *VectorStore) BeforeCreate(tx *gorm.DB) error {
 //     route through a separate code path (BuildEnvVectorStores) and do
 //     not pass through this validation.
 var validEngineTypes = map[RetrieverEngineType]bool{
-	ElasticsearchRetrieverEngineType:   true,
-	QdrantRetrieverEngineType:          true,
-	MilvusRetrieverEngineType:          true,
-	WeaviateRetrieverEngineType:        true,
-	DorisRetrieverEngineType:           true,
-	TencentVectorDBRetrieverEngineType: true,
-	OpenSearchRetrieverEngineType:      true,
+	ElasticsearchRetrieverEngineType: true,
+	QdrantRetrieverEngineType:        true,
+	MilvusRetrieverEngineType:        true,
+	WeaviateRetrieverEngineType:      true,
+	DorisRetrieverEngineType:         true,
+	OpenSearchRetrieverEngineType:    true,
 }
 
 // IsValidEngineType checks whether the given engine type is valid for VectorStore.
@@ -143,7 +137,7 @@ type ConnectionConfig struct {
 	GrpcAddress string `yaml:"grpc_address" json:"grpc_address,omitempty"`
 	Scheme      string `yaml:"scheme" json:"scheme,omitempty"`
 	// Database name used by engines that support database-level namespaces
-	// (currently Milvus, Tencent VectorDB, and Doris).
+	// (currently Milvus and Doris).
 	Database string `yaml:"database" json:"database,omitempty"`
 	// Postgres
 	UseDefaultConnection bool `yaml:"use_default_connection" json:"use_default_connection,omitempty"`
@@ -253,7 +247,7 @@ type IndexConfig struct {
 	ShardNumber       int `yaml:"shard_number" json:"shard_number,omitempty"`               // Qdrant: number of shards per collection
 	ReplicationFactor int `yaml:"replication_factor" json:"replication_factor,omitempty"`   // Qdrant, Weaviate: number of replicas
 	ShardsNum         int `yaml:"shards_num" json:"shards_num,omitempty"`                   // Milvus: number of shards per collection (CreateCollection)
-	ReplicaNumber     int `yaml:"replica_number" json:"replica_number,omitempty"`           // Milvus LoadCollection / Tencent VectorDB CreateCollection replicas
+	ReplicaNumber     int `yaml:"replica_number" json:"replica_number,omitempty"`           // Milvus LoadCollection replicas
 	DesiredShardCount int `yaml:"desired_shard_count" json:"desired_shard_count,omitempty"` // Weaviate: number of shards per collection
 	BucketsNum        int `yaml:"buckets_num" json:"buckets_num,omitempty"`                 // Doris: number of buckets per table (DISTRIBUTED BY HASH ... BUCKETS N)
 	ReplicationNum    int `yaml:"replication_num" json:"replication_num,omitempty"`         // Doris: replication_num PROPERTIES
@@ -299,11 +293,6 @@ func (c IndexConfig) GetIndexNameOrDefault(engineType RetrieverEngineType) strin
 		}
 		return "weknora_embeddings"
 	case MilvusRetrieverEngineType:
-		if c.CollectionName != "" {
-			return c.CollectionName
-		}
-		return "weknora_embeddings"
-	case TencentVectorDBRetrieverEngineType:
 		if c.CollectionName != "" {
 			return c.CollectionName
 		}
@@ -376,8 +365,7 @@ func (c *IndexConfig) GetShardsNum(def int) int {
 }
 
 // GetReplicaNumber returns the configured replica_number, or def if unset/zero.
-// Milvus applies it at LoadCollection time; Tencent VectorDB applies it at
-// CreateCollection time. It controls read HA/throughput replicas.
+// Milvus applies it at LoadCollection time to control read HA and throughput.
 func (c *IndexConfig) GetReplicaNumber(def int) int {
 	if c != nil && c.ReplicaNumber > 0 {
 		return c.ReplicaNumber
@@ -615,21 +603,6 @@ type VectorStoreTypeInfo struct {
 	IndexFields      []VectorStoreFieldInfo `json:"index_fields,omitempty"`
 }
 
-func resolveTencentVectorDBReplicaNumber(lookup EnvLookupFunc) int {
-	if lookup == nil {
-		lookup = os.Getenv
-	}
-	raw := strings.TrimSpace(lookup(envTencentVectorDBReplicaNumber))
-	if raw == "" {
-		return defaultTencentVectorDBReplicaNumber
-	}
-	replicas, err := strconv.Atoi(raw)
-	if err != nil || replicas < 0 {
-		return defaultTencentVectorDBReplicaNumber
-	}
-	return replicas
-}
-
 // VectorStoreFieldInfo describes a single configuration field exposed
 // by /api/v1/vector-stores/types for the registration UI. The optional
 // validation hints (`Immutable`, `Min`, `Max`, `Enum`) are used by both
@@ -664,7 +637,6 @@ type VectorStoreFieldInfo struct {
 
 // GetVectorStoreTypes returns metadata for all supported engine types.
 func GetVectorStoreTypes() []VectorStoreTypeInfo {
-	tencentVectorDBReplicaNumber := resolveTencentVectorDBReplicaNumber(os.Getenv)
 
 	return []VectorStoreTypeInfo{
 		{
@@ -712,21 +684,6 @@ func GetVectorStoreTypes() []VectorStoreTypeInfo {
 				{Name: "collection_name", Type: "string", Required: false, Description: "Collection Name", Default: "weknora_embeddings"},
 				{Name: "shards_num", Type: "number", Required: false, Description: "Shards (write parallelism)", Default: 1},
 				{Name: "replica_number", Type: "number", Required: false, Description: "In-memory Replicas (read HA)", Default: 1},
-			},
-		},
-		{
-			Type:        "tencent_vectordb",
-			DisplayName: "Tencent VectorDB",
-			ConnectionFields: []VectorStoreFieldInfo{
-				{Name: "addr", Type: "string", Required: true, Description: "Address", Default: "http://localhost:8080"},
-				{Name: "username", Type: "string", Required: true, Description: "Username"},
-				{Name: "api_key", Type: "string", Required: true, Sensitive: true, Description: "API Key"},
-				{Name: "database", Type: "string", Required: false, Description: "Database", Default: "weknora"},
-			},
-			IndexFields: []VectorStoreFieldInfo{
-				{Name: "collection_name", Type: "string", Required: false, Description: "Collection Name", Default: "weknora_embeddings"},
-				{Name: "shards_num", Type: "number", Required: false, Description: "Shards", Default: 1},
-				{Name: "replica_number", Type: "number", Required: false, Description: "Replicas", Default: tencentVectorDBReplicaNumber},
 			},
 		},
 		{
@@ -911,21 +868,6 @@ func buildEnvStoreForDriver(driver string, envLookup EnvLookupFunc) *VectorStore
 				Addr:     envLookup("MILVUS_ADDRESS"),
 				Username: envLookup("MILVUS_USERNAME"),
 				Password: envLookup("MILVUS_PASSWORD"),
-			},
-		}
-	case "tencent_vectordb":
-		return &VectorStore{
-			ID:         "__env_tencent_vectordb__",
-			Name:       "Tencent VectorDB",
-			EngineType: TencentVectorDBRetrieverEngineType,
-			ConnectionConfig: ConnectionConfig{
-				Addr:     envLookup("TENCENT_VECTORDB_ADDR"),
-				Username: envLookup("TENCENT_VECTORDB_USERNAME"),
-				APIKey:   envLookup("TENCENT_VECTORDB_API_KEY"),
-				Database: envLookup("TENCENT_VECTORDB_DATABASE"),
-			},
-			IndexConfig: IndexConfig{
-				CollectionName: envLookup("TENCENT_VECTORDB_COLLECTION"),
 			},
 		}
 	case "weaviate":

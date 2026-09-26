@@ -14,9 +14,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // stubTenantService is a minimal stub of interfaces.TenantService that only
@@ -68,13 +68,6 @@ func (s *stubTenantService) GetTenantByIDForUser(context.Context, uint64, string
 	panic("unexpected")
 }
 
-func (s *stubTenantService) GetWeKnoraCloudCredentials(context.Context) *types.WeKnoraCloudCredentials {
-	panic("unexpected")
-}
-
-// setupPresignedTestServer wires presignedFileHandler with a real local file
-// service rooted at a temp dir, returning the engine, baseDir, and the
-// presigned URL generator helper.
 func setupPresignedTestServer(t *testing.T) (engine *gin.Engine, baseDir string, signURL func(filePath string, tenantID uint64, ttl time.Duration) string) {
 	t.Helper()
 	gin.SetMode(gin.TestMode)

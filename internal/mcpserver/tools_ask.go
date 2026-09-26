@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/event"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/event"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/google/uuid"
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -26,7 +26,7 @@ const (
 func askTool() mcp.Tool {
 	return mcp.NewTool(types.MCPEndpointToolAsk,
 		mcp.WithDescription("Ask the workspace a question and get a synthesized answer with citations. "+
-			"WeKnora retrieves from the knowledge bases in scope and runs the agent configured on this "+
+			"Knowledge Hub retrieves from the knowledge bases in scope and runs the agent configured on this "+
 			"endpoint. Pass the returned session_id on follow-up questions to keep the conversation going. "+
 			"This can take up to a few minutes for agentic runs; prefer search_knowledge when you only need "+
 			"raw passages."),

@@ -1,5 +1,5 @@
 // Package sandbox provides isolated execution environments for running untrusted scripts.
-// It supports Docker containers and remote MicroVM backends (CubeSandbox, E2B).
+// It supports Docker containers and E2B MicroVM sandboxes.
 package sandbox
 
 import (
@@ -17,11 +17,6 @@ const (
 	// backends it keeps session state between executions; unlike them it
 	// shares the host kernel and lives on a single daemon.
 	SandboxTypeDocker SandboxType = "docker"
-	// SandboxTypeCube uses Tencent CubeSandbox (E2B-compatible) MicroVM for isolation.
-	// Like Docker and E2B it keeps session-scoped persistent sandboxes: multiple
-	// executions bound to the same SessionID share one instance and preserve
-	// installed packages, created files, running services, etc.
-	SandboxTypeCube SandboxType = "cube"
 	// SandboxTypeE2B uses E2B's hosted MicroVM sandbox service.
 	SandboxTypeE2B SandboxType = "e2b"
 	// SandboxTypeHost runs commands on the user's own machine under
@@ -40,7 +35,7 @@ const (
 // resolveSandboxForExecution.
 func IsNamedSandboxBackendType(raw string) bool {
 	switch SandboxType(raw) {
-	case SandboxTypeCube, SandboxTypeE2B, SandboxTypeDocker:
+	case SandboxTypeE2B, SandboxTypeDocker:
 		return true
 	default:
 		return false
@@ -57,27 +52,13 @@ const (
 	// before /workspace and its input/output directories were handed to the
 	// sandbox account — a sandbox built from it cannot write its own artifact
 	// directory. Point this back at latest once a release ships that fix.
-	DefaultDockerImage = "wechatopenai/weknora-sandbox:main"
-
-	// DefaultCubeTemplateImage is the same environment with Cube's envd daemon
-	// baked in (target "cube" of docker/Dockerfile.sandbox).
-	//
-	// Cube turns an OCI image into a template directly and gates the build on
-	// GET :49983/health, which only envd answers. Building a Cube template from
-	// DefaultDockerImage therefore always fails the probe with "connection
-	// refused" — E2B gets away with that image because its own builder injects
-	// envd, and the Docker backend never needs one.
-	DefaultCubeTemplateImage = "wechatopenai/weknora-sandbox:main-cube"
+	DefaultDockerImage = "knowledge-hub-sandbox:main"
 
 	// DefaultDesktopDockerImage is the XFCE/x11vnc/websockify variant of
 	// DefaultDockerImage (target "desktop" of docker/Dockerfile.sandbox).
 	// E2B desktop templates are built from it. The Docker backend does not
 	// consume this tag yet.
-	DefaultDesktopDockerImage = "wechatopenai/weknora-sandbox:main-desktop"
-
-	// DefaultCubeDesktopTemplateImage is DefaultDesktopDockerImage plus Cube
-	// envd (target "desktop-cube"). amd64 only, same reason as the cube target.
-	DefaultCubeDesktopTemplateImage = "wechatopenai/weknora-sandbox:main-desktop-cube"
+	DefaultDesktopDockerImage = "knowledge-hub-sandbox:main-desktop"
 
 	// DesktopWebsockifyPort is websockify inside the sandbox. WeKnora dials
 	// it through the provider gateway (Host "{port}-{id}.{domain}"), not by
@@ -104,32 +85,6 @@ const (
 	// The two commands the backend Execs around DesktopStartScript live in
 	// desktop_scripts.go as embedded .sh files:
 	// DesktopEnsureCmd and DesktopResetListenersCmd.
-
-	// CubeEnvdPort is the port envd listens on inside a Cube sandbox. It carries
-	// the readiness probe as well as every exec and filesystem call, and the
-	// data plane addresses sandboxes as "49983-{id}.{domain}".
-	CubeEnvdPort = 49983
-
-	// CubeEnvdHealthPath is the envd endpoint Cube probes to decide whether a
-	// template build succeeded.
-	CubeEnvdHealthPath = "/health"
-
-	// DefaultCubeAPIURL is retained for SDK tests and explicit local helpers;
-	// workspace configs must still provide their endpoint.
-	DefaultCubeAPIURL = "http://127.0.0.1:33000"
-	// DefaultCubeProxyURL is the default CubeProxy endpoint (HTTP, port 80) used
-	// to reach the in-sandbox envd via host-header routing.
-	DefaultCubeProxyURL = "http://127.0.0.1:80"
-	// DefaultCubeSandboxDomain is the sandbox routing domain configured on
-	// CubeProxy (matches CUBE_API_SANDBOX_DOMAIN in the Cube deployment).
-	DefaultCubeSandboxDomain = "cube.app"
-	// DefaultCubeSandboxTTL is the Cube-side sandbox lifetime hint (in seconds)
-	// requested at creation; the sandbox is torn down by CubeMaster if the
-	// client goes silent for longer than this value.
-	DefaultCubeSandboxTTL = 30 * time.Minute
-	// DefaultCubeHTTPTimeout bounds a single HTTP call to the CubeAPI
-	// (excluding user script execution which has its own per-call timeout).
-	DefaultCubeHTTPTimeout = 30 * time.Second
 
 	// DefaultE2BSandboxTTL matches the E2B SDK's built-in default so an
 	// unset E2BSandboxTTL still yields a valid sandbox lifetime.
@@ -368,40 +323,6 @@ type Config struct {
 	// which expose inbound traffic publicly.
 	Network RemoteNetworkPolicy
 
-	// CubeAPIURL is the base URL of the CubeAPI (E2B-compatible) endpoint.
-	// Only used when Type == SandboxTypeCube. Example: "http://127.0.0.1:33000".
-	CubeAPIURL string
-
-	// CubeProxyURL is the base URL of the CubeProxy HTTP endpoint through which
-	// in-sandbox envd traffic is routed via host-header rewriting. Example:
-	// "http://127.0.0.1:80".
-	CubeProxyURL string
-
-	// CubeSandboxDomain matches CubeAPI's CUBE_API_SANDBOX_DOMAIN. It is used to
-	// build the Host header "<port>-<sandboxID>.<domain>" that CubeProxy relies
-	// on to route requests into the correct MicroVM.
-	CubeSandboxDomain string
-
-	// CubeAPIKey is the API key sent via X-API-Key. Leave empty when the Cube
-	// deployment does not enforce authentication.
-	CubeAPIKey string
-
-	// CubeTemplate is the default template ID used when creating sandboxes.
-	CubeTemplate string
-
-	// CubeSandboxTTL is the Cube-side lifetime hint (passed as `timeout` when
-	// creating a sandbox). CubeMaster will reap the MicroVM if the client stops
-	// touching it for longer than this duration.
-	CubeSandboxTTL time.Duration
-
-	// CubeHTTPTimeout bounds each HTTP call to CubeAPI. Zero uses the default.
-	CubeHTTPTimeout time.Duration
-
-	// CubeDNSServers are nameserver IPs included when WeKnora builds the
-	// standard Cube template. Empty omits the field so Cubelet uses its
-	// cluster default.
-	CubeDNSServers []string
-
 	// E2BAPIKey is the E2B API key sent via X-API-Key. Only used when
 	// Type == SandboxTypeE2B.
 	E2BAPIKey string
@@ -437,14 +358,12 @@ type Config struct {
 // incomplete workspace config could silently dial localhost.
 func DefaultConfig() *Config {
 	return &Config{
-		Type:            SandboxTypeDisabled,
-		DefaultTimeout:  DefaultTimeout,
-		DockerImage:     DefaultDockerImage,
-		MaxMemory:       DefaultMemoryLimit,
-		MaxCPU:          DefaultCPULimit,
-		CubeSandboxTTL:  DefaultCubeSandboxTTL,
-		CubeHTTPTimeout: DefaultCubeHTTPTimeout,
-		Network:         resolveNetworkPolicy(nil),
+		Type:           SandboxTypeDisabled,
+		DefaultTimeout: DefaultTimeout,
+		DockerImage:    DefaultDockerImage,
+		MaxMemory:      DefaultMemoryLimit,
+		MaxCPU:         DefaultCPULimit,
+		Network:        resolveNetworkPolicy(nil),
 	}
 }
 
@@ -455,7 +374,7 @@ func ValidateConfig(config *Config) error {
 	}
 
 	switch config.Type {
-	case SandboxTypeDocker, SandboxTypeCube, SandboxTypeE2B, SandboxTypeHost, SandboxTypeDisabled:
+	case SandboxTypeDocker, SandboxTypeE2B, SandboxTypeHost, SandboxTypeDisabled:
 		// Valid types
 	default:
 		return errors.New("invalid sandbox type")

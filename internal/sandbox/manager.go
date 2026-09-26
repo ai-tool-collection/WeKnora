@@ -47,7 +47,7 @@ func (m *DefaultManager) initializeSandbox(ctx context.Context) error {
 		m.sandbox = &disabledSandbox{}
 		return nil
 
-	case SandboxTypeCube, SandboxTypeE2B, SandboxTypeDocker:
+	case SandboxTypeE2B, SandboxTypeDocker:
 		// Session-scoped remote backends are only reachable through
 		// SessionBoundManager, which owns the authoritative binding.
 		// DefaultManager exposes stateless semantics that cannot preserve
@@ -229,8 +229,6 @@ func NewManagerFromType(sandboxType string, dockerImage string) (Manager, error)
 	switch sandboxType {
 	case "docker":
 		sType = SandboxTypeDocker
-	case "cube":
-		sType = SandboxTypeCube
 	case "e2b":
 		sType = SandboxTypeE2B
 	case "disabled", "":
@@ -248,10 +246,6 @@ func NewManagerFromType(sandboxType string, dockerImage string) (Manager, error)
 	var client RemoteSandboxClient
 	var err error
 	switch sType {
-	case SandboxTypeCube:
-		if client, err = NewCubeRemoteClient(config); err != nil {
-			return nil, fmt.Errorf("sandbox: build Cube client: %w", err)
-		}
 	case SandboxTypeE2B:
 		if client, err = NewE2BRemoteClient(config); err != nil {
 			return nil, fmt.Errorf("sandbox: build E2B client: %w", err)

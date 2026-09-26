@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -95,16 +95,8 @@ type ModelSource string
 const (
 	ModelSourceLocal       ModelSource = "local"        // Local model
 	ModelSourceRemote      ModelSource = "remote"       // Remote model
-	ModelSourceAliyun      ModelSource = "aliyun"       // Aliyun DashScope model
-	ModelSourceZhipu       ModelSource = "zhipu"        // Zhipu model
-	ModelSourceVolcengine  ModelSource = "volcengine"   // Volcengine model
-	ModelSourceDeepseek    ModelSource = "deepseek"     // Deepseek model
-	ModelSourceHunyuan     ModelSource = "hunyuan"      // Hunyuan model
-	ModelSourceMinimax     ModelSource = "minimax"      // Minimax mode
 	ModelSourceOpenAI      ModelSource = "openai"       // OpenAI model
 	ModelSourceGemini      ModelSource = "gemini"       // Gemini model
-	ModelSourceMimo        ModelSource = "mimo"         // Mimo model
-	ModelSourceSiliconFlow ModelSource = "siliconflow"  // SiliconFlow model
 	ModelSourceJina        ModelSource = "jina"         // Jina AI model
 	ModelSourceOpenRouter  ModelSource = "openrouter"   // OpenRouter model
 	ModelSourceLiteLLM     ModelSource = "litellm"      // LiteLLM proxy model
@@ -127,7 +119,7 @@ type ModelParameters struct {
 	InterfaceType       string              `yaml:"interface_type"       json:"interface_type"`
 	EmbeddingParameters EmbeddingParameters `yaml:"embedding_parameters" json:"embedding_parameters"`
 	ParameterSize       string              `yaml:"parameter_size"       json:"parameter_size"` // Ollama model parameter size (e.g., "7B", "13B", "70B")
-	Provider            string              `yaml:"provider"             json:"provider"`       // Provider identifier: openai, aliyun, zhipu, generic
+	Provider            string              `yaml:"provider"             json:"provider"`       // Provider identifier: openai, generic
 	ExtraConfig         map[string]string   `yaml:"extra_config"         json:"extra_config"`   // Provider-specific configuration
 	// CustomHeaders 允许在调用远程模型 API 时附加自定义 HTTP 请求头，
 	// 用途类似 Python OpenAI SDK 的 extra_headers 参数，
@@ -150,9 +142,9 @@ type ModelParameters struct {
 	// process-wide model.max_concurrency". Interactive user-facing calls are
 	// never gated. Only chat / vlm / embedding honour this (see limiter.Gate).
 	MaxConcurrency int `yaml:"max_concurrency,omitempty" json:"max_concurrency,omitempty"`
-	// WeKnoraCloud 厂商专用凭证
+	// Legacy credential fields retained for existing model records.
 	AppID     string `yaml:"app_id,omitempty"     json:"app_id,omitempty"`
-	AppSecret string `yaml:"app_secret,omitempty" json:"app_secret,omitempty"` // AES-256 加密存储，实际承载上游 API Key
+	AppSecret string `yaml:"app_secret,omitempty" json:"app_secret,omitempty"` // Encrypted at rest.
 	// Spec overrides the catalog entry for this row: protocol, capability
 	// flags and the flat protocol compat object. Everything omitted is
 	// inherited from the vendor catalog (see internal/models/catalog).

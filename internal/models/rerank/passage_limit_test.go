@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -6,8 +6,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/searchutil"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/searchutil"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // selectMMRNaive recomputes the redundancy of every candidate against every

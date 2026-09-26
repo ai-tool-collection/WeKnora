@@ -21,17 +21,17 @@ import (
 	"time"
 	"unicode/utf8"
 
-	agenttools "github.com/Tencent/WeKnora/internal/agent/tools"
-	"github.com/Tencent/WeKnora/internal/config"
-	apperrors "github.com/Tencent/WeKnora/internal/errors"
-	"github.com/Tencent/WeKnora/internal/event"
-	"github.com/Tencent/WeKnora/internal/infrastructure/docparser"
-	"github.com/Tencent/WeKnora/internal/logger"
-	mcppkg "github.com/Tencent/WeKnora/internal/mcp"
-	"github.com/Tencent/WeKnora/internal/ratelimit"
-	"github.com/Tencent/WeKnora/internal/storageurl"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	agenttools "github.com/ai-tool-collection/WeKnora/internal/agent/tools"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
+	apperrors "github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/event"
+	"github.com/ai-tool-collection/WeKnora/internal/infrastructure/docparser"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	mcppkg "github.com/ai-tool-collection/WeKnora/internal/mcp"
+	"github.com/ai-tool-collection/WeKnora/internal/ratelimit"
+	"github.com/ai-tool-collection/WeKnora/internal/storageurl"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -509,11 +509,11 @@ func (s *Service) buildIMMCPAuthNotice(ctx context.Context, services []imMCPAuth
 		if authURL != "" {
 			lines = append(lines, fmt.Sprintf("• %s：%s", name, authURL))
 		} else {
-			lines = append(lines, fmt.Sprintf("• %s（请在 WeKnora 管理后台完成 OAuth 授权）", name))
+			lines = append(lines, fmt.Sprintf("• %s (authorize OAuth in the Knowledge Hub admin console)", name))
 		}
 	}
 
-	return "⚠️ 以下 MCP 服务需要授权后才能使用，请点击链接完成授权，然后重新发送你的消息：\n" +
+	return "⚠️ The following MCP services require authorization. Open the links, then resend your message:\n" +
 		strings.Join(lines, "\n")
 }
 
@@ -1104,9 +1104,6 @@ func (s *Service) reloadChannelFromDB(channelID, reason string) {
 // the leader lock and opens the connection; other instances periodically
 // retry so they can take over if the leader dies.
 func (s *Service) StartChannel(channel *IMChannel) error {
-	if err := validateChannelTransport(channel); err != nil {
-		return err
-	}
 	if s.stopped.Load() {
 		return fmt.Errorf("im service is stopped")
 	}
@@ -3225,9 +3222,6 @@ func relocalizeBuiltinChannelAgentNames(ctx context.Context, rows []ChannelWithA
 // CreateChannel creates a new IM channel and optionally starts it.
 // Returns a duplicate_bot error if the bot identity is already used by another channel.
 func (s *Service) CreateChannel(channel *IMChannel) error {
-	if err := validateChannelTransport(channel); err != nil {
-		return err
-	}
 	if err := s.checkDuplicateBot(channel, ""); err != nil {
 		return err
 	}
@@ -3287,9 +3281,6 @@ func (s *Service) SetChannelKnowledgeBaseID(ctx context.Context, channel *IMChan
 // UpdateChannel updates a channel and restarts it if needed.
 // Returns a duplicate_bot error if the bot identity is already used by another channel.
 func (s *Service) UpdateChannel(channel *IMChannel) error {
-	if err := validateChannelTransport(channel); err != nil {
-		return err
-	}
 	if err := s.checkDuplicateBot(channel, channel.ID); err != nil {
 		return err
 	}
@@ -3476,14 +3467,6 @@ func fileExtension(filename string) string {
 // imPlatformToChannel maps an IM platform identifier to a Knowledge.Channel constant.
 func imPlatformToChannel(platform string) string {
 	switch strings.ToLower(platform) {
-	case "wechat":
-		return types.ChannelWechat
-	case "wecom", "wxwork":
-		return types.ChannelWecom
-	case "feishu", "lark":
-		return types.ChannelFeishu
-	case "dingtalk":
-		return types.ChannelDingtalk
 	case "slack":
 		return types.ChannelSlack
 	default:

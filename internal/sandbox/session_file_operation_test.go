@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -68,7 +68,7 @@ func TestSessionFileOperationDoesNotCacheFailures(t *testing.T) {
 	handle, err := mgr.resolveSession(ctx, "s1")
 	require.NoError(t, err)
 	scope := WithSessionFileOperation(ctx)
-	client.connectErrs[handle.ID()] = NewRemoteError(SandboxTypeCube, "Connect",
+	client.connectErrs[handle.ID()] = NewRemoteError(SandboxTypeE2B, "Connect",
 		RemoteErrorKindUnavailable, "offline", nil)
 	_, err = mgr.ReadSessionFile(scope, "s1", "/tmp/file")
 	require.Error(t, err)

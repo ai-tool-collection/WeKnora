@@ -3,9 +3,7 @@ package sandbox
 import (
 	"context"
 	"io"
-	"net/http"
 	"strings"
-	"time"
 )
 
 // Only the server's skill installer may select the maintenance identity.
@@ -21,36 +19,6 @@ func remoteFileUser(ctx context.Context) string {
 		return "root"
 	}
 	return DefaultSandboxExecUser
-}
-
-// Cube's SDK hardcodes root for file calls and offers no file-user option.
-// Scope this compatibility adapter to filesystem routes; process requests
-// already carry their explicitly selected user, and control-plane auth must
-// be preserved. Request-local context avoids shared-client identity races.
-type cubeFilesystemTransport struct {
-	next    http.RoundTripper
-	timeout time.Duration
-}
-
-func (t *cubeFilesystemTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	r := req.Clone(req.Context())
-	if r.URL.Path == envdFilesRoute || strings.HasPrefix(r.URL.Path, "/filesystem.Filesystem/") {
-		r.Header.Set("Authorization", basicAuthorizationFor(remoteFileUser(req.Context())))
-	}
-	// A client-wide HTTP timeout also aborts long-running command streams
-	// and large file bodies. Bound ordinary RPCs here; process calls and
-	// filesystem content transfers use the caller's execution context.
-	if t.timeout <= 0 || rpcUsesCallerDeadline(r.URL.Path) {
-		return t.next.RoundTrip(r)
-	}
-	ctx, cancel := context.WithTimeout(r.Context(), t.timeout)
-	response, err := t.next.RoundTrip(r.WithContext(ctx))
-	if err != nil {
-		cancel()
-		return nil, err
-	}
-	response.Body = &cancelOnCloseBody{ReadCloser: response.Body, cancel: cancel}
-	return response, nil
 }
 
 type cancelOnCloseBody struct {
@@ -70,19 +38,7 @@ func rpcUsesCallerDeadline(path string) bool {
 	if isFilesystemContentRPC(path) {
 		return true
 	}
-	return isCubeSandboxSnapshotRPC(path)
-}
-
-// isCubeSandboxSnapshotRPC reports POST /sandboxes/{id}/snapshots. Cube pauses
-// the live MicroVM and copies its disk; that exceeds CubeHTTPTimeout (30s).
-func isCubeSandboxSnapshotRPC(path string) bool {
-	const prefix = "/sandboxes/"
-	const suffix = "/snapshots"
-	if !strings.HasPrefix(path, prefix) || !strings.HasSuffix(path, suffix) {
-		return false
-	}
-	id := strings.TrimSuffix(strings.TrimPrefix(path, prefix), suffix)
-	return id != "" && !strings.Contains(id, "/")
+	return false
 }
 
 func isFilesystemContentRPC(path string) bool {

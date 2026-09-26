@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	sdk "github.com/Tencent/WeKnora/client"
+	sdk "github.com/ai-tool-collection/WeKnora/client"
 	"github.com/stretchr/testify/assert"
 )
 

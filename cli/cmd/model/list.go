@@ -9,11 +9,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/Tencent/WeKnora/cli/internal/cmdutil"
-	"github.com/Tencent/WeKnora/cli/internal/iostreams"
-	"github.com/Tencent/WeKnora/cli/internal/output"
-	"github.com/Tencent/WeKnora/cli/internal/text"
-	sdk "github.com/Tencent/WeKnora/client"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/cmdutil"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/iostreams"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/output"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/text"
+	sdk "github.com/ai-tool-collection/WeKnora/client"
 )
 
 // modelListFields enumerates the fields surfaced for `--format json` discovery
@@ -79,7 +79,7 @@ func NewCmdList(f *cmdutil.Factory) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&opts.Type, "type", "", "Only show models of this type (Embedding, Rerank, KnowledgeQA, VLLM, ASR)")
-	cmd.Flags().StringVar(&opts.Source, "source", "", "Only show models from this provider (local, remote, openai, aliyun, …)")
+	cmd.Flags().StringVar(&opts.Source, "source", "", "Only show models from this provider (local, remote, openai, anthropic, …)")
 	cmd.Flags().IntVarP(&opts.Limit, "limit", "L", 30, "Maximum results to return — client-side cap; meta.has_more/total_count report the full size (1..10000)")
 	cmdutil.AddFormatFlag(cmd, modelListFields...)
 	cmdutil.SetAgentHelp(cmd, cmdutil.AgentHelp{

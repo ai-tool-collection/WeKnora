@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/limiter"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/limiter"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/panjf2000/ants/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,8 +36,6 @@ func TestUnreachableUpstreamIsAnErrorForEveryProtocol(t *testing.T) {
 
 	for _, tc := range []struct{ provider, model string }{
 		{"openai", "text-embedding-3-small"},
-		{"aliyun", "tongyi-embedding-vision-plus"},
-		{"volcengine", "doubao-embedding-vision-251215"},
 		{"gemini", "gemini-embedding-001"},
 	} {
 		t.Run(tc.provider, func(t *testing.T) {
@@ -54,15 +52,6 @@ func TestUnreachableUpstreamIsAnErrorForEveryProtocol(t *testing.T) {
 
 // A signing vendor without its identity pair would send unsigned requests
 // and fail at the far end with a less useful error.
-func TestSignedVendorNeedsItsIdentityPair(t *testing.T) {
-	_, err := newEmbedder(Config{
-		Source: types.ModelSourceRemote, Provider: "weknoracloud",
-		BaseURL: "https://weknora.weixin.qq.com", ModelName: "m", AppSecret: "s",
-	}, nil, nil)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "AppID is required")
-}
-
 func TestModelNameIsRequired(t *testing.T) {
 	_, err := newEmbedder(Config{Source: types.ModelSourceRemote, Provider: "openai"}, nil, nil)
 	assert.Error(t, err)

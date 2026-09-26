@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/Tencent/WeKnora/internal/embedpolicy"
-	"github.com/Tencent/WeKnora/internal/handler"
-	"github.com/Tencent/WeKnora/internal/middleware"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/embedpolicy"
+	"github.com/ai-tool-collection/WeKnora/internal/handler"
+	"github.com/ai-tool-collection/WeKnora/internal/middleware"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 )
 
 // RegisterCustomAgentRoutes registers custom agent routes.
@@ -315,13 +315,6 @@ func RegisterIMChannelRoutes(r *gin.RouterGroup, imHandler *handler.IMHandler, g
 		channels.POST("/:id/toggle", g.Admin(), imHandler.ToggleIMChannel)
 	}
 
-	// WeChat QR code login (requires authentication) — Admin+: a successful
-	// scan binds a personal WeChat account to the tenant.
-	wechatGroup := g.apiKeyGroup(r.Group("/wechat"), apiKeyManageChannels(apiKeyFullAccess()))
-	{
-		wechatGroup.POST("/qrcode", g.Admin(), imHandler.WeChatGetQRCode)
-		wechatGroup.POST("/qrcode/status", g.Admin(), imHandler.WeChatPollQRCodeStatus)
-	}
 }
 
 // embedChannelIDFromPath extracts the channel id from an /embed/:channelID path.

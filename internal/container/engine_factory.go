@@ -20,22 +20,20 @@ import (
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 
-	dorisRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/doris"
-	elasticsearchRepoV7 "github.com/Tencent/WeKnora/internal/application/repository/retriever/elasticsearch/v7"
-	elasticsearchRepoV8 "github.com/Tencent/WeKnora/internal/application/repository/retriever/elasticsearch/v8"
-	milvusRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/milvus"
-	openSearchRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/opensearch"
-	postgresRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/postgres"
-	qdrantRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/qdrant"
-	sqliteRetrieverRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/sqlite"
-	tencentVectorDBRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/tencentvectordb"
-	weaviateRepo "github.com/Tencent/WeKnora/internal/application/repository/retriever/weaviate"
-	"github.com/Tencent/WeKnora/internal/application/service/retriever"
-	"github.com/Tencent/WeKnora/internal/config"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
-	"github.com/Tencent/WeKnora/internal/utils"
-	"github.com/tencent/vectordatabase-sdk-go/tcvectordb"
+	dorisRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/doris"
+	elasticsearchRepoV7 "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/elasticsearch/v7"
+	elasticsearchRepoV8 "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/elasticsearch/v8"
+	milvusRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/milvus"
+	openSearchRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/opensearch"
+	postgresRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/postgres"
+	qdrantRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/qdrant"
+	sqliteRetrieverRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/sqlite"
+	weaviateRepo "github.com/ai-tool-collection/WeKnora/internal/application/repository/retriever/weaviate"
+	"github.com/ai-tool-collection/WeKnora/internal/application/service/retriever"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // NewEngineFactory returns an EngineFactory function closed over db, cfg, and
@@ -78,8 +76,6 @@ func createEngineServiceFromStore(
 		return createDorisEngine(store)
 	case types.SQLiteRetrieverEngineType:
 		return createSQLiteEngine(store, db)
-	case types.TencentVectorDBRetrieverEngineType:
-		return createTencentVectorDBEngine(store)
 	case types.OpenSearchRetrieverEngineType:
 		return createOpenSearchEngine(ctx, store, auditSink)
 	default:
@@ -110,7 +106,6 @@ func validateRuntimeVectorStoreAddresses(store types.VectorStore) error {
 	case types.ElasticsearchRetrieverEngineType,
 		types.OpenSearchRetrieverEngineType,
 		types.MilvusRetrieverEngineType,
-		types.TencentVectorDBRetrieverEngineType,
 		types.DorisRetrieverEngineType:
 		return check("vector store address", cc.Addr)
 	case types.QdrantRetrieverEngineType:
@@ -372,20 +367,4 @@ func hostFromAddr(addr string) string {
 		return addr[:i]
 	}
 	return addr
-}
-
-func createTencentVectorDBEngine(store types.VectorStore) (interfaces.RetrieveEngineService, error) {
-	cc := store.ConnectionConfig
-	client, err := tcvectordb.NewRpcClient(cc.Addr, cc.Username, cc.APIKey, &tcvectordb.ClientOption{
-		ReadConsistency: tcvectordb.EventualConsistency,
-		Timeout:         10 * time.Second,
-		Transport: &utils.SSRFValidatingRoundTripper{
-			Base: utils.NewSSRFSafeTransport(utils.DefaultSSRFSafeHTTPClientConfig()),
-		},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("create tencent vectordb client: %w", err)
-	}
-	repo := tencentVectorDBRepo.NewTencentVectorDBRetrieveEngineRepository(client, cc.Database, &store.IndexConfig)
-	return retriever.NewKVHybridRetrieveEngine(repo, types.TencentVectorDBRetrieverEngineType), nil
 }

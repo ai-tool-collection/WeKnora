@@ -2226,21 +2226,21 @@ const downloadExampleOptions = computed(() => [
   { content: t('knowledgeEditor.faqImport.downloadExampleExcel'), value: 'excel' },
 ])
 
-// 示例数据
+// Example data
 const exampleData: FAQEntryPayload[] = [
   {
-    standard_question: '什么是 WeKnora？',
-    answers: ['WeKnora 是一个智能知识库管理系统', '它支持多种知识库类型和导入方式'],
-    similar_questions: ['WeKnora 是什么？', '介绍一下 WeKnora'],
-    negative_questions: ['这不是 WeKnora', '与 WeKnora 无关'],
-    tag_name: '产品介绍',
+    standard_question: 'What is Knowledge Hub?',
+    answers: ['Knowledge Hub organizes and searches documents', 'It supports several knowledge base types and import methods'],
+    similar_questions: ['Describe Knowledge Hub', 'How does Knowledge Hub work?'],
+    negative_questions: ['Unrelated product', 'Not about Knowledge Hub'],
+    tag_name: 'Product overview',
   },
   {
-    standard_question: '如何创建知识库？',
-    answers: ['点击"新建知识库"按钮', '选择知识库类型并填写相关信息', '完成创建后即可开始使用'],
-    similar_questions: ['怎么创建知识库？', '如何新建知识库？'],
+    standard_question: 'How do I create a knowledge base?',
+    answers: ['Select Create knowledge base', 'Choose a type and enter its details', 'Finish setup to start using it'],
+    similar_questions: ['Create a knowledge base', 'Where can I add a knowledge base?'],
     negative_questions: [],
-    tag_name: '使用指南',
+    tag_name: 'User guide',
   },
 ]
 

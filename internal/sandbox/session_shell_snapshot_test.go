@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -70,9 +70,9 @@ func (c *shellSnapshotClient) Exec(
 
 func newShellSnapshotHarness(t *testing.T) (context.Context, *SessionBoundManager, *shellSnapshotClient) {
 	t.Helper()
-	client := &shellSnapshotClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube)}
+	client := &shellSnapshotClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B)}
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config: cfg, Client: client, Store: NewMemorySessionSandboxBindingStore(),
 		Checker: &fakeSessionExistenceChecker{exists: true}, SkipHealthProbe: true,
@@ -123,7 +123,7 @@ func TestShellOutputSnapshotFailuresDoNotReplayCommand(t *testing.T) {
 		{"after unavailable", 2, errors.New("offline"), 2, false},
 		{
 			"missing root", 1,
-			NewRemoteError(SandboxTypeCube, "ListDir", RemoteErrorKindNotFound, "missing", nil), 2, true,
+			NewRemoteError(SandboxTypeE2B, "ListDir", RemoteErrorKindNotFound, "missing", nil), 2, true,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -197,7 +197,7 @@ func TestShellOutputSnapshotRejectsPartialRecursiveListing(t *testing.T) {
 		},
 	}
 	client.listErrorAt = 2
-	client.listErr = NewRemoteError(SandboxTypeCube, "ListDir", RemoteErrorKindNotFound,
+	client.listErr = NewRemoteError(SandboxTypeE2B, "ListDir", RemoteErrorKindNotFound,
 		"subdirectory disappeared", nil)
 	result, snapshot, err := mgr.ExecShellCommandWithOutputSnapshot(
 		ctx, "sess-1", "true", ShellExecOptions{}, SessionOutputRoot,

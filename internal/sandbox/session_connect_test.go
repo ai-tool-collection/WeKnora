@@ -9,25 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCubeSessionConnectReusesProbeHandle(t *testing.T) {
-	mock := newCubeMockServer(t)
-	client := newTestCubeRemoteClient(t, mock)
-	ctx := context.Background()
-	created, err := client.Create(ctx, RemoteCreateRequest{TemplateID: "template-a"})
-	require.NoError(t, err)
-	handle, err := connectRemoteSession(ctx, wrapLangfuseRemoteClient(client), RemoteConnectRequest{
-		SandboxID: created.ID(), TrafficAccessToken: "restored-token",
-	})
-	require.NoError(t, err)
-	require.Equal(t, created.ID(), handle.ID())
-	require.Equal(t, "restored-token", InboundTokenOf(handle))
-	require.EqualValues(t, 1, mock.connectCount.Load())
-	require.EqualValues(t, 1, mock.infoCount.Load())
-
-	_, err = client.ConnectSession(ctx, RemoteConnectRequest{SandboxID: "gone"})
-	require.True(t, CanReplaceRemoteBinding(err))
-}
-
 func TestE2BSessionConnectReusesProbeHandleAndResumes(t *testing.T) {
 	mock := newE2BMockServer(t)
 	client := newTestE2BRemoteClient(t, mock)
@@ -89,8 +70,8 @@ func TestCombinedSessionConnectOnlyReplacesDefinitiveFailures(t *testing.T) {
 			ctx := context.Background()
 			store := NewMemorySessionSandboxBindingStore()
 			client := &sessionConnectFaultClient{
-				fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube),
-				err:              NewRemoteError(SandboxTypeCube, "ConnectSession", kind, "probe failed", nil),
+				fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B),
+				err:              NewRemoteError(SandboxTypeE2B, "ConnectSession", kind, "probe failed", nil),
 			}
 			key := SessionSandboxKey{TenantID: 42, SessionID: "session-a"}
 			client.addSandbox("existing", "template-a", RemoteStateTerminal, nil, time.Now())
@@ -118,11 +99,11 @@ func TestCombinedSessionConnectOnlyReplacesDefinitiveFailures(t *testing.T) {
 
 func TestSessionSummaryValidation(t *testing.T) {
 	for _, summary := range []*RemoteSandboxSummary{nil, {ID: "wrong"}} {
-		err := validateSessionSummary(SandboxTypeCube, "bound", summary)
+		err := validateSessionSummary(SandboxTypeE2B, "bound", summary)
 		require.Error(t, err)
 		require.False(t, CanReplaceRemoteBinding(err))
 	}
-	err := validateSessionSummary(SandboxTypeCube, "bound",
+	err := validateSessionSummary(SandboxTypeE2B, "bound",
 		&RemoteSandboxSummary{ID: "bound", State: RemoteStateTerminal})
 	require.True(t, CanReplaceRemoteBinding(err))
 }

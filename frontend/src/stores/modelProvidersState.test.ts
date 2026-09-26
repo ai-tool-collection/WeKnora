@@ -43,16 +43,16 @@ function provider(overrides: Partial<ModelProviderOption> & Pick<ModelProviderOp
 }
 
 test('providerLabel uses labels[locale], then the same language, then label', () => {
-  const lkeap = provider({
-    value: 'lkeap',
-    label: 'Tencent Cloud LKEAP',
-    labels: { 'zh-CN': '腾讯云 LKEAP' },
+  const vendorX = provider({
+    value: 'vendor-x',
+    label: 'Vendor X',
+    labels: { 'zh-CN': 'Vendor X' },
   })
-  assert.equal(providerLabel(lkeap, 'zh-CN'), '腾讯云 LKEAP')
-  assert.equal(providerLabel(lkeap, 'zh-TW'), '腾讯云 LKEAP', 'language match without exact region')
-  assert.equal(providerLabel(lkeap, 'en-US'), 'Tencent Cloud LKEAP')
-  assert.equal(providerLabel(lkeap, 'ja-JP'), 'Tencent Cloud LKEAP')
-  assert.equal(providerLabel(lkeap), 'Tencent Cloud LKEAP')
+  assert.equal(providerLabel(vendorX, 'zh-CN'), 'Vendor X')
+  assert.equal(providerLabel(vendorX, 'zh-TW'), 'Vendor X', 'language match without exact region')
+  assert.equal(providerLabel(vendorX, 'en-US'), 'Vendor X')
+  assert.equal(providerLabel(vendorX, 'ja-JP'), 'Vendor X')
+  assert.equal(providerLabel(vendorX), 'Vendor X')
   assert.equal(providerLabel(null, 'zh-CN'), '')
 })
 
@@ -111,9 +111,9 @@ test('sortProviders orders by backend order then label', () => {
     provider({ value: 'generic', label: 'Custom', order: 99 }),
     provider({ value: 'openai', label: 'OpenAI', order: 30 }),
     provider({ value: 'zeta', label: 'Zeta' }),
-    provider({ value: 'aliyun', label: 'Aliyun', order: 30 }),
+    provider({ value: 'acmecloud', label: 'Acme Cloud', order: 30 }),
   ])
-  assert.deepEqual(sorted.map((p) => p.value), ['aliyun', 'openai', 'generic', 'zeta'])
+  assert.deepEqual(sorted.map((p) => p.value), ['acmecloud', 'openai', 'generic', 'zeta'])
 })
 
 test('sortProviders survives rows with neither label nor value', () => {
@@ -226,7 +226,7 @@ test('credentialLabelForModelType follows the vendor declaration, not a hardcode
 })
 
 // Select options and placeholders used to render their raw English string.
-// That was invisible while every option was an identifier — LKEAP's region
+// That was invisible while every option was an identifier — Gateway's region
 // codes — and became a gap as soon as one was prose.
 test('extraFieldOptionLabel resolves the locale, falling back to label then value', () => {
   const option = {

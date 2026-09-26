@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/datasource"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/datasource"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // NotionAPIVersion is the Notion API version used by this connector.

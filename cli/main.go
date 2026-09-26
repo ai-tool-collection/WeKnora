@@ -1,4 +1,4 @@
-// Command weknora is a CLI for Tencent WeKnora knowledge bases.
+// Command weknora is a CLI for Knowledge Hub knowledge bases.
 package main
 
 import (
@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Tencent/WeKnora/cli/cmd"
+	"github.com/ai-tool-collection/WeKnora/cli/cmd"
 )
 
 func main() {

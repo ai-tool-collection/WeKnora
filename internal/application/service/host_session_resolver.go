@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // sessionConfigReader reads the session sandbox pin. *SessionSandboxPinner

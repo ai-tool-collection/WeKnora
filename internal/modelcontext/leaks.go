@@ -14,7 +14,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/models/chat"
+	"github.com/ai-tool-collection/WeKnora/internal/models/chat"
 )
 
 var uuidShapeRE = regexp.MustCompile(

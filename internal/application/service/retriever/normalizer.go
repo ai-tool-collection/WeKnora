@@ -4,7 +4,7 @@ import (
 	"context"
 	"math"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // ScoreNormalizer maps raw retriever scores to a common [0, 1] scale so that
@@ -27,7 +27,7 @@ type ScoreNormalizer interface {
 
 // EngineAwareNormalizer maps vector scores onto [0, 1]. Every driver reports
 // vector scores as cosine similarity: pgvector and sqlite-vec compute
-// 1 - cosine distance, Qdrant, TencentVectorDB, Doris and Milvus (IP or
+// 1 - cosine distance, Qdrant, Doris and Milvus (IP or
 // COSINE over L2-normalized embeddings) return the similarity itself, the
 // Milvus L2 path converts the squared distance, Elasticsearch v8 runs a
 // cosineSimilarity script_score, and OpenSearch and Weaviate convert the

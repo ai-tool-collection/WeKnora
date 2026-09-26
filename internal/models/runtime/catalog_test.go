@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/models"
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/providers"
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/providers"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +27,7 @@ func registerTestVendors(t *testing.T) {
 		}},
 	})
 	modelruntime.Register(&providers.Definition{
-		ID: "acme", Name: "Acme", Names: map[string]string{"zh-CN": "极目"},
+		ID: "acme", Name: "Acme",
 		API:          api.APIOpenAICompletions,
 		RequiresAuth: true,
 		URLPatterns:  []string{"api.acme.ai", "acme"},
@@ -58,10 +58,10 @@ func registerTestVendors(t *testing.T) {
 		},
 	}...)
 	modelruntime.Register(&providers.Definition{
-		ID: "tencent-lkeap", Name: "LKEAP", API: api.APIOpenAICompletions,
-		URLPatterns: []string{"api.lkeap.cloud.tencent.com", "tencent"},
+		ID: "acme-special", Name: "Acme Special", API: api.APIOpenAICompletions,
+		URLPatterns: []string{"special.api.acme.ai", "special"},
 		DefaultBaseURLs: map[types.ModelType]string{
-			types.ModelTypeKnowledgeQA: "https://api.lkeap.cloud.tencent.com/v1",
+			types.ModelTypeKnowledgeQA: "https://special.api.acme.ai/v1",
 		},
 		ModelTypes: []types.ModelType{types.ModelTypeKnowledgeQA},
 	})
@@ -126,7 +126,7 @@ func TestResolve_ModelNameInsideAChatGlobStillResolvesForOtherTypes(t *testing.T
 
 func TestDetectByURL_LongestPatternWins(t *testing.T) {
 	registerTestVendors(t)
-	assert.Equal(t, "tencent-lkeap", modelruntime.DetectByURL("https://api.lkeap.cloud.tencent.com/v1"))
+	assert.Equal(t, "acme-special", modelruntime.DetectByURL("https://special.api.acme.ai/v1"))
 	assert.Equal(t, "acme", modelruntime.DetectByURL("https://api.acme.ai/v1"))
 	assert.Equal(t, providers.GenericID, modelruntime.DetectByURL("http://localhost:8000/v1"))
 	assert.Equal(t, providers.GenericID, modelruntime.DetectByURL(""))

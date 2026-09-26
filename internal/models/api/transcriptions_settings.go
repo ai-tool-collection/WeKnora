@@ -6,12 +6,8 @@ const (
 	// LanguageForm is a multipart field named language (OpenAI's shape,
 	// ISO-639-1).
 	LanguageForm = "form"
-	// LanguageHeader is an HTTP request header named language (MiniMax,
-	// BCP-47).
+	// LanguageHeader is an HTTP request header named language.
 	LanguageHeader = "header"
-	// LanguageASROptions is asr_options.language in a chat-served request
-	// body (Alibaba, Xiaomi).
-	LanguageASROptions = "asr_options"
 )
 
 // TranscriptionsCompat is the overlay form (every field optional) of the
@@ -28,9 +24,6 @@ type TranscriptionsCompat struct {
 	LanguageParam *string `json:"language_param,omitempty"`
 	// MaxFileBytes is the documented upload ceiling for the audio itself.
 	MaxFileBytes *int `json:"max_file_bytes,omitempty"`
-	// MaxEncodedBytes is the documented ceiling on the base64 data URI, for
-	// the protocols that send the audio that way.
-	MaxEncodedBytes *int `json:"max_encoded_bytes,omitempty"`
 	// Formats lists the file extensions the vendor documents, without the
 	// dot. Empty means the vendor documents no closed list.
 	Formats        []string `json:"formats,omitempty"`
@@ -45,11 +38,9 @@ type TranscriptionsSettings struct {
 	Path           string
 	ResponseFormat string
 	LanguageParam  string
-	// MaxFileBytes and MaxEncodedBytes refuse an upload the vendor would
-	// reject anyway, before sending it; 0 leaves the check to the vendor.
-	MaxFileBytes    int
-	MaxEncodedBytes int
-	Formats         []string
+	// MaxFileBytes refuses an upload the vendor would reject before sending it.
+	MaxFileBytes int
+	Formats      []string
 	// RequestTimeout caps one request, in seconds.
 	RequestTimeout int
 	// UnsupportedReason is set where a vendor's recognition models, or some

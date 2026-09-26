@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // SkillImageFingerprint identifies the provider account a skill snapshot lives
@@ -48,13 +48,6 @@ func SkillImageActive(tenantCfg *types.TenantSandboxConfig) bool {
 	// accidental. Keep the fingerprint guard, or make this switch take the
 	// global fallback too.
 	switch SandboxType(tenantCfg.SandboxType) {
-	case SandboxTypeCube:
-		if tenantCfg.Cube == nil {
-			return false
-		}
-		return skillImageTemplateOverride(
-			tenantCfg.SkillImage, "cube", tenantCfg.Cube.APIKey, tenantCfg.Cube.APIURL,
-		) != ""
 	case SandboxTypeE2B:
 		if tenantCfg.E2B == nil {
 			return false
@@ -76,10 +69,6 @@ func SkillOwnerFingerprint(tenantCfg *types.TenantSandboxConfig) string {
 		return ""
 	}
 	switch SandboxType(tenantCfg.SandboxType) {
-	case SandboxTypeCube:
-		if tenantCfg.Cube != nil {
-			return SkillImageFingerprint("cube", tenantCfg.Cube.APIKey, tenantCfg.Cube.APIURL)
-		}
 	case SandboxTypeE2B:
 		if tenantCfg.E2B != nil {
 			return SkillImageFingerprint("e2b", tenantCfg.E2B.APIKey, tenantCfg.E2B.APIURL)

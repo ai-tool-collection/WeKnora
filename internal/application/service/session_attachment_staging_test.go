@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
@@ -130,7 +130,7 @@ func TestStageSessionAttachmentsReconcilesAndSkipsExisting(t *testing.T) {
 	require.NoError(t, err)
 	stalePath := sandbox.SessionInputRoot + "/stale/old.txt"
 	manager := &stagingSandboxManager{
-		sandboxType: sandbox.SandboxTypeCube,
+		sandboxType: sandbox.SandboxTypeE2B,
 		files:       map[string][]byte{stalePath: []byte("old")},
 	}
 	fileService := &stagingFileService{
@@ -233,7 +233,7 @@ func TestStageSessionAttachmentsResolvesURLFromTemporaryDocument(t *testing.T) {
 	}, sandbox.RemoteWorkspaceLayout().InputDir)
 	require.NoError(t, err)
 
-	manager := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeCube}
+	manager := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeE2B}
 	fileService := &stagingFileService{
 		files: map[string][]byte{resourceRef: []byte("content")},
 	}
@@ -288,7 +288,7 @@ func TestStageSessionAttachmentsResolvesURLFromParentSessionDocument(t *testing.
 	}, sandbox.RemoteWorkspaceLayout().InputDir)
 	require.NoError(t, err)
 
-	manager := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeCube}
+	manager := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeE2B}
 	fileService := &stagingFileService{
 		files: map[string][]byte{resourceRef: []byte("content")},
 	}
@@ -317,7 +317,7 @@ func TestStageSessionAttachmentsResolvesURLFromParentSessionDocument(t *testing.
 
 func TestStageSessionAttachmentsSkipsMissingTemporaryDocument(t *testing.T) {
 	db := stagingTempDocDB(t)
-	manager := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeCube}
+	manager := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeE2B}
 	fileService := &stagingFileService{files: map[string][]byte{}}
 	service := &agentService{
 		db:              db,
@@ -358,7 +358,7 @@ func TestStageSessionAttachmentsIgnoresWrongTenant(t *testing.T) {
 		ExpiresAt:   time.Now().Add(time.Hour),
 	}).Error)
 
-	manager := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeCube}
+	manager := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeE2B}
 	fileService := &stagingFileService{
 		files: map[string][]byte{resourceRef: []byte("content")},
 	}
@@ -408,7 +408,7 @@ func TestStageSessionAttachmentsKeepsExistingURLWithoutLookup(t *testing.T) {
 		ExpiresAt:   time.Now().Add(time.Hour),
 	}).Error)
 
-	manager := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeCube}
+	manager := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeE2B}
 	fileService := &stagingFileService{
 		files: map[string][]byte{attachment.URL: []byte("keep")},
 	}
@@ -448,7 +448,7 @@ type fakeInputStore struct {
 
 func newFakeInputStore() *fakeInputStore {
 	return &fakeInputStore{
-		stagingSandboxManager: stagingSandboxManager{sandboxType: sandbox.SandboxTypeCube},
+		stagingSandboxManager: stagingSandboxManager{sandboxType: sandbox.SandboxTypeE2B},
 	}
 }
 

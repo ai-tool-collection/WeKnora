@@ -401,7 +401,7 @@ type StorageConfig struct {
 	PathPrefix string `yaml:"path_prefix" json:"path_prefix"`
 	// Provider: "cos", "minio", "s3"
 	Provider string `yaml:"provider"    json:"provider"`
-	// Endpoint (S3 specific) - e.g., s3.amazonaws.com, oss-cn-hangzhou.aliyuncs.com
+	// Endpoint (S3 specific) - e.g., s3.amazonaws.com
 	Endpoint string `yaml:"endpoint"    json:"endpoint,omitempty"`
 	// UseSSL (S3 specific) - whether to use HTTPS
 	UseSSL bool `yaml:"use_ssl"     json:"use_ssl,omitempty"`

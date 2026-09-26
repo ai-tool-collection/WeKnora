@@ -2,7 +2,7 @@
 set -euo pipefail
 
 #
-# 本地构建 + 打包 WeKnora Lite 发行包
+# Build and package Knowledge Hub desktop releases.
 #
 # 用法:
 #   ./scripts/package-lite.sh              # 自动检测版本
@@ -28,7 +28,7 @@ GOARCH=$(go env GOARCH)
 ARCHIVE="WeKnora-lite_${VERSION}_${GOOS}_${GOARCH}"
 DIST_DIR="dist/${ARCHIVE}"
 
-echo "=== WeKnora Lite Packager ==="
+echo "=== Knowledge Hub Packager ==="
 echo "  Version : ${VERSION}"
 echo "  Platform: ${GOOS}/${GOARCH}"
 echo "  Output  : dist/${ARCHIVE}.tar.gz"

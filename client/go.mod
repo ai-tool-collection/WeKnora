@@ -1,3 +1,3 @@
-module github.com/Tencent/WeKnora/client
+module github.com/ai-tool-collection/WeKnora/client
 
 go 1.24.2

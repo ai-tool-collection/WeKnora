@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Tencent/WeKnora/cli/internal/output"
-	sdk "github.com/Tencent/WeKnora/client"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/output"
+	sdk "github.com/ai-tool-collection/WeKnora/client"
 )
 
 // ErrorCode is a namespaced stable identifier emitted on stderr in the
@@ -126,7 +126,7 @@ type Error struct {
 	Silent            bool
 	RetryArgv         []string // Directly-executable argv array, distinct from prose Hint
 	RetryAfterSeconds int      // HTTP Retry-After header semantics (transport-level retry hint)
-	Detail            any    // Structured detail for envelope.error.detail (e.g. unknown-subcommand available[])
+	Detail            any      // Structured detail for envelope.error.detail (e.g. unknown-subcommand available[])
 	Risk              *RiskInfo
 }
 

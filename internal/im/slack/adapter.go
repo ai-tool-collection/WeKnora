@@ -15,8 +15,8 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 
-	"github.com/Tencent/WeKnora/internal/im"
-	"github.com/Tencent/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/im"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
 )
 
 // Compile-time checks.

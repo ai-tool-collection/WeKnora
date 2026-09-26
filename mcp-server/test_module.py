@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-WeKnora MCP Server 模组测试脚本
+Knowledge Hub MCP Server module tests
 
-测试模组的各种启动方式和功能。unittest discover 会收集本文件中的 TestCase；
-也可直接运行: python test_module.py
+Tests the module launch modes. unittest discovers the TestCase classes;
+Run directly with: python test_module.py
 """
 
 import os
@@ -84,8 +84,8 @@ class ModuleIntegrationTest(unittest.TestCase):
 
     def test_pyproject_metadata(self):
         text = (MCP_SERVER_DIR / "pyproject.toml").read_text(encoding="utf-8")
-        self.assertIn("tencent-weknora-mcp", text)
-        self.assertIn("weknora-mcp-server", text)
+        self.assertIn("knowledge-hub-mcp", text)
+        self.assertIn("knowledge-hub-mcp-server", text)
 
 
 if __name__ == "__main__":

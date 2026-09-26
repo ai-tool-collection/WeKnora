@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Tencent/WeKnora/internal/im"
+	"github.com/ai-tool-collection/WeKnora/internal/im"
 )
 
 // NewFactory returns an im.AdapterFactory for Mattermost channels.

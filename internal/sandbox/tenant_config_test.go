@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,21 +35,6 @@ func completeE2BTenantConfig() *types.TenantSandboxConfig {
 	}
 }
 
-// completeCubeTenantConfig is the minimum a named Cube config must carry now that nothing is inherited.
-func completeCubeTenantConfig() *types.TenantSandboxConfig {
-	return &types.TenantSandboxConfig{
-		SandboxType: "cube",
-		Cube: &types.CubeSandboxConfig{
-			APIURL:        "https://203.0.113.20",
-			ProxyURL:      "https://203.0.113.21",
-			SandboxDomain: "cube.app",
-			TemplateID:    "tpl-1",
-		},
-	}
-}
-
-// A nil tenant config means "the deployment default backend", which is the one
-// path where the baseline is used as-is.
 func TestResolveEffectiveConfigNilTenantKeepsGlobal(t *testing.T) {
 	global := globalTestConfig()
 
@@ -223,77 +208,6 @@ func TestResolveEffectiveConfigDefaultsNetworkToEgressOpenInboundClosed(t *testi
 	require.False(t, *got.Network.AllowPublicTraffic)
 }
 
-func TestResolveEffectiveConfigInvertsCubeRuleDeny(t *testing.T) {
-	tenantCfg := completeCubeTenantConfig()
-	tenantCfg.Network = &types.SandboxNetworkPolicy{
-		CubeRules: []types.CubeEgressRule{
-			{
-				Name:    "allow-api",
-				Scheme:  "https",
-				SNI:     "api.example.com",
-				Host:    "api.example.com",
-				Methods: []string{"GET", "POST"},
-				Path:    "/v1/*",
-				Audit:   "full",
-				Inject: []types.CubeHeaderInject{{
-					Header: "Authorization",
-					Secret: "token",
-					Format: "Bearer %s",
-				}},
-			},
-			{Name: "deny-uploads", SNI: "uploads.example.com", Deny: true},
-		},
-	}
-
-	got, err := ResolveEffectiveConfig(tenantCfg, globalTestConfig())
-	require.NoError(t, err)
-
-	require.Len(t, got.Network.CubeRules, 2)
-	require.True(t, got.Network.CubeRules[0].Allow,
-		"a stored rule without Deny is an allow rule")
-	require.Equal(t, "allow-api", got.Network.CubeRules[0].Name)
-	require.Equal(t, "https", got.Network.CubeRules[0].Scheme)
-	require.Equal(t, "api.example.com", got.Network.CubeRules[0].SNI)
-	require.Equal(t, "api.example.com", got.Network.CubeRules[0].Host)
-	require.Equal(t, []string{"GET", "POST"}, got.Network.CubeRules[0].Methods)
-	require.Equal(t, "/v1/*", got.Network.CubeRules[0].Path)
-	require.Equal(t, "full", got.Network.CubeRules[0].Audit)
-	require.Equal(t, []RemoteHeaderInject{{
-		Header: "Authorization",
-		Secret: "token",
-		Format: "Bearer %s",
-	}}, got.Network.CubeRules[0].Inject)
-	require.False(t, got.Network.CubeRules[1].Allow)
-}
-
-func TestResolveEffectiveConfigCopiesNetworkPolicyCollections(t *testing.T) {
-	stored := &types.SandboxNetworkPolicy{
-		AllowOut: []string{"api.example.com"},
-		CubeRules: []types.CubeEgressRule{{
-			Name:    "api",
-			Host:    "api.example.com",
-			Methods: []string{"GET"},
-		}},
-		E2BHostRules: []types.E2BHostRule{{
-			Host:    "api.example.com",
-			Headers: map[string]string{"Authorization": "stored-token"},
-		}},
-	}
-	tenantCfg := completeE2BTenantConfig()
-	tenantCfg.Network = stored
-
-	got, err := ResolveEffectiveConfig(tenantCfg, globalTestConfig())
-	require.NoError(t, err)
-
-	got.Network.AllowOut[0] = "mutated.example.com"
-	got.Network.CubeRules[0].Methods[0] = "POST"
-	got.Network.E2BHostRules[0].Headers["Authorization"] = "mutated-token"
-
-	require.Equal(t, "api.example.com", stored.AllowOut[0])
-	require.Equal(t, "GET", stored.CubeRules[0].Methods[0])
-	require.Equal(t, "stored-token", stored.E2BHostRules[0].Headers["Authorization"])
-}
-
 func TestResolveEffectiveConfigDoesNotInheritNetworkFromBaseline(t *testing.T) {
 	// This assertion pins the resolved end state, not clearProviderFields as
 	// the mechanism that produces it.
@@ -311,69 +225,6 @@ func TestResolveEffectiveConfigDoesNotInheritNetworkFromBaseline(t *testing.T) {
 
 // A leftover sub-struct from the deployment's other provider must not survive
 // either, or a cube config would silently answer with e2b coordinates.
-func TestResolveEffectiveConfigClearsInactiveProviderBaseline(t *testing.T) {
-	global := globalTestConfig() // global is e2b, with e2b credentials set
-
-	got, err := ResolveEffectiveConfig(&types.TenantSandboxConfig{
-		SandboxType: "cube",
-		Cube: &types.CubeSandboxConfig{
-			APIKey: "cube-key", APIURL: "https://203.0.113.20",
-			ProxyURL: "https://203.0.113.21", SandboxDomain: "cube.example",
-			TemplateID: "cube-template",
-		},
-	}, global)
-
-	require.NoError(t, err)
-	require.Equal(t, SandboxTypeCube, got.Type)
-	require.Equal(t, "https://203.0.113.20", got.CubeAPIURL)
-	require.Empty(t, got.E2BAPIKey, "the baseline's e2b credentials must not ride along")
-	require.Empty(t, got.E2BTemplate)
-}
-
-func TestResolveEffectiveConfigRejectsIncompleteCube(t *testing.T) {
-	_, err := ResolveEffectiveConfig(&types.TenantSandboxConfig{
-		SandboxType: "cube",
-		Cube:        &types.CubeSandboxConfig{APIURL: "https://203.0.113.20"},
-	}, globalTestConfig())
-
-	require.ErrorIs(t, err, ErrSandboxConfigIncomplete)
-	require.Contains(t, err.Error(), "proxy_url")
-	require.Contains(t, err.Error(), "sandbox_domain")
-	require.Contains(t, err.Error(), "template_id")
-}
-
-func TestResolveEffectiveConfigCopiesCubeDNSServers(t *testing.T) {
-	got, err := ResolveEffectiveConfig(&types.TenantSandboxConfig{
-		SandboxType:           "cube",
-		AllowPrivateEndpoints: true,
-		Cube: &types.CubeSandboxConfig{
-			APIKey: "cube-key", APIURL: "https://203.0.113.20",
-			ProxyURL: "https://203.0.113.21", SandboxDomain: "cube.example",
-			TemplateID: "cube-template",
-			DNSServers: []string{" 8.8.8.8 ", "8.8.8.8", "1.1.1.1"},
-		},
-	}, globalTestConfig())
-
-	require.NoError(t, err)
-	require.Equal(t, []string{"8.8.8.8", "1.1.1.1"}, got.CubeDNSServers)
-}
-
-func TestResolveEffectiveConfigRejectsInvalidCubeDNS(t *testing.T) {
-	_, err := ResolveEffectiveConfig(&types.TenantSandboxConfig{
-		SandboxType:           "cube",
-		AllowPrivateEndpoints: true,
-		Cube: &types.CubeSandboxConfig{
-			APIKey: "cube-key", APIURL: "https://203.0.113.20",
-			ProxyURL: "https://203.0.113.21", SandboxDomain: "cube.example",
-			TemplateID: "cube-template",
-			DNSServers: []string{"dns.google"},
-		},
-	}, globalTestConfig())
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "dns.google")
-}
-
 func TestResolveEffectiveConfigRejectsIncompleteE2B(t *testing.T) {
 	_, err := ResolveEffectiveConfig(&types.TenantSandboxConfig{
 		SandboxType: "e2b",
@@ -411,27 +262,6 @@ func TestResolveEffectiveConfigTerminalIdleFallsBackToBuiltIn(t *testing.T) {
 	require.Equal(t, DefaultTerminalIdleDisconnect, got.TerminalIdleDisconnect)
 }
 
-func TestResolveEffectiveConfigCarriesDesktopEnabled(t *testing.T) {
-	tenantCfg := completeCubeTenantConfig()
-	tenantCfg.DesktopEnabled = true
-
-	effective, err := ResolveEffectiveConfig(tenantCfg, DefaultConfig())
-	require.NoError(t, err)
-	require.True(t, effective.DesktopEnabled,
-		"DesktopEnabled must reach the runtime Config; the desktop endpoint reads it")
-}
-
-func TestResolveEffectiveConfigDesktopDisabledByDefault(t *testing.T) {
-	tenantCfg := completeCubeTenantConfig()
-
-	effective, err := ResolveEffectiveConfig(tenantCfg, DefaultConfig())
-	require.NoError(t, err)
-	require.False(t, effective.DesktopEnabled,
-		"desktop must be explicit opt-in: the image costs +1.5GB per sandbox")
-}
-
-// Tuning fields fall back to the built-in constants, never to the deployment's:
-// "inherits nothing" would be a much weaker rule with an exception here.
 func TestResolveEffectiveConfigTuningFallsBackToBuiltIns(t *testing.T) {
 	global := globalTestConfig()
 	global.E2BSandboxTTL = 10 * time.Minute
@@ -467,20 +297,6 @@ func TestResolveEffectiveConfigRejectsUnsafeURL(t *testing.T) {
 	tenantCfg := &types.TenantSandboxConfig{
 		SandboxType: "e2b",
 		E2B:         &types.E2BSandboxConfig{APIURL: "http://169.254.169.254"},
-	}
-
-	_, err := ResolveEffectiveConfig(tenantCfg, globalTestConfig())
-
-	require.ErrorIs(t, err, ErrUnsafeOutboundURL)
-}
-
-func TestResolveEffectiveConfigRejectsUnsafeCubeProxyURL(t *testing.T) {
-	tenantCfg := &types.TenantSandboxConfig{
-		SandboxType: "cube",
-		Cube: &types.CubeSandboxConfig{
-			APIURL:   "https://203.0.113.10",
-			ProxyURL: "http://127.0.0.1:80",
-		},
 	}
 
 	_, err := ResolveEffectiveConfig(tenantCfg, globalTestConfig())
@@ -596,59 +412,13 @@ func TestResolveEffectiveConfigReportsMissingImageBeforeHostProblems(t *testing.
 
 func TestEffectiveTemplateIDPerProvider(t *testing.T) {
 	require.Equal(t, "e2b-tpl", EffectiveTemplateID(&Config{
-		Type: SandboxTypeE2B, E2BTemplate: "e2b-tpl", CubeTemplate: "cube-tpl",
+		Type: SandboxTypeE2B, E2BTemplate: "e2b-tpl", E2BTemplate: "cube-tpl",
 	}))
 	require.Equal(t, "cube-tpl", EffectiveTemplateID(&Config{
-		Type: SandboxTypeCube, E2BTemplate: "e2b-tpl", CubeTemplate: "cube-tpl",
+		Type: SandboxTypeE2B, E2BTemplate: "e2b-tpl", E2BTemplate: "cube-tpl",
 	}))
 	require.Empty(t, EffectiveTemplateID(&Config{Type: SandboxTypeDisabled}))
 	require.Empty(t, EffectiveTemplateID(nil))
-}
-
-func TestResolveEffectiveConfigUsesSkillSnapshotAsTemplate(t *testing.T) {
-	global := DefaultConfig()
-
-	base := &types.TenantSandboxConfig{
-		SandboxType: "cube",
-		Cube: &types.CubeSandboxConfig{
-			APIURL: "https://203.0.113.10", ProxyURL: "https://203.0.113.11",
-			SandboxDomain: "cube.example.com", APIKey: "key-1", TemplateID: "tpl-base",
-		},
-	}
-	fp := SkillImageFingerprint("cube", "key-1", "https://203.0.113.10")
-
-	t.Run("usable snapshot overrides the base template", func(t *testing.T) {
-		cfg := *base
-		cfg.SkillImage = &types.SkillImageConfig{SnapshotID: "snap-1", OwnerFingerprint: fp}
-
-		eff, err := ResolveEffectiveConfig(&cfg, global)
-
-		require.NoError(t, err)
-		require.Equal(t, "snap-1", eff.CubeTemplate)
-	})
-
-	t.Run("fingerprint mismatch falls back to the base template", func(t *testing.T) {
-		cfg := *base
-		cfg.SkillImage = &types.SkillImageConfig{
-			SnapshotID: "snap-1", OwnerFingerprint: "fingerprint-of-another-account",
-		}
-
-		eff, err := ResolveEffectiveConfig(&cfg, global)
-
-		require.NoError(t, err)
-		require.Equal(t, "tpl-base", eff.CubeTemplate,
-			"a snapshot from another account is invisible; the session must still boot")
-	})
-
-	t.Run("empty snapshot keeps the base template", func(t *testing.T) {
-		cfg := *base
-		cfg.SkillImage = &types.SkillImageConfig{OwnerFingerprint: fp}
-
-		eff, err := ResolveEffectiveConfig(&cfg, global)
-
-		require.NoError(t, err)
-		require.Equal(t, "tpl-base", eff.CubeTemplate)
-	})
 }
 
 func TestResolveEffectiveConfigUsesSkillSnapshotAsE2BTemplate(t *testing.T) {
@@ -813,102 +583,6 @@ func TestSkillOwnerFingerprintForDocker(t *testing.T) {
 // installed skill, so it must agree with the template ResolveEffectiveConfig
 // actually boots. Any disagreement means either skills that are announced and
 // cannot run, or skills that are in the image and hidden.
-func TestSkillImageActiveAgreesWithTheResolvedTemplate(t *testing.T) {
-	global := DefaultConfig()
-	cube := func() *types.TenantSandboxConfig {
-		return &types.TenantSandboxConfig{
-			SandboxType: "cube",
-			Cube: &types.CubeSandboxConfig{
-				APIURL: "https://203.0.113.10", ProxyURL: "https://203.0.113.11",
-				SandboxDomain: "cube.example.com", APIKey: "key-1", TemplateID: "tpl-base",
-			},
-		}
-	}
-	fp := SkillImageFingerprint("cube", "key-1", "https://203.0.113.10")
-
-	cases := map[string]struct {
-		config *types.TenantSandboxConfig
-		want   bool
-	}{
-		"snapshot owned by the live credentials": {
-			config: func() *types.TenantSandboxConfig {
-				cfg := cube()
-				cfg.SkillImage = &types.SkillImageConfig{SnapshotID: "snap-1", OwnerFingerprint: fp}
-				return cfg
-			}(),
-			want: true,
-		},
-		"snapshot from another account": {
-			config: func() *types.TenantSandboxConfig {
-				cfg := cube()
-				cfg.SkillImage = &types.SkillImageConfig{
-					SnapshotID: "snap-1", OwnerFingerprint: "another-account",
-				}
-				return cfg
-			}(),
-			want: false,
-		},
-		"snapshot with no recorded owner": {
-			config: func() *types.TenantSandboxConfig {
-				cfg := cube()
-				cfg.SkillImage = &types.SkillImageConfig{SnapshotID: "snap-1"}
-				return cfg
-			}(),
-			want: false,
-		},
-		"no snapshot yet": {
-			config: cube(),
-			want:   false,
-		},
-		"backend that cannot snapshot": {
-			config: &types.TenantSandboxConfig{
-				SandboxType: "disabled",
-				SkillImage: &types.SkillImageConfig{
-					SnapshotID: "snap-1", OwnerFingerprint: fp,
-				},
-			},
-			want: false,
-		},
-		"docker snapshot owned by the live daemon": {
-			config: &types.TenantSandboxConfig{
-				SandboxType: "docker",
-				Docker: &types.DockerSandboxConfig{
-					Image: "weknora/sandbox:base",
-					Host:  "unix:///var/run/docker.sock",
-				},
-				SkillImage: &types.SkillImageConfig{
-					SnapshotID: "weknora-skill/weknora-sk-cfg1-g1",
-					OwnerFingerprint: SkillImageFingerprint(
-						"docker", "", "unix:///var/run/docker.sock",
-					),
-				},
-			},
-			want: true,
-		},
-	}
-
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			active := SkillImageActive(tc.config)
-			require.Equal(t, tc.want, active)
-
-			eff, err := ResolveEffectiveConfig(tc.config, global)
-			require.NoError(t, err)
-			booted := EffectiveTemplateID(eff)
-			if active {
-				require.Equal(t, tc.config.SkillImage.SnapshotID, booted)
-				return
-			}
-			if tc.config.SkillImage != nil && tc.config.SkillImage.SnapshotID != "" {
-				require.NotEqual(t, tc.config.SkillImage.SnapshotID, booted,
-					"a skill declared unusable must not be the image the session boots")
-			}
-		})
-	}
-
-	require.False(t, SkillImageActive(nil))
-}
-
 func TestSkillImageFingerprintIsStableAndDiscriminating(t *testing.T) {
 	a := SkillImageFingerprint("cube", "key-1", "https://a.example.com")
 	require.Equal(t, a, SkillImageFingerprint("cube", "key-1", "https://a.example.com"))

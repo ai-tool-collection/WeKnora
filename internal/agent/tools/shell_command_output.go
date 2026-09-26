@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/Tencent/WeKnora/internal/event"
+	"github.com/ai-tool-collection/WeKnora/internal/event"
 	"github.com/google/uuid"
 )
 

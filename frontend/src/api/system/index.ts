@@ -110,39 +110,12 @@ export interface ParserEngineInfo {
 }
 
 /** 解析引擎配置（引擎连接参数存空间；聊天附件解析策略在智能体中配置） */
-export type MinerUParseMethod = 'auto' | 'ocr' | 'txt'
-
 export interface ParserEngineConfig {
-  docreader_addr?: string
-  docreader_transport?: string
-  mineru_endpoint?: string
-  mineru_api_key?: string
-  // MinerU 自建参数（协议自动识别：4.0+ 走 V1 API）
-  mineru_server_api_key?: string
-  mineru_tier?: string // flash / basic / standard / advanced，空为服务端默认
-  // 以下仅对 MinerU 3.x 及更早版本生效
-  mineru_model?: string
-  mineru_vlm_server_url?: string
-  mineru_enable_formula?: boolean | null
-  mineru_enable_table?: boolean | null
-  mineru_parse_method?: MinerUParseMethod
-  mineru_enable_ocr?: boolean | null
-  mineru_language?: string
-  // MinerU 云 API 参数
-  mineru_cloud_model?: string
-  mineru_cloud_enable_formula?: boolean | null
-  mineru_cloud_enable_table?: boolean | null
-  mineru_cloud_enable_ocr?: boolean | null
-  mineru_cloud_language?: string
-  // PaddleOCR-VL 自建参数
-  paddleocr_vl_endpoint?: string
-  paddleocr_vl_use_seal_recognition?: boolean | null
-  paddleocr_vl_use_chart_recognition?: boolean | null
-  // PaddleOCR-VL 云 API 参数
-  paddleocr_vl_cloud_token?: string
-  paddleocr_vl_cloud_model?: string
-  paddleocr_vl_cloud_use_seal_recognition?: boolean | null
-  paddleocr_vl_cloud_use_chart_recognition?: boolean | null
+  odl_hybrid?: string
+  odl_hybrid_url?: string
+  odl_hybrid_mode?: string
+  odl_hybrid_fallback?: boolean | null
+  odl_markdown_with_html?: boolean | null
 }
 
 export interface ParserEnginesResponse {
@@ -177,56 +150,13 @@ export function reconnectDocReader(addr: string): Promise<ParserEnginesResponse 
 // ---- 存储引擎配置（空间级，供文档/图片存储与 docreader 使用） ----
 
 export interface StorageEngineConfig {
-  default_provider: string // "local" | "minio" | "cos" | "tos" | "s3" | "oss" | "ks3" | "obs"
+  default_provider: string // "local" | "minio" | "s3"
   local: { path_prefix: string }
   minio: { mode: string; endpoint: string; access_key_id: string; secret_access_key: string; bucket_name: string; use_ssl: boolean; path_prefix: string }
-  cos: {
-    secret_id: string
-    secret_key: string
-    region: string
-    bucket_name: string
-    app_id: string
-    path_prefix: string
-  }
-  tos: {
-    endpoint: string
-    region: string
-    access_key: string
-    secret_key: string
-    bucket_name: string
-    path_prefix: string
-  }
   s3: {
     endpoint: string // optional for standard AWS S3
     region: string
     access_key: string // both keys empty => AWS default credential chain
-    secret_key: string
-    bucket_name: string
-    path_prefix: string
-  }
-  oss: {
-    endpoint: string
-    region: string
-    access_key: string
-    secret_key: string
-    bucket_name: string
-    path_prefix: string
-    use_temp_bucket: boolean
-    temp_bucket_name: string
-    temp_region: string
-  }
-  ks3: {
-    endpoint: string
-    region: string
-    access_key: string
-    secret_key: string
-    bucket_name: string
-    path_prefix: string
-  }
-  obs: {
-    endpoint: string
-    region: string
-    access_key: string
     secret_key: string
     bucket_name: string
     path_prefix: string
@@ -259,14 +189,9 @@ export function getStorageEngineStatus(): Promise<{ data: GetStorageEngineStatus
 }
 
 export interface StorageCheckRequest {
-  provider: string // "minio" | "cos" | "tos" | "s3" | "oss" | "ks3" | "obs"
+  provider: string // "local" | "minio" | "s3"
   minio?: StorageEngineConfig['minio']
-  cos?: StorageEngineConfig['cos']
-  tos?: StorageEngineConfig['tos']
   s3?: StorageEngineConfig['s3']
-  oss?: StorageEngineConfig['oss']
-  ks3?: StorageEngineConfig['ks3']
-  obs?: StorageEngineConfig['obs']
 }
 
 export interface StorageCheckResponse {
@@ -741,17 +666,6 @@ export interface SandboxVolumeMountConfig {
   volume_owner_fingerprint?: string
 }
 
-export interface SandboxCubeConfig {
-  api_url?: string
-  proxy_url?: string
-  sandbox_domain?: string
-  api_key?: string
-  template_id?: string
-  http_timeout_sec?: number
-  cube_sandbox_ttl_seconds?: number
-  dns_servers?: string[]
-}
-
 export interface SandboxE2BConfig {
   api_url?: string
   proxy_url?: string
@@ -781,7 +695,6 @@ export interface SandboxConfig {
   skill_image?: SandboxSkillImage
   skill_rollout?: 'next_turn' | 'new_session'
   network?: SandboxNetworkPolicy
-  cube?: SandboxCubeConfig
   e2b?: SandboxE2BConfig
   docker?: SandboxDockerConfig
 }
@@ -798,29 +711,6 @@ export interface SandboxDockerConfig {
   runtime?: string
   idle_ttl_seconds?: number
   http_timeout_sec?: number
-}
-
-/** One injected credential header on a Cube L7 rule. */
-export interface SandboxCubeHeaderInject {
-  header: string
-  /** Masked as '***' in responses; send the placeholder back to keep it. */
-  secret?: string
-  /** Defaults to '${SECRET}' server-side. */
-  format?: string
-}
-
-/** One CubeEgress L7 rule. Match fields are AND-ed; methods are OR-ed. */
-export interface SandboxCubeEgressRule {
-  name: string
-  scheme?: string
-  sni?: string
-  host?: string
-  methods?: string[]
-  path?: string
-  /** Absent means allow. A deny rule still needs host or sni. */
-  deny?: boolean
-  audit?: string
-  inject?: SandboxCubeHeaderInject[]
 }
 
 /** One E2B per-host request transform. host must also be in allow_out. */
@@ -841,7 +731,6 @@ export interface SandboxNetworkPolicy {
   allow_public_inbound?: boolean
   allow_out?: string[]
   deny_out?: string[]
-  cube_rules?: SandboxCubeEgressRule[]
   e2b_host_rules?: SandboxE2BHostRule[]
 }
 
@@ -921,7 +810,7 @@ export interface SandboxInventory {
 }
 
 /** Sandbox backends managed as named workspace configurations. */
-export const NAMED_SANDBOX_BACKEND_TYPES = ['cube', 'e2b', 'docker'] as const
+export const NAMED_SANDBOX_BACKEND_TYPES = ['e2b', 'docker'] as const
 
 export function isNamedSandboxBackend(type: string): boolean {
   return (NAMED_SANDBOX_BACKEND_TYPES as readonly string[]).includes(type)
@@ -1015,7 +904,7 @@ export function querySandboxTemplates(payload: {
  * stored config as-is.
  *
  * `deep` additionally creates and destroys one sandbox, which is the only way
- * to validate the template ID, Cube's proxy data plane and outbound egress.
+ * to validate the template ID, the provider data plane and outbound egress.
  * It consumes real sandbox time.
  */
 export function checkSandboxConfig(payload: {

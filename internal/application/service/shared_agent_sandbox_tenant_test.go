@@ -9,8 +9,8 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // A shared agent runs in ITS OWNER's workspace, so its sandbox is created on
@@ -58,7 +58,7 @@ func (m *destroyRecordingManager) Execute(
 }
 func (m *destroyRecordingManager) Cleanup(context.Context) error { return nil }
 func (m *destroyRecordingManager) GetSandbox() sandbox.Sandbox   { return nil }
-func (m *destroyRecordingManager) GetType() sandbox.SandboxType  { return sandbox.SandboxTypeCube }
+func (m *destroyRecordingManager) GetType() sandbox.SandboxType  { return sandbox.SandboxTypeE2B }
 
 func (m *destroyRecordingManager) DestroySession(_ context.Context, sessionID string) error {
 	m.destroyed = append(m.destroyed, sessionID)

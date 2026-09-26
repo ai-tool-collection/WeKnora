@@ -1,7 +1,7 @@
 # Build from the repository root with:
 #   docker build --platform=linux/amd64 \
 #     --build-arg WEBSITE_NGINX_PORT=8080 \
-#     -t weknora-site website-docs
+#     -t knowledge-hub-site website-docs
 # No host Node.js installation or prebuilt static-site/ is required.
 # WEBSITE_NGINX_PORT is written into default.conf at build time. The intranet
 # platform starts `nginx; sleep infinity` and does not run docker-entrypoint.sh.
@@ -10,12 +10,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /build
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# Install both locked dependency sets before copying source for layer caching.
+# Install locked dependencies before copying source for layer caching.
 COPY package.json package-lock.json ./
-COPY homepage/package.json homepage/package-lock.json ./homepage/
-RUN npm run setup
+RUN npm ci
 
 COPY . .
 RUN npm run build

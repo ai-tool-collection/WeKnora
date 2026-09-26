@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Tencent/WeKnora/internal/models"
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // AuthStyle names how a vendor expects credentials.
@@ -24,7 +24,7 @@ const (
 	AuthGoogleAPIKey AuthStyle = "x-goog-api-key"
 	// AuthNone sends nothing (local deployments).
 	AuthNone AuthStyle = "none"
-	// AuthSigned delegates to the vendor's Signer hook (WeKnora Cloud).
+	// AuthSigned delegates to the vendor's Signer hook.
 	AuthSigned AuthStyle = "signed"
 )
 

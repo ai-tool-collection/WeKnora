@@ -32,8 +32,18 @@ output_dir="$(cd "$output_dir" && pwd)"
 build_dir="$(mktemp -d /tmp/weknora-bsk-build.XXXXXX)"
 trap 'rm -rf "$build_dir"' EXIT
 
-git clone --no-checkout https://github.com/Tencent/BrowserSkill.git "$build_dir/source"
-git -C "$build_dir/source" checkout --detach "$source_commit"
+source_dir="${BROWSERSKILL_SOURCE_DIR:-}"
+if [ -z "$source_dir" ] || [ ! -d "$source_dir" ]; then
+  echo "Set BROWSERSKILL_SOURCE_DIR to a reviewed local BrowserSkill source checkout" >&2
+  exit 1
+fi
+source_dir="$(cd "$source_dir" && pwd)"
+if [ "$(git -C "$source_dir" rev-parse HEAD)" != "$source_commit" ]; then
+  echo "BrowserSkill source checkout does not match the pinned commit" >&2
+  exit 1
+fi
+mkdir -p "$build_dir/source"
+cp -a "$source_dir/." "$build_dir/source/"
 (
   cd "$build_dir/source"
   npx --yes pnpm@10.17.0 install --frozen-lockfile

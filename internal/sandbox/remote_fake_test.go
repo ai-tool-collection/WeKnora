@@ -122,14 +122,14 @@ func newFakeRemoteClient(provider RemoteProvider) *fakeRemoteClient {
 	// public inbound, so a tokenless fake would fail createAndBind the same
 	// way a real provider that omitted the token does. Tests that want that
 	// failure must clear trafficAccessToken explicitly.
-	if provider == RemoteProvider(SandboxTypeCube) || provider == RemoteProvider(SandboxTypeE2B) {
+	if provider == RemoteProvider(SandboxTypeE2B) || provider == RemoteProvider(SandboxTypeE2B) {
 		client.trafficAccessToken = "test-inbound-token"
 	}
 	return client
 }
 
 func TestFakeRemoteClientConnectRestoresRequestedTrafficToken(t *testing.T) {
-	client := newFakeRemoteClient(RemoteProvider(SandboxTypeCube))
+	client := newFakeRemoteClient(RemoteProvider(SandboxTypeE2B))
 	client.trafficAccessToken = "provider-issued-token"
 
 	created, err := client.Create(context.Background(), RemoteCreateRequest{})

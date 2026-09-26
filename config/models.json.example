@@ -11,38 +11,52 @@
     "'icon' is an inline <svg ...> string or an .svg path under this file's own",
     "directory — no absolute paths, no escaping it, 256 KB max: icons are served",
     "as a data: URI to everyone who can open the model pages.",
-    "Per-model 'compat' keys depend on the protocol; see website-docs/03-features/06-models.md (协议兼容覆盖 compat JSON)."
+    "Per-model 'compat' keys depend on the protocol; see website-docs/03-features/06-models.md (compatibility settings)."
   ],
   "providers": {
     "openai": {
       "base_url": "https://gateway.example.com/openai/v1",
       "api_key": "${OPENAI_API_KEY}",
-      "headers": {"X-Gateway-Team": "rag"},
+      "headers": {
+        "X-Gateway-Team": "rag"
+      },
       "model_overrides": {
-        "gpt-5.5": {"context_window": 200000, "max_output_tokens": 32000}
+        "gpt-5.5": {
+          "context_window": 200000,
+          "max_output_tokens": 32000
+        }
       }
-    },
-    "aliyun": {
-      "models": [
-        {"id": "qwen3.9-plus", "reasoning": true, "input": ["text", "image"],
-         "context_window": 1000000, "max_output_tokens": 65536,
-         "compat": {"thinking_always_send": true, "thinking_disable_on_non_stream": true}}
-      ]
     },
     "lab-vllm": {
       "name": "Lab vLLM",
-      "names": {"zh-CN": "实验室 vLLM"},
       "description": "Self-hosted vLLM cluster",
       "api": "openai-completions",
       "base_url": "http://vllm.lab.internal:8000/v1",
       "requires_auth": false,
-      "model_types": ["chat", "embedding"],
-      "url_patterns": ["vllm.lab.internal"],
+      "model_types": [
+        "chat",
+        "embedding"
+      ],
+      "url_patterns": [
+        "vllm.lab.internal"
+      ],
       "icon": "icons/lab-vllm.svg",
-      "compat": {"thinking_format": "chat-template-kwargs", "max_tokens_field": "max_tokens"},
+      "compat": {
+        "thinking_format": "chat-template-kwargs",
+        "max_tokens_field": "max_tokens"
+      },
       "models": [
-        {"id": "Qwen/Qwen3-32B", "reasoning": true, "context_window": 131072, "max_output_tokens": 16384},
-        {"id": "BAAI/bge-m3", "type": "Embedding", "dimension": 1024}
+        {
+          "id": "meta-llama/Llama-3.3-70B-Instruct",
+          "reasoning": true,
+          "context_window": 131072,
+          "max_output_tokens": 16384
+        },
+        {
+          "id": "nomic-ai/nomic-embed-text-v1.5",
+          "type": "Embedding",
+          "dimension": 1024
+        }
       ]
     },
     "claude-proxy": {
@@ -52,9 +66,20 @@
       "auth": "x-api-key",
       "api_key": "${CLAUDE_PROXY_KEY}",
       "models": [
-        {"id": "claude-sonnet-5", "reasoning": true, "input": ["text", "image"],
-         "context_window": 200000, "max_output_tokens": 64000,
-         "compat": {"thinking_mode": "adaptive", "supports_effort": true}}
+        {
+          "id": "claude-sonnet-5",
+          "reasoning": true,
+          "input": [
+            "text",
+            "image"
+          ],
+          "context_window": 200000,
+          "max_output_tokens": 64000,
+          "compat": {
+            "thinking_mode": "adaptive",
+            "supports_effort": true
+          }
+        }
       ]
     }
   }

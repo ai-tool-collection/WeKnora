@@ -11,8 +11,8 @@
 //
 // Run with a reachable daemon and the standard sandbox image:
 //
-//	docker build -f docker/Dockerfile.sandbox -t wechatopenai/weknora-sandbox:dev .
-//	DOCKER_INTEGRATION_IMAGE=wechatopenai/weknora-sandbox:dev \
+//	docker build -f docker/Dockerfile.sandbox -t knowledge-hub-sandbox:dev .
+//	DOCKER_INTEGRATION_IMAGE=knowledge-hub-sandbox:dev \
 //	go test -tags=docker_integration ./internal/sandbox \
 //	  -run '^TestDocker.*Integration' -count=1 -v -timeout=15m
 package sandbox
@@ -30,7 +30,7 @@ import (
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 const dockerIntegrationTenantID = 1

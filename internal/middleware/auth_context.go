@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/gin-gonic/gin"
 )
 

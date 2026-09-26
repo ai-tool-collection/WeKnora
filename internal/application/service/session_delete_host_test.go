@@ -10,10 +10,10 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/Tencent/WeKnora/internal/application/repository"
-	"github.com/Tencent/WeKnora/internal/localsandbox/adapter"
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/application/repository"
+	"github.com/ai-tool-collection/WeKnora/internal/localsandbox/adapter"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // Deleting a chat session must never delete the user's files. The host adapter
@@ -67,7 +67,7 @@ func TestDeleteSessionStillDestroysRemoteSandbox(t *testing.T) {
 	require.NoError(t, os.WriteFile(marker, []byte("remote"), 0o644))
 
 	remote := &destroyingSandboxManager{
-		typ:       sandbox.SandboxTypeCube,
+		typ:       sandbox.SandboxTypeE2B,
 		workspace: workspace,
 	}
 	svc, db := newSessionServiceForHostDeleteTest(t, stubHostManager{}, stubSandboxResolver{mgr: remote})

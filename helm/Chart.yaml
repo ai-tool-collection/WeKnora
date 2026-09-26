@@ -1,16 +1,14 @@
 apiVersion: v2
-name: weknora
+name: knowledge-hub
 description: |
-  WeKnora - AI-powered Knowledge RAG Platform for building intelligent knowledge bases
-  with document parsing, vector search, and LLM integration.
+  Knowledge Hub - knowledge management with document parsing, vector search, and AI assistance.
 type: application
 version: 0.1.0
 appVersion: "v0.8.2"
 kubeVersion: ">=1.25.0-0"
-home: https://github.com/Tencent/WeKnora
-icon: https://raw.githubusercontent.com/Tencent/WeKnora/main/docs/images/logo.png
+home: https://github.com/ai-tool-collection/WeKnora
 sources:
-  - https://github.com/Tencent/WeKnora
+  - https://github.com/ai-tool-collection/WeKnora
 keywords:
   - ai
   - rag
@@ -20,7 +18,7 @@ keywords:
   - vector-search
   - chatbot
 maintainers:
-  - name: WeKnora Community
-    url: https://github.com/Tencent/WeKnora
+  - name: Knowledge Hub Community
+    url: https://github.com/ai-tool-collection/WeKnora
 annotations:
   artifacthub.io/license: MIT

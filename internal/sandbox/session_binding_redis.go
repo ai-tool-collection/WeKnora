@@ -13,7 +13,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/Tencent/WeKnora/internal/common/redislock"
+	"github.com/ai-tool-collection/WeKnora/internal/common/redislock"
 )
 
 const (

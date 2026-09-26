@@ -18,59 +18,59 @@ func TestRemoteBindingDecision(t *testing.T) {
 		{name: "nil", err: nil},
 		{
 			name:     "not found",
-			err:      NewRemoteError(SandboxTypeCube, "Get", RemoteErrorKindNotFound, "gone", nil),
+			err:      NewRemoteError(SandboxTypeE2B, "Get", RemoteErrorKindNotFound, "gone", nil),
 			replace:  true,
 			preserve: false,
 		},
 		{
 			name:     "terminal",
-			err:      NewRemoteError(SandboxTypeCube, "Get", RemoteErrorKindTerminal, "terminated", nil),
+			err:      NewRemoteError(SandboxTypeE2B, "Get", RemoteErrorKindTerminal, "terminated", nil),
 			replace:  true,
 			preserve: false,
 		},
 		{
 			name:     "authentication",
-			err:      NewRemoteError(SandboxTypeCube, "Connect", RemoteErrorKindAuthentication, "denied", nil),
+			err:      NewRemoteError(SandboxTypeE2B, "Connect", RemoteErrorKindAuthentication, "denied", nil),
 			preserve: true,
 		},
 		{
 			name:     "invalid request",
-			err:      NewRemoteError(SandboxTypeCube, "Create", RemoteErrorKindInvalidRequest, "bad template", nil),
+			err:      NewRemoteError(SandboxTypeE2B, "Create", RemoteErrorKindInvalidRequest, "bad template", nil),
 			preserve: true,
 		},
 		{
 			name:     "unsupported",
-			err:      NewRemoteError(SandboxTypeCube, "Connect", RemoteErrorKindUnsupported, "no reconnect", nil),
+			err:      NewRemoteError(SandboxTypeE2B, "Connect", RemoteErrorKindUnsupported, "no reconnect", nil),
 			preserve: true,
 		},
 		{
 			name:     "conflict",
-			err:      NewRemoteError(SandboxTypeCube, "Delete", RemoteErrorKindConflict, "busy", nil),
+			err:      NewRemoteError(SandboxTypeE2B, "Delete", RemoteErrorKindConflict, "busy", nil),
 			preserve: true,
 		},
 		{
 			name:     "capacity",
-			err:      NewRemoteError(SandboxTypeCube, "Create", RemoteErrorKindCapacity, "full", nil),
+			err:      NewRemoteError(SandboxTypeE2B, "Create", RemoteErrorKindCapacity, "full", nil),
 			preserve: true,
 		},
 		{
 			name:     "timeout",
-			err:      NewRemoteError(SandboxTypeCube, "Get", RemoteErrorKindTimeout, "deadline", nil),
+			err:      NewRemoteError(SandboxTypeE2B, "Get", RemoteErrorKindTimeout, "deadline", nil),
 			preserve: true,
 		},
 		{
 			name:     "unavailable",
-			err:      NewRemoteError(SandboxTypeCube, "Health", RemoteErrorKindUnavailable, "offline", nil),
+			err:      NewRemoteError(SandboxTypeE2B, "Health", RemoteErrorKindUnavailable, "offline", nil),
 			preserve: true,
 		},
 		{
 			name:     "internal",
-			err:      NewRemoteError(SandboxTypeCube, "List", RemoteErrorKindInternal, "unknown", nil),
+			err:      NewRemoteError(SandboxTypeE2B, "List", RemoteErrorKindInternal, "unknown", nil),
 			preserve: true,
 		},
 		{
 			name:     "wrapped terminal",
-			err:      fmt.Errorf("probe failed: %w", NewRemoteError(SandboxTypeCube, "Get", RemoteErrorKindTerminal, "dead", nil)),
+			err:      fmt.Errorf("probe failed: %w", NewRemoteError(SandboxTypeE2B, "Get", RemoteErrorKindTerminal, "dead", nil)),
 			replace:  true,
 			preserve: false,
 		},
@@ -97,7 +97,7 @@ func TestRemoteErrorRetainsCause(t *testing.T) {
 
 	cause := errors.New("connection reset")
 	err := NewRemoteError(
-		SandboxTypeCube,
+		SandboxTypeE2B,
 		"Connect",
 		RemoteErrorKindUnavailable,
 		"control plane unavailable",
@@ -116,7 +116,7 @@ func TestRemoteErrorDiagnostics(t *testing.T) {
 	t.Parallel()
 
 	remote := NewRemoteError(
-		SandboxTypeCube, "Exec", RemoteErrorKindAuthentication,
+		SandboxTypeE2B, "Exec", RemoteErrorKindAuthentication,
 		"HTTP 403", errors.New("forbidden"),
 	)
 	remote.StatusCode = 403
@@ -133,7 +133,7 @@ func TestIsRemoteDirAlreadyExists(t *testing.T) {
 	t.Parallel()
 
 	cubeSeedErr := NewRemoteError(
-		SandboxTypeCube, "MakeDir", RemoteErrorKindInternal,
+		SandboxTypeE2B, "MakeDir", RemoteErrorKindInternal,
 		"failed to make dir /opt/weknora/tenant/skills/sk-1: directory already exists: /opt/weknora/tenant/skills/sk-1",
 		nil,
 	)
@@ -158,12 +158,12 @@ func TestIsRemoteDirAlreadyExists(t *testing.T) {
 		},
 		{
 			name: "unrelated internal",
-			err:  NewRemoteError(SandboxTypeCube, "MakeDir", RemoteErrorKindInternal, "disk full", nil),
+			err:  NewRemoteError(SandboxTypeE2B, "MakeDir", RemoteErrorKindInternal, "disk full", nil),
 			want: false,
 		},
 		{
 			name: "conflict without already exists",
-			err:  NewRemoteError(SandboxTypeCube, "Delete", RemoteErrorKindConflict, "busy", nil),
+			err:  NewRemoteError(SandboxTypeE2B, "Delete", RemoteErrorKindConflict, "busy", nil),
 			want: false,
 		},
 	}

@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -22,13 +22,9 @@ const (
 	WebSearchProviderTypeDuckDuckGo WebSearchProviderType = "duckduckgo"
 	WebSearchProviderTypeTavily     WebSearchProviderType = "tavily"
 	WebSearchProviderTypeOllama     WebSearchProviderType = "ollama"
-	WebSearchProviderTypeBaidu      WebSearchProviderType = "baidu"
 	WebSearchProviderTypeSearxng    WebSearchProviderType = "searxng"
 	WebSearchProviderTypeKeenable   WebSearchProviderType = "keenable"
-	WebSearchProviderTypeZhipu      WebSearchProviderType = "zhipu"
 	WebSearchProviderTypeExa        WebSearchProviderType = "exa"
-	WebSearchProviderTypeMetaso     WebSearchProviderType = "metaso"
-	WebSearchProviderTypeBocha      WebSearchProviderType = "bocha"
 	WebSearchProviderTypeSerply     WebSearchProviderType = "serply"
 )
 
@@ -236,13 +232,6 @@ func GetWebSearchProviderTypes() []WebSearchProviderTypeInfo {
 			DocsURL:         "https://docs.searxng.org/",
 		},
 		{
-			ID:             "baidu",
-			Name:           "Baidu",
-			RequiresAPIKey: true,
-			Description:    "Baidu AI Search (requires API key from Baidu Cloud)",
-			DocsURL:        "https://cloud.baidu.com/doc/AppBuilder/s/qlvEcai0p",
-		},
-		{
 			ID:                     "keenable",
 			Name:                   "Keenable",
 			RequiresAPIKey:         false,
@@ -250,72 +239,6 @@ func GetWebSearchProviderTypes() []WebSearchProviderTypeInfo {
 			SupportsProxy:          true,
 			Description:            "Keenable web search built for AI agents (keyless by default; an optional API key lifts the rate limit)",
 			DocsURL:                "https://keenable.ai/",
-		},
-		{
-			ID:             "metaso",
-			Name:           "Metaso AI Search",
-			RequiresAPIKey: true,
-			SupportsProxy:  true,
-			Description:    "Metaso AI Search API (requires API key)",
-			DocsURL:        "https://metaso.cn/search-api/playground",
-			ConfigFields: []WebSearchProviderConfigField{
-				{
-					Key:         "scope",
-					Label:       "Search scope",
-					Type:        "select",
-					Required:    true,
-					Default:     "webpage",
-					Description: "Select the content source searched by Metaso.",
-					Options: []WebSearchProviderConfigFieldOption{
-						{Label: "Web pages", Value: "webpage"},
-						{Label: "Documents", Value: "document"},
-						{Label: "Scholar", Value: "scholar"},
-						{Label: "Podcasts", Value: "podcast"},
-						{Label: "Videos", Value: "video"},
-						{Label: "Images", Value: "image"},
-					},
-				},
-			},
-		},
-		{
-			ID:             "zhipu",
-			Name:           "Zhipu AI",
-			RequiresAPIKey: true,
-			SupportsProxy:  true,
-			Description:    "Zhipu AI Web Search API (requires API key)",
-			DocsURL:        "https://docs.bigmodel.cn/cn/guide/tools/web-search",
-			ConfigFields: []WebSearchProviderConfigField{
-				{
-					Key:            "search_engine",
-					Label:          "Search engine",
-					LabelKey:       "webSearchSettings.configFields.searchEngine",
-					Type:           "select",
-					Required:       true,
-					Default:        "search_std",
-					Description:    "Select the Zhipu search engine and per-request price tier.",
-					DescriptionKey: "webSearchSettings.configFields.searchEngineDesc",
-					Options: []WebSearchProviderConfigFieldOption{
-						{Label: "Standard · ¥0.01/request", LabelKey: "webSearchSettings.configFields.searchStd", Value: "search_std"},
-						{Label: "Pro · ¥0.03/request", LabelKey: "webSearchSettings.configFields.searchPro", Value: "search_pro"},
-						{Label: "Sogou · ¥0.05/request", LabelKey: "webSearchSettings.configFields.searchSogou", Value: "search_pro_sogou"},
-						{Label: "Quark · ¥0.05/request", LabelKey: "webSearchSettings.configFields.searchQuark", Value: "search_pro_quark"},
-					},
-				},
-				{
-					Key:            "content_size",
-					Label:          "Content size",
-					LabelKey:       "webSearchSettings.configFields.contentSize",
-					Type:           "select",
-					Required:       true,
-					Default:        "medium",
-					Description:    "Medium returns concise summaries; high returns more context.",
-					DescriptionKey: "webSearchSettings.configFields.contentSizeDesc",
-					Options: []WebSearchProviderConfigFieldOption{
-						{Label: "Medium", LabelKey: "webSearchSettings.configFields.contentMedium", Value: "medium"},
-						{Label: "High", LabelKey: "webSearchSettings.configFields.contentHigh", Value: "high"},
-					},
-				},
-			},
 		},
 		{
 			ID:             "exa",
@@ -331,42 +254,6 @@ func GetWebSearchProviderTypes() []WebSearchProviderTypeInfo {
 					Type:        "select",
 					Default:     "false",
 					Description: "Include page text in the unified result Content field.",
-					Options: []WebSearchProviderConfigFieldOption{
-						{Label: "Enabled", Value: "true"},
-						{Label: "Disabled", Value: "false"},
-					},
-				},
-			},
-		},
-		{
-			ID:             "bocha",
-			Name:           "Bocha AI Search",
-			RequiresAPIKey: true,
-			SupportsProxy:  true,
-			Description:    "Bocha AI Web Search API (requires API key)",
-			DocsURL:        "https://open.bochaai.com/",
-			ConfigFields: []WebSearchProviderConfigField{
-				{
-					Key:         "freshness",
-					Label:       "Freshness",
-					Type:        "select",
-					Required:    true,
-					Default:     "noLimit",
-					Description: "Time range filter applied by Bocha; noLimit is recommended.",
-					Options: []WebSearchProviderConfigFieldOption{
-						{Label: "No limit", Value: "noLimit"},
-						{Label: "Past day", Value: "oneDay"},
-						{Label: "Past week", Value: "oneWeek"},
-						{Label: "Past month", Value: "oneMonth"},
-						{Label: "Past year", Value: "oneYear"},
-					},
-				},
-				{
-					Key:         "summary",
-					Label:       "Summary",
-					Type:        "select",
-					Default:     "true",
-					Description: "Request long text summaries and prefer them as result snippets.",
 					Options: []WebSearchProviderConfigFieldOption{
 						{Label: "Enabled", Value: "true"},
 						{Label: "Disabled", Value: "false"},

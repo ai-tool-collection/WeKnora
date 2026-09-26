@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 	"gorm.io/gorm"
 )
 
@@ -45,10 +45,6 @@ var retrieverEngineMapping = map[string][]RetrieverEngineParams{
 	"sqlite": {
 		{RetrieverType: KeywordsRetrieverType, RetrieverEngineType: SQLiteRetrieverEngineType},
 		{RetrieverType: VectorRetrieverType, RetrieverEngineType: SQLiteRetrieverEngineType},
-	},
-	"tencent_vectordb": {
-		{RetrieverType: KeywordsRetrieverType, RetrieverEngineType: TencentVectorDBRetrieverEngineType},
-		{RetrieverType: VectorRetrieverType, RetrieverEngineType: TencentVectorDBRetrieverEngineType},
 	},
 	"opensearch": {
 		{RetrieverType: KeywordsRetrieverType, RetrieverEngineType: OpenSearchRetrieverEngineType},
@@ -104,11 +100,11 @@ type Tenant struct {
 	ContextConfig *ContextConfig `yaml:"context_config"      json:"context_config"      gorm:"type:jsonb"`
 	// Global WebSearch configuration for this workspace
 	WebSearchConfig *WebSearchConfig `yaml:"web_search_config"   json:"web_search_config"   gorm:"type:jsonb"`
-	// Parser engine config overrides (MinerU endpoint, API key, etc.). Used when parsing documents; overrides env.
+	// Parser engine config overrides used when parsing documents; overrides env.
 	ParserEngineConfig *ParserEngineConfig `yaml:"parser_engine_config" json:"parser_engine_config" gorm:"type:jsonb"`
-	// Credentials config: third-party provider credentials (e.g. WeKnoraCloud AppID/AppSecret)
+	// Credentials config retained for existing database records.
 	Credentials *CredentialsConfig `yaml:"credentials" json:"credentials" gorm:"type:jsonb"`
-	// Storage engine config: parameters for Local, MinIO, COS. Used for document/file storage and docreader.
+	// Storage engine config: parameters for Local, MinIO, S3. Used for document/file storage and docreader.
 	StorageEngineConfig *StorageEngineConfig `yaml:"storage_engine_config" json:"storage_engine_config" gorm:"type:jsonb"`
 	// DefaultStorageBackendID is the workspace default concrete storage instance.
 	DefaultStorageBackendID *string `yaml:"default_storage_backend_id" json:"default_storage_backend_id,omitempty" gorm:"column:default_storage_backend_id;type:varchar(36)"`
@@ -180,19 +176,8 @@ func (c *RetrieverEngines) Scan(value interface{}) error {
 	return nil
 }
 
-// CredentialsConfig holds third-party provider credentials at the tenant level.
-// Stored as a single JSONB column; each provider is a nested object so new
-// providers can be added without schema changes.
-type CredentialsConfig struct {
-	WeKnoraCloud *WeKnoraCloudCredentials `json:"weknoracloud,omitempty"`
-}
-
-// WeKnoraCloudCredentials stores WeKnoraCloud AppID and AppSecret.
-// AppSecret is AES-256 encrypted before persisting to database.
-type WeKnoraCloudCredentials struct {
-	AppID     string `json:"app_id"`
-	AppSecret string `json:"app_secret"`
-}
+// CredentialsConfig remains as a compatibility field for tenant records.
+type CredentialsConfig struct{}
 
 type APIPrincipalMode string
 
@@ -251,31 +236,12 @@ func (c *APIPrincipalConfig) Scan(value interface{}) error {
 	return nil
 }
 
-// GetWeKnoraCloud returns the WeKnoraCloud credentials, or nil if not configured.
-func (c *CredentialsConfig) GetWeKnoraCloud() *WeKnoraCloudCredentials {
-	if c == nil || c.WeKnoraCloud == nil {
-		return nil
-	}
-	if c.WeKnoraCloud.AppID == "" || c.WeKnoraCloud.AppSecret == "" {
-		return nil
-	}
-	return c.WeKnoraCloud
-}
-
 // Value implements the driver.Valuer interface for CredentialsConfig
 func (c *CredentialsConfig) Value() (driver.Value, error) {
 	if c == nil {
 		return nil, nil
 	}
-	cp := *c
-	if cp.WeKnoraCloud != nil && cp.WeKnoraCloud.AppSecret != "" {
-		if key := utils.GetAESKey(); key != nil {
-			if encrypted, err := utils.EncryptAESGCM(cp.WeKnoraCloud.AppSecret, key); err == nil {
-				cp.WeKnoraCloud = &WeKnoraCloudCredentials{AppID: cp.WeKnoraCloud.AppID, AppSecret: encrypted}
-			}
-		}
-	}
-	return json.Marshal(cp)
+	return json.Marshal(c)
 }
 
 // Scan implements the sql.Scanner interface for CredentialsConfig
@@ -287,93 +253,17 @@ func (c *CredentialsConfig) Scan(value interface{}) error {
 	if !ok {
 		return nil
 	}
-	if err := json.Unmarshal(b, c); err != nil {
-		return err
-	}
-	if c.WeKnoraCloud != nil {
-		if plain, ok := utils.DecryptStoredSecretLenient(c.WeKnoraCloud.AppSecret); ok {
-			c.WeKnoraCloud.AppSecret = plain
-		} else {
-			log.Printf("[crypto] tenant credentials we_knora_cloud.app_secret: decrypt failed (SYSTEM_AES_KEY missing/rotated?), treating as unconfigured")
-			c.WeKnoraCloud.AppSecret = ""
-		}
-	}
-	return nil
+	return json.Unmarshal(b, c)
 }
 
-// ParserEngineConfig holds tenant-level overrides for document parser engines (e.g. MinerU endpoint, API key).
-// These values take precedence over environment variables when parsing documents.
+// ParserEngineConfig holds tenant-level document parser settings.
 type ParserEngineConfig struct {
-	// ChatParserEngineRules selects parser engines for session-scoped chat
-	// documents. Knowledge bases keep their own rules in ChunkingConfig.
 	ChatParserEngineRules []ParserEngineRule `json:"chat_parser_engine_rules,omitempty"`
-	MinerUEndpoint        string             `json:"mineru_endpoint"` // MinerU 自建服务端点
-	MinerUAPIKey          string             `json:"mineru_api_key"`  // MinerU 云 API Key
-
-	// MinerU 自建解析参数。协议按服务端自动识别：4.0+ 走 V1 API，更早版本走 /file_parse。
-	MinerUServerAPIKey string `json:"mineru_server_api_key,omitempty"` // 4.0+：服务端 --api-key
-	MinerUTier         string `json:"mineru_tier,omitempty"`           // 4.0+：flash/basic/standard/advanced，空为服务端默认
-	// 以下 backend、vLLM、公式/表格、语言参数仅对 3.x 及更早版本生效。
-	MinerUModel         string `json:"mineru_model,omitempty"`          // backend: pipeline, vlm-*, hybrid-*
-	MinerUVLMServerURL  string `json:"mineru_vlm_server_url,omitempty"` // vLLM 服务器地址 (vlm-http-client / hybrid-http-client)
-	MinerUEnableFormula *bool  `json:"mineru_enable_formula,omitempty"`
-	MinerUEnableTable   *bool  `json:"mineru_enable_table,omitempty"`
-	MinerUParseMethod   string `json:"mineru_parse_method,omitempty"`
-	// MinerUEnableOCR is retained for compatibility with configurations saved
-	// before parse_method supported auto/ocr/txt.
-	MinerUEnableOCR *bool  `json:"mineru_enable_ocr,omitempty"`
-	MinerULanguage  string `json:"mineru_language,omitempty"`
-
-	// MinerU 云 API 解析参数
-	MinerUCloudModel         string `json:"mineru_cloud_model,omitempty"` // model_version: pipeline, vlm, MinerU-HTML
-	MinerUCloudEnableFormula *bool  `json:"mineru_cloud_enable_formula,omitempty"`
-	MinerUCloudEnableTable   *bool  `json:"mineru_cloud_enable_table,omitempty"`
-	MinerUCloudEnableOCR     *bool  `json:"mineru_cloud_enable_ocr,omitempty"`
-	MinerUCloudLanguage      string `json:"mineru_cloud_language,omitempty"`
-
-	// OpenDataLoader PDF (docreader engine); hybrid requires opendataloader-pdf-hybrid service.
-	ODLHybrid           string `json:"odl_hybrid,omitempty"`      // off (default), docling-fast, hancom-ai
-	ODLHybridURL        string `json:"odl_hybrid_url,omitempty"`  // e.g. http://odl-hybrid:5002
-	ODLHybridMode       string `json:"odl_hybrid_mode,omitempty"` // auto, full
-	ODLHybridFallback   *bool  `json:"odl_hybrid_fallback,omitempty"`
-	ODLMarkdownWithHTML *bool  `json:"odl_markdown_with_html,omitempty"`
-
-	// PaddleOCR-VL self-hosted pipeline service (full /layout-parsing API).
-	PaddleOCRVLEndpoint            string `json:"paddleocr_vl_endpoint,omitempty"` // e.g. http://paddleocr-vl:8080
-	PaddleOCRVLUseSealRecognition  *bool  `json:"paddleocr_vl_use_seal_recognition,omitempty"`
-	PaddleOCRVLUseChartRecognition *bool  `json:"paddleocr_vl_use_chart_recognition,omitempty"`
-
-	// PaddleOCR-VL AI Studio cloud API.
-	PaddleOCRVLCloudToken               string `json:"paddleocr_vl_cloud_token,omitempty"`
-	PaddleOCRVLCloudModel               string `json:"paddleocr_vl_cloud_model,omitempty"` // e.g. PaddleOCR-VL-1.6
-	PaddleOCRVLCloudUseSealRecognition  *bool  `json:"paddleocr_vl_cloud_use_seal_recognition,omitempty"`
-	PaddleOCRVLCloudUseChartRecognition *bool  `json:"paddleocr_vl_cloud_use_chart_recognition,omitempty"`
-}
-
-const (
-	MinerUParseMethodAuto = "auto"
-	MinerUParseMethodOCR  = "ocr"
-	MinerUParseMethodText = "txt"
-)
-
-// ResolveMinerUParseMethod normalizes the explicit MinerU parse method and
-// maps the legacy OCR toggle to the closest safe behavior. The old enabled
-// value maps to auto instead of ocr so digital PDFs keep their native text
-// layer while scanned PDFs are still detected and OCRed by MinerU.
-func ResolveMinerUParseMethod(method string, legacyOCREnabled *bool) string {
-	switch strings.ToLower(strings.TrimSpace(method)) {
-	case MinerUParseMethodAuto:
-		return MinerUParseMethodAuto
-	case MinerUParseMethodOCR:
-		return MinerUParseMethodOCR
-	case MinerUParseMethodText:
-		return MinerUParseMethodText
-	}
-
-	if legacyOCREnabled != nil && !*legacyOCREnabled {
-		return MinerUParseMethodText
-	}
-	return MinerUParseMethodAuto
+	ODLHybrid             string             `json:"odl_hybrid,omitempty"`
+	ODLHybridURL          string             `json:"odl_hybrid_url,omitempty"`
+	ODLHybridMode         string             `json:"odl_hybrid_mode,omitempty"`
+	ODLHybridFallback     *bool              `json:"odl_hybrid_fallback,omitempty"`
+	ODLMarkdownWithHTML   *bool              `json:"odl_markdown_with_html,omitempty"`
 }
 
 func (c *ParserEngineConfig) ResolveChatParserEngine(fileType string) string {
@@ -390,61 +280,12 @@ func (c *ParserEngineConfig) ResolveChatParserEngine(fileType string) string {
 	return DefaultParserEngine(fileType)
 }
 
-// ToOverridesMap returns a map suitable for ParserEngineOverrides in parse requests.
-// Keys are snake_case (mineru_endpoint, mineru_api_key, etc.).
+// ToOverridesMap returns parser overrides for the document reader.
 func (c *ParserEngineConfig) ToOverridesMap() map[string]string {
 	if c == nil {
 		return nil
 	}
 	m := make(map[string]string)
-	if c.MinerUEndpoint != "" {
-		m["mineru_endpoint"] = c.MinerUEndpoint
-	}
-	if c.MinerUAPIKey != "" {
-		m["mineru_api_key"] = c.MinerUAPIKey
-	}
-	if c.MinerUServerAPIKey != "" {
-		m["mineru_server_api_key"] = c.MinerUServerAPIKey
-	}
-	if c.MinerUTier != "" {
-		m["mineru_tier"] = c.MinerUTier
-	}
-	if c.MinerUModel != "" {
-		m["mineru_model"] = c.MinerUModel
-	}
-	if c.MinerUVLMServerURL != "" {
-		m["mineru_vlm_server_url"] = c.MinerUVLMServerURL
-	}
-	if c.MinerUEnableFormula != nil {
-		m["mineru_enable_formula"] = fmt.Sprintf("%v", *c.MinerUEnableFormula)
-	}
-	if c.MinerUEnableTable != nil {
-		m["mineru_enable_table"] = fmt.Sprintf("%v", *c.MinerUEnableTable)
-	}
-	if c.MinerUParseMethod != "" || c.MinerUEnableOCR != nil {
-		m["mineru_parse_method"] = ResolveMinerUParseMethod(c.MinerUParseMethod, c.MinerUEnableOCR)
-	}
-	if c.MinerUEnableOCR != nil {
-		m["mineru_enable_ocr"] = fmt.Sprintf("%v", *c.MinerUEnableOCR)
-	}
-	if c.MinerULanguage != "" {
-		m["mineru_language"] = c.MinerULanguage
-	}
-	if c.MinerUCloudModel != "" {
-		m["mineru_cloud_model"] = c.MinerUCloudModel
-	}
-	if c.MinerUCloudEnableFormula != nil {
-		m["mineru_cloud_enable_formula"] = fmt.Sprintf("%v", *c.MinerUCloudEnableFormula)
-	}
-	if c.MinerUCloudEnableTable != nil {
-		m["mineru_cloud_enable_table"] = fmt.Sprintf("%v", *c.MinerUCloudEnableTable)
-	}
-	if c.MinerUCloudEnableOCR != nil {
-		m["mineru_cloud_enable_ocr"] = fmt.Sprintf("%v", *c.MinerUCloudEnableOCR)
-	}
-	if c.MinerUCloudLanguage != "" {
-		m["mineru_cloud_language"] = c.MinerUCloudLanguage
-	}
 	if c.ODLHybrid != "" {
 		m["odl_hybrid"] = c.ODLHybrid
 	}
@@ -459,27 +300,6 @@ func (c *ParserEngineConfig) ToOverridesMap() map[string]string {
 	}
 	if c.ODLMarkdownWithHTML != nil {
 		m["odl_markdown_with_html"] = fmt.Sprintf("%v", *c.ODLMarkdownWithHTML)
-	}
-	if c.PaddleOCRVLEndpoint != "" {
-		m["paddleocr_vl_endpoint"] = c.PaddleOCRVLEndpoint
-	}
-	if c.PaddleOCRVLUseSealRecognition != nil {
-		m["paddleocr_vl_use_seal_recognition"] = fmt.Sprintf("%v", *c.PaddleOCRVLUseSealRecognition)
-	}
-	if c.PaddleOCRVLUseChartRecognition != nil {
-		m["paddleocr_vl_use_chart_recognition"] = fmt.Sprintf("%v", *c.PaddleOCRVLUseChartRecognition)
-	}
-	if c.PaddleOCRVLCloudToken != "" {
-		m["paddleocr_vl_cloud_token"] = c.PaddleOCRVLCloudToken
-	}
-	if c.PaddleOCRVLCloudModel != "" {
-		m["paddleocr_vl_cloud_model"] = c.PaddleOCRVLCloudModel
-	}
-	if c.PaddleOCRVLCloudUseSealRecognition != nil {
-		m["paddleocr_vl_cloud_use_seal_recognition"] = fmt.Sprintf("%v", *c.PaddleOCRVLCloudUseSealRecognition)
-	}
-	if c.PaddleOCRVLCloudUseChartRecognition != nil {
-		m["paddleocr_vl_cloud_use_chart_recognition"] = fmt.Sprintf("%v", *c.PaddleOCRVLCloudUseChartRecognition)
 	}
 	if len(m) == 0 {
 		return nil
@@ -507,18 +327,13 @@ func (c *ParserEngineConfig) Scan(value interface{}) error {
 	return json.Unmarshal(b, c)
 }
 
-// StorageEngineConfig holds tenant-level storage engine parameters for Local, MinIO, COS, TOS, S3, OSS, KS3, and OBS.
+// StorageEngineConfig holds tenant-level storage engine parameters for Local, MinIO, and S3.
 // Knowledge bases select which provider to use; parameters are read from here.
 type StorageEngineConfig struct {
-	DefaultProvider string             `json:"default_provider"` // "local", "minio", "cos", "tos", "s3", "oss", "ks3", "obs"
+	DefaultProvider string             `json:"default_provider"` // "local", "minio", "s3"
 	Local           *LocalEngineConfig `json:"local,omitempty"`
 	MinIO           *MinIOEngineConfig `json:"minio,omitempty"`
-	COS             *COSEngineConfig   `json:"cos,omitempty"`
-	TOS             *TOSEngineConfig   `json:"tos,omitempty"`
 	S3              *S3EngineConfig    `json:"s3,omitempty"`
-	OSS             *OSSEngineConfig   `json:"oss,omitempty"`
-	KS3             *KS3EngineConfig   `json:"ks3,omitempty"`
-	OBS             *OBSEngineConfig   `json:"obs,omitempty"`
 }
 
 // LocalEngineConfig is for local file system storage (single-machine deployment only).
@@ -538,30 +353,6 @@ type MinIOEngineConfig struct {
 	PathPrefix      string `json:"path_prefix"`
 }
 
-// COSEngineConfig is for Tencent Cloud COS.
-type COSEngineConfig struct {
-	SecretID       string `json:"secret_id"`
-	SecretKey      string `json:"secret_key"`
-	Region         string `json:"region"`
-	BucketName     string `json:"bucket_name"`
-	AppID          string `json:"app_id"`
-	PathPrefix     string `json:"path_prefix"`
-	TempBucketName string `json:"temp_bucket_name"`
-	TempRegion     string `json:"temp_region"`
-}
-
-// TOSEngineConfig is for Volcengine TOS (火山引擎对象存储).
-type TOSEngineConfig struct {
-	Endpoint       string `json:"endpoint"`
-	Region         string `json:"region"`
-	AccessKey      string `json:"access_key"`
-	SecretKey      string `json:"secret_key"`
-	BucketName     string `json:"bucket_name"`
-	PathPrefix     string `json:"path_prefix"`
-	TempBucketName string `json:"temp_bucket_name"`
-	TempRegion     string `json:"temp_region"`
-}
-
 // S3EngineConfig is for AWS S3 and S3-compatible object storage.
 type S3EngineConfig struct {
 	Endpoint       string `json:"endpoint"`
@@ -572,40 +363,6 @@ type S3EngineConfig struct {
 	PathPrefix     string `json:"path_prefix"`
 	UseSSL         bool   `json:"use_ssl"`
 	ForcePathStyle bool   `json:"force_path_style"`
-}
-
-// OSSEngineConfig is for Alibaba Cloud OSS (对象存储服务).
-type OSSEngineConfig struct {
-	Endpoint       string `json:"endpoint"`
-	Region         string `json:"region"`
-	AccessKey      string `json:"access_key"`
-	SecretKey      string `json:"secret_key"`
-	BucketName     string `json:"bucket_name"`
-	PathPrefix     string `json:"path_prefix"`
-	UseTempBucket  bool   `json:"use_temp_bucket"`
-	TempBucketName string `json:"temp_bucket_name"`
-	TempRegion     string `json:"temp_region"`
-}
-
-// KS3EngineConfig is for Kingsoft Cloud KS3 object storage.
-type KS3EngineConfig struct {
-	Endpoint   string `json:"endpoint"`
-	Region     string `json:"region"`
-	AccessKey  string `json:"access_key"`
-	SecretKey  string `json:"secret_key"`
-	BucketName string `json:"bucket_name"`
-	PathPrefix string `json:"path_prefix"`
-}
-
-// OBSEngineConfig is for Huawei Cloud OBS (对象存储服务).
-type OBSEngineConfig struct {
-	Endpoint   string `json:"endpoint"`
-	Region     string `json:"region"`
-	AccessKey  string `json:"access_key"`
-	SecretKey  string `json:"secret_key"`
-	BucketName string `json:"bucket_name"`
-	PathPrefix string `json:"path_prefix"`
-	UseSSL     bool   `json:"use_ssl"`
 }
 
 // Value implements the driver.Valuer interface for StorageEngineConfig
@@ -633,7 +390,7 @@ func (c *StorageEngineConfig) Scan(value interface{}) error {
 // It is self-contained: provider fields are not inherited from process
 // environment. Leaving a required provider field empty is rejected on save.
 type TenantSandboxConfig struct {
-	// SandboxType is cube, e2b, or docker; disabled is the hidden policy row.
+	// SandboxType is e2b or docker; disabled is the hidden policy row.
 	SandboxType string `json:"sandbox_type,omitempty"`
 
 	// ── 通用配置（跨后端生效）──────────────────────────────────
@@ -695,29 +452,8 @@ type TenantSandboxConfig struct {
 
 	// ── 后端专属配置（同一时刻只有一个生效，由 SandboxType 决定）───
 
-	Cube   *CubeSandboxConfig   `json:"cube,omitempty"`
 	E2B    *E2BSandboxConfig    `json:"e2b,omitempty"`
 	Docker *DockerSandboxConfig `json:"docker,omitempty"`
-}
-
-// CubeSandboxConfig addresses one CubeSandbox deployment. APIURL, ProxyURL,
-// SandboxDomain and TemplateID are all required; APIKey is optional because the
-// common single-node setup runs unauthenticated.
-type CubeSandboxConfig struct {
-	APIURL        string `json:"api_url,omitempty"`
-	ProxyURL      string `json:"proxy_url,omitempty"`
-	SandboxDomain string `json:"sandbox_domain,omitempty"`
-	APIKey        string `json:"api_key,omitempty"` // 加密
-	TemplateID    string `json:"template_id,omitempty"`
-
-	// HTTPTimeoutSec bounds each HTTP call to the sandbox control plane.
-	// 0 means use the built-in default (30s), never the deployment's value.
-	HTTPTimeoutSec int `json:"http_timeout_sec,omitempty"`
-
-	CubeSandboxTTLSeconds int `json:"cube_sandbox_ttl_seconds,omitempty"`
-
-	// DNSServers are Cube template nameserver IPs. Empty uses Cubelet's default.
-	DNSServers []string `json:"dns_servers,omitempty"`
 }
 
 // E2BSandboxConfig addresses one E2B-protocol control plane: E2B Cloud, a
@@ -894,11 +630,6 @@ func (c *TenantSandboxConfig) Value() (driver.Value, error) {
 		return encrypted
 	}
 
-	if c.Cube != nil {
-		cube := *c.Cube
-		cube.APIKey = encrypt(cube.APIKey)
-		cp.Cube = &cube
-	}
 	if c.E2B != nil {
 		e2b := *c.E2B
 		e2b.APIKey = encrypt(e2b.APIKey)
@@ -949,9 +680,6 @@ func (c *TenantSandboxConfig) Scan(value interface{}) error {
 		return ""
 	}
 
-	if c.Cube != nil {
-		c.Cube.APIKey = decrypt(c.Cube.APIKey, "cube.api_key")
-	}
 	if c.E2B != nil {
 		c.E2B.APIKey = decrypt(c.E2B.APIKey, "e2b.api_key")
 	}

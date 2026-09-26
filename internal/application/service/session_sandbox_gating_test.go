@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/Tencent/WeKnora/internal/sandbox"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
 // A workspace can point an agent at a named Cube/E2B config while the
@@ -24,7 +24,7 @@ func TestSessionSandboxInputStoreUsesNamedConfigNotDeploymentDefault(t *testing.
 		disableFiles: true,
 	}
 	// The workspace's named config does advertise one.
-	named := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeCube}
+	named := &stagingSandboxManager{sandboxType: sandbox.SandboxTypeE2B}
 
 	svc := &agentService{
 		sandboxMgr:      deploymentDefault,

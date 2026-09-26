@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/Tencent/WeKnora/cli/internal/cmdutil"
-	"github.com/Tencent/WeKnora/cli/internal/iostreams"
-	sdk "github.com/Tencent/WeKnora/client"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/cmdutil"
+	"github.com/ai-tool-collection/WeKnora/cli/internal/iostreams"
+	sdk "github.com/ai-tool-collection/WeKnora/client"
 )
 
 // modelCreateFields enumerates the fields surfaced for `--format json` discovery
@@ -88,7 +88,7 @@ func NewCmdCreate(f *cmdutil.Factory) *cobra.Command {
 summary config (see 'weknora kb config set') or an agent (--model).
 
 <name> is the model name as the provider knows it (e.g. "nomic-embed-text",
-"gpt-4o", "qwen2"). --type and --source are required.
+"gpt-4o", "llama3.2"). --type and --source are required.
 
 Two modes:
 
@@ -133,7 +133,7 @@ else goes through repeatable --param key=value.`,
 			// its API calls; a local (Ollama) model has no provider concept.
 			if opts.Source == "remote" && strings.TrimSpace(opts.Provider) == "" {
 				return cmdutil.NewError(cmdutil.CodeInputMissingFlag,
-					"--source remote requires --provider (e.g. openai, aliyun, deepseek)").
+					"--source remote requires --provider (e.g. openai, anthropic)").
 					WithHint("for a local Ollama model use --source local (no --provider)")
 			}
 			if opts.Source == "local" && strings.TrimSpace(opts.Provider) != "" {

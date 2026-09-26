@@ -83,18 +83,18 @@ Optional components enabled:
   CONNECTING TO LLM
 --------------------------------------------------------------------------------
 
-WeKnora requires an LLM backend. Configure via environment variables:
+Knowledge Hub requires an LLM backend. Configure it with environment variables:
 
   helm upgrade {{ .Release.Name }} ./helm \
     --set app.extraEnv[0].name=OLLAMA_BASE_URL \
     --set app.extraEnv[0].value=http://ollama:11434 \
     --set app.extraEnv[1].name=INIT_LLM_MODEL_NAME \
-    --set app.extraEnv[1].value=qwen2.5:7b
+    --set app.extraEnv[1].value=llama3.2:3b
 
 Supported LLM backends:
   - Ollama (local)
   - OpenAI API compatible endpoints
-  - Qwen, DeepSeek, and other Chinese LLMs
+  - Other approved OpenAI API compatible endpoints
 
 {{- if .Values.neo4j.enabled }}
 
@@ -122,9 +122,9 @@ Access Neo4j Browser:
   DOCUMENTATION
 --------------------------------------------------------------------------------
 
-  GitHub:  https://github.com/Tencent/WeKnora
-  API Docs: https://github.com/Tencent/WeKnora/blob/main/website-docs/04-api/01-api-overview.md
-  FAQ:     https://github.com/Tencent/WeKnora/blob/main/website-docs/01-getting-started/05-troubleshooting.md
+  GitHub:  https://github.com/ai-tool-collection/WeKnora
+  API Docs: https://github.com/ai-tool-collection/WeKnora/blob/main/website-docs/04-api/01-api-overview.md
+  FAQ:     https://github.com/ai-tool-collection/WeKnora/blob/main/website-docs/01-getting-started/05-troubleshooting.md
 
 --------------------------------------------------------------------------------
   TROUBLESHOOTING

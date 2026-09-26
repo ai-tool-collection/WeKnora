@@ -1,20 +1,20 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "WeKnora Lite",
-  "outputfilename": "WeKnora Lite",
+  "name": "Knowledge Hub",
+  "outputfilename": "Knowledge Hub",
   "frontend:dir": "../../frontend",
   "wailsjsdir": "../../frontend/src",
   "build:tags": "desktop",
   "author": {
-    "name": "WeKnora Team",
+    "name": "Knowledge Hub contributors",
     "email": ""
   },
   "info": {
-    "companyName": "Tencent",
-    "productName": "WeKnora Lite",
+    "companyName": "",
+    "productName": "Knowledge Hub",
     "productVersion": "1.0.0",
-    "copyright": "Copyright 2026 Tencent",
-    "comments": "WeKnora Desktop Edition"
+    "copyright": "MIT License",
+    "comments": "Knowledge Hub Desktop"
   },
   "mac": {
     "category": "public.app-category.productivity",

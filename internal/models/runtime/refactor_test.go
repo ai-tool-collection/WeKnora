@@ -7,10 +7,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Tencent/WeKnora/internal/models/api"
-	"github.com/Tencent/WeKnora/internal/models/providers"
-	modelruntime "github.com/Tencent/WeKnora/internal/models/runtime"
-	"github.com/Tencent/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/providers"
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,7 +35,7 @@ func TestExplicitChatProtocolSurvivesVendorPreference(t *testing.T) {
 
 func TestProtocolOverrideDoesNotDecodeCatalogCompatAsAnotherProtocol(t *testing.T) {
 	r, err := modelruntime.Resolve(modelruntime.Ref{
-		Provider: "aliyun", Model: "qwen-plus",
+		Provider: "openai", Model: "gpt-4o",
 		Override: &types.ModelSpecOverride{
 			API:    string(api.APIAnthropicMessages),
 			Compat: map[string]any{"thinking_mode": "adaptive"},

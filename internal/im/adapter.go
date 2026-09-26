@@ -11,18 +11,9 @@ import (
 type Platform string
 
 const (
-	PlatformWeCom  Platform = "wecom"
-	PlatformFeishu Platform = "feishu"
-	// PlatformLark is Feishu's international edition (open.larksuite.com).
-	// It shares the Feishu adapter; only the API host and tenant differ.
-	PlatformLark       Platform = "lark"
 	PlatformSlack      Platform = "slack"
 	PlatformTelegram   Platform = "telegram"
-	PlatformDingtalk   Platform = "dingtalk"
 	PlatformMattermost Platform = "mattermost"
-	PlatformWeChat     Platform = "wechat"
-	PlatformQQBot      Platform = "qqbot"
-	PlatformYunzhijia  Platform = "yunzhijia"
 )
 
 // SessionMode determines how IM sessions are resolved.

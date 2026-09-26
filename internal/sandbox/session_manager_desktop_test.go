@@ -14,10 +14,10 @@ func newSessionManagerDesktopTestHarness(t *testing.T) (*SessionBoundManager, *d
 func newSessionManagerDesktopHarness(t *testing.T, desktopEnabled bool) (*SessionBoundManager, *desktopFakeClient) {
 	t.Helper()
 
-	client := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube)}
+	client := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B)}
 	client.capabilities.SupportsDesktop = true
 	cfg := DefaultConfig()
-	cfg.CubeTemplate = "tpl-test"
+	cfg.E2BTemplate = "tpl-test"
 	cfg.DesktopEnabled = desktopEnabled
 	mgr, err := NewSessionBoundManager(SessionBoundManagerConfig{
 		Config:          cfg,

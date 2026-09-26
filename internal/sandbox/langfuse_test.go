@@ -10,7 +10,7 @@ import (
 )
 
 func TestWrapLangfuseRemoteClientPreservesSnapshotCapability(t *testing.T) {
-	inner := newFakeRemoteClient(SandboxTypeCube)
+	inner := newFakeRemoteClient(SandboxTypeE2B)
 	inner.capabilities.SupportsSnapshots = true
 
 	wrapped := wrapLangfuseRemoteClient(inner)
@@ -24,7 +24,7 @@ func TestWrapLangfuseRemoteClientPreservesSnapshotCapability(t *testing.T) {
 }
 
 func TestWrapLangfuseRemoteClientPreservesForkSnapshotCapability(t *testing.T) {
-	inner := newFakeRemoteClient(SandboxTypeCube)
+	inner := newFakeRemoteClient(SandboxTypeE2B)
 	inner.capabilities.SupportsSnapshots = true
 	client := &recordingForkSnapshotClient{fakeRemoteClient: inner}
 
@@ -70,7 +70,7 @@ func TestWrapLangfuseRemoteClientExecForwards(t *testing.T) {
 }
 
 func TestWrapLangfuseRemoteClientPreservesTerminalCapability(t *testing.T) {
-	inner := &terminalFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube)}
+	inner := &terminalFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B)}
 	inner.capabilities.SupportsTerminals = true
 
 	wrapped := wrapLangfuseRemoteClient(inner)
@@ -84,7 +84,7 @@ func TestWrapLangfuseRemoteClientPreservesTerminalCapability(t *testing.T) {
 }
 
 func TestWrapLangfuseRemoteClientPreservesDesktopCapability(t *testing.T) {
-	inner := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube)}
+	inner := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B)}
 	inner.capabilities.SupportsDesktop = true
 
 	wrapped := wrapLangfuseRemoteClient(inner)
@@ -98,7 +98,7 @@ func TestWrapLangfuseRemoteClientPreservesDesktopCapability(t *testing.T) {
 }
 
 func TestWrapLangfuseRemoteClientPreservesDesktopTTLRefresh(t *testing.T) {
-	inner := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeCube)}
+	inner := &desktopFakeClient{fakeRemoteClient: newFakeRemoteClient(SandboxTypeE2B)}
 	inner.capabilities.SupportsTimeoutRefresh = true
 
 	wrapped := wrapLangfuseRemoteClient(inner)

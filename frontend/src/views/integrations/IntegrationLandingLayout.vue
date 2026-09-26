@@ -1,6 +1,6 @@
 <template>
-  <div class="integration-landing" :class="{ 'integration-landing--claw': variant === 'claw' }">
-    <header class="landing-hero" :class="{ 'landing-hero--claw': variant === 'claw' }">
+  <div class="integration-landing">
+    <header class="landing-hero">
       <div class="landing-hero__content">
         <h2 class="landing-hero__title">{{ title }}</h2>
         <p v-if="subtitle" class="landing-hero__subtitle">{{ subtitle }}</p>
@@ -33,7 +33,7 @@ withDefaults(
   defineProps<{
     title: string
     subtitle?: string
-    variant?: 'chrome' | 'claw'
+    variant?: 'chrome'
   }>(),
   { variant: 'chrome' },
 )

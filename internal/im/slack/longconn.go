@@ -8,9 +8,9 @@ import (
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
 
-	"github.com/Tencent/WeKnora/internal/im"
-	"github.com/Tencent/WeKnora/internal/logger"
-	secutils "github.com/Tencent/WeKnora/internal/utils"
+	"github.com/ai-tool-collection/WeKnora/internal/im"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	secutils "github.com/ai-tool-collection/WeKnora/internal/utils"
 )
 
 // MessageHandler is called when an IM message is received via long connection.

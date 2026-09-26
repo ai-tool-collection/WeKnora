@@ -18,11 +18,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Tencent/WeKnora/internal/config"
-	"github.com/Tencent/WeKnora/internal/logger"
-	"github.com/Tencent/WeKnora/internal/ratelimit"
-	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/Tencent/WeKnora/internal/types/interfaces"
+	"github.com/ai-tool-collection/WeKnora/internal/config"
+	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/ratelimit"
+	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/redis/go-redis/v9"
@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	serverName    = "weknora"
+	serverName    = "knowledge-hub"
 	serverVersion = "1.0.0"
 
 	rateLimitKeyPrefix = "mcp:endpoint:ratelimit:"
@@ -128,7 +128,7 @@ func (s *Server) Handler() http.Handler {
 	return s.handler
 }
 
-const serverInstructions = "WeKnora knowledge workspace. Start with list_knowledge_bases to see what is in scope, " +
+const serverInstructions = "Knowledge Hub workspace. Start with list_knowledge_bases to see what is in scope, " +
 	"then use search_knowledge for semantic questions, grep_chunks for exact keywords, read_document to read " +
 	"a whole document, and ask to get a synthesized answer with citations. Wiki tools browse the generated " +
 	"wiki when a knowledge base has one. Write tools (add/update/delete_document) exist only on endpoints " +

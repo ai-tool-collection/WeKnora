@@ -47,7 +47,7 @@ export interface EmbedChannelPublicConfig {
   default_locale?: string
 }
 
-export type EmbedLocaleTag = 'zh-CN' | 'en-US' | 'ko-KR' | 'ja-JP' | 'ru-RU' | ''
+export type EmbedLocaleTag = 'en-US' | 'ko-KR' | 'ja-JP' | 'ru-RU' | ''
 
 export interface EmbedChannelStats {
   session_count: number
@@ -60,10 +60,10 @@ export type WidgetPosition = 'bottom-right' | 'bottom-left' | 'top-right' | 'top
 export const EMBED_SESSION_TOKEN_PREFIX = 'ems_'
 
 /** localStorage key prefix for persisted embed chat sessions (per channel). */
-export const EMBED_CHAT_SESSION_STORAGE_PREFIX = 'weknora-embed-session:'
+export const EMBED_CHAT_SESSION_STORAGE_PREFIX = 'knowledge-hub-embed-session:'
 
 /** localStorage key prefix for anonymous embed visitor ids (per channel). */
-export const EMBED_VISITOR_STORAGE_PREFIX = 'weknora-embed-visitor:'
+export const EMBED_VISITOR_STORAGE_PREFIX = 'knowledge-hub-embed-visitor:'
 
 export function embedVisitorStorageKey(channelId: string): string {
   return `${EMBED_VISITOR_STORAGE_PREFIX}${channelId}`
@@ -436,8 +436,8 @@ export async function getEmbedMessageList(
   )
 }
 
-const EMBED_MSG_SOURCE = 'weknora-embed'
-const EMBED_HOST_SOURCE = 'weknora-host'
+const EMBED_MSG_SOURCE = 'knowledge-hub-embed'
+const EMBED_HOST_SOURCE = 'knowledge-hub-host'
 
 // The exact parent origin, learned from the first trusted host message
 // (trust-on-first-use). Once known, every inbound/outbound message is pinned to
@@ -613,7 +613,7 @@ export function buildWidgetSnippet(
   const base = safeBaseUrl(opts?.baseUrl)
   const position = opts?.position || 'bottom-right'
   const attrs = [
-    `src="${escapeHtmlAttr(`${base}/weknora-widget.js`)}"`,
+    `src="${escapeHtmlAttr(`${base}/knowledge-hub-widget.js`)}"`,
     `data-channel="${escapeHtmlAttr(channelId)}"`,
     `data-token="${escapeHtmlAttr(token)}"`,
     `data-position="${escapeHtmlAttr(position)}"`,
@@ -640,7 +640,7 @@ export function buildSecureWidgetSnippet(
   const position = opts?.position || 'bottom-right'
   const endpoint = opts?.tokenEndpoint || SECURE_TOKEN_ENDPOINT_PLACEHOLDER
   const attrs = [
-    `src="${escapeHtmlAttr(`${base}/weknora-widget.js`)}"`,
+    `src="${escapeHtmlAttr(`${base}/knowledge-hub-widget.js`)}"`,
     `data-channel="${escapeHtmlAttr(channelId)}"`,
     `data-token-endpoint="${escapeHtmlAttr(endpoint)}"`,
     `data-position="${escapeHtmlAttr(position)}"`,
