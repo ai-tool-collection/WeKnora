@@ -40,16 +40,19 @@ func TestSandboxGatewayTransportPoolReusesTransportPerProxyEndpoint(t *testing.T
 	)
 
 	first := pool.RoundTripperFor(&Config{
+		Type:             SandboxTypeE2B,
 		E2BProxyURL:      "http://127.0.0.1:8080",
-		E2BSandboxDomain: "cube.app",
+		E2BSandboxDomain: "sandbox.example",
 	}).(*gatewaySplitTransport)
 	second := pool.RoundTripperFor(&Config{
+		Type:             SandboxTypeE2B,
 		E2BProxyURL:      "http://127.0.0.1:8080",
-		E2BSandboxDomain: "cube.app",
+		E2BSandboxDomain: "sandbox.example",
 	}).(*gatewaySplitTransport)
 	other := pool.RoundTripperFor(&Config{
+		Type:             SandboxTypeE2B,
 		E2BProxyURL:      "http://127.0.0.1:9090",
-		E2BSandboxDomain: "cube.app",
+		E2BSandboxDomain: "sandbox.example",
 	}).(*gatewaySplitTransport)
 
 	require.Same(t, first.data, second.data)
@@ -62,7 +65,7 @@ func TestSandboxGatewayTransportPoolReusesTransportPerProxyEndpoint(t *testing.T
 func TestSandboxGatewayTransportPoolWithoutProxyKeepsEverythingOnControl(t *testing.T) {
 	pool := NewSandboxGatewayTransportPool(NewGuardedTransport())
 
-	split := pool.RoundTripperFor(&Config{E2BSandboxDomain: "cube.app"}).(*gatewaySplitTransport)
+	split := pool.RoundTripperFor(&Config{Type: SandboxTypeE2B, E2BSandboxDomain: "sandbox.example"}).(*gatewaySplitTransport)
 
 	// A nil data transport is what sends sandbox authorities back to control.
 	require.Nil(t, split.data)
@@ -81,19 +84,14 @@ func TestSandboxGatewayTransportPoolRoutesE2BDataPlane(t *testing.T) {
 		Type:             SandboxTypeE2B,
 		E2BProxyURL:      "http://127.0.0.1:18080",
 		E2BSandboxDomain: "localhost",
-		// Cube fields must be ignored for an E2B config.
-		E2BProxyURL:      "http://127.0.0.1:9999",
-		E2BSandboxDomain: "cube.app",
 	}).(*gatewaySplitTransport)
 
 	require.NotNil(t, split.data)
 	require.Equal(t, "http", split.dataScheme)
 	require.True(t, split.isDataPlane("49983-sbx.localhost"))
 
-	// The Cube fields must not have been read. Asserting on the address the
-	// transport dials pins that directly; the previous version asserted that a
-	// cube.app authority was not data-plane traffic, which tested the domain
-	// matching that has since been removed rather than the field selection.
+	// Asserting on the address the transport dials pins the configured gateway
+	// directly rather than relying on sandbox domain matching.
 	require.Same(t, split.data, pool.dataTransport("127.0.0.1:18080"))
 	require.NotSame(t, split.data, pool.dataTransport("127.0.0.1:9999"))
 }

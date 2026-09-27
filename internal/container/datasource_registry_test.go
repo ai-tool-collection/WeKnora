@@ -6,16 +6,26 @@ import (
 	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
-func TestConnectorRegistryIncludesDingTalk(t *testing.T) {
+func TestConnectorRegistryIncludesRetainedConnectors(t *testing.T) {
 	registry, err := initConnectorRegistry()
 	if err != nil {
 		t.Fatalf("initConnectorRegistry() error = %v", err)
 	}
-	connector, err := registry.Get(types.ConnectorTypeDingTalk)
-	if err != nil {
-		t.Fatalf("DingTalk connector is not registered: %v", err)
+	for _, connectorType := range []string{
+		types.ConnectorTypeNotion, types.ConnectorTypeConfluence, types.ConnectorTypeRSS, types.ConnectorTypeGitLab,
+	} {
+		connector, err := registry.Get(connectorType)
+		if err != nil {
+			t.Fatalf("%s connector is not registered: %v", connectorType, err)
+		}
+		if connector.Type() != connectorType {
+			t.Fatalf("connector.Type() = %q, want %q", connector.Type(), connectorType)
+		}
 	}
-	if connector.Type() != types.ConnectorTypeDingTalk {
-		t.Fatalf("connector.Type() = %q", connector.Type())
+	// Removed China-hosted connectors must stay out of the registry.
+	for _, removed := range []string{"feishu", "lark", "feishu_drive", "lark_drive", "yuque", "dingtalk", "ima"} {
+		if _, err := registry.Get(removed); err == nil {
+			t.Fatalf("removed connector %q is registered", removed)
+		}
 	}
 }

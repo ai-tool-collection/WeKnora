@@ -61,7 +61,7 @@ func TestStreamDisplayPipeline_agentScenario_redGreen(t *testing.T) {
 
 	rec := &recordingStreamSender{}
 	ctx := context.Background()
-	incoming := &IncomingMessage{Platform: PlatformWeCom, UserID: "u1"}
+	incoming := &IncomingMessage{Platform: PlatformSlack, UserID: "u1"}
 
 	streamID, err := rec.StartStream(ctx, incoming)
 	if err != nil {
@@ -128,7 +128,7 @@ func TestStreamDisplayPipeline_quickQA_redGreen(t *testing.T) {
 	if intermediate == "" {
 		t.Fatal("quick QA should show pipeline progress while streaming")
 	}
-	if !strings.Contains(intermediate, "问题理解") {
+	if !strings.Contains(intermediate, "Question understood") {
 		t.Fatalf("quick QA pipeline should show query_understand step, got: %q", intermediate)
 	}
 	if strings.Contains(intermediate, "思考过程") {

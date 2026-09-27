@@ -425,7 +425,7 @@ func TestValidateProcessOverrides_ImageAllowsStorageFallback(t *testing.T) {
 
 	ctx := context.WithValue(context.Background(), types.TenantInfoContextKey, &types.Tenant{
 		StorageEngineConfig: &types.StorageEngineConfig{
-			COS: &types.COSEngineConfig{SecretID: "id"},
+			S3: &types.S3EngineConfig{AccessKey: "id"},
 		},
 	})
 	kb := &types.KnowledgeBase{

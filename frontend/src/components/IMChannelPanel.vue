@@ -141,7 +141,7 @@ import { normalizeOptionalString } from '@/utils/optionalString';
 import { useAuthStore } from '@/stores/auth';
 import { useChatResourcesStore } from '@/stores/chatResources';
 import {
-  listIMChannels, listAllIMChannels, listAgents, createIMChannel, updateIMChannel,
+  listIMChannels, listAllIMChannels, createIMChannel, updateIMChannel,
   toggleIMChannel, deleteIMChannel,
   type IMChannel, type IMChannelOverview, type CustomAgent,
 } from '@/api/agent';
@@ -230,11 +230,11 @@ async function load() {
   loading.value = true;
   try {
     const resources = useChatResourcesStore();
-    const [channelResult, agentResult] = await Promise.all([
-      listAllIMChannels(), listAgents(), resources.ensureKnowledgeBases(),
+    const [channelResult] = await Promise.all([
+      listAllIMChannels(), resources.ensureAgents(), resources.ensureKnowledgeBases(),
     ]);
     allChannels.value = channelResult.data || [];
-    agents.value = agentResult.data || [];
+    agents.value = resources.agents as CustomAgent[];
     knowledgeBases.value = resources.rawKnowledgeBases.map((kb: any) => ({ id: kb.id, name: kb.name }));
   } catch (error: any) {
     MessagePlugin.error(error?.message || t('common.operationFailed'));

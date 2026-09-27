@@ -18,7 +18,17 @@ const compiled = ts.transpileModule(script, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText
 
-async function fixture({ configured = true, create = false } = {}) {
+async function fixture({
+  configured = true,
+  create = false,
+  type = 'gitlab',
+  settings = { projects: [{ project_id: '123', paths: [] }] },
+}: {
+  configured?: boolean
+  create?: boolean
+  type?: string
+  settings?: Record<string, unknown>
+} = {}) {
   const calls: Array<{ method: string; args: any[] }> = []
   let storedToken = configured ? 'expired-token' : ''
   const api = {
@@ -42,9 +52,9 @@ async function fixture({ configured = true, create = false } = {}) {
   const props = reactive({
     visible: false, kbId: 'kb-one',
     dataSource: create ? null : {
-      id: 'source-one', name: 'GitLab', type: 'gitlab',
+      id: 'source-one', name: 'GitLab', type,
       credentials: { credentials: { configured } },
-      config: { resource_ids: [], settings: { projects: [{ project_id: '123', paths: [] }] } },
+      config: { resource_ids: [], settings },
       sync_schedule: '0 0 */6 * * *', sync_mode: 'incremental',
       conflict_strategy: 'overwrite', sync_deletions: true,
     },
@@ -155,5 +165,27 @@ test('new GitLab data sources continue to test credentials without persistence',
     await f.vm.testConnection()
     assert.equal(f.vm.testResult, 'success')
     assert.deepEqual(f.calls.map(call => call.method), ['validateCredentials'])
+  } finally { f.close() }
+})
+
+test('Cloud hierarchy limitation stays visible after an empty space expansion', async () => {
+  const f = await fixture()
+  try {
+    f.vm.resources = [{
+      external_id: 'space-1',
+      name: 'Cloud space',
+      type: 'space',
+      has_children: true,
+      metadata: { hierarchy_limitation: 'cloud_top_level_containers' },
+    }]
+    f.vm.expandedResourceIds = new Set(['space-1'])
+    await nextTick()
+    assert.equal(f.vm.visibleTree.some((row: any) => row.noticeAfter), true)
+
+    f.vm.expandedResourceIds = new Set()
+    f.vm.loadedChildrenIds = new Set(['space-1'])
+    f.vm.resources = [{ ...f.vm.resources[0], has_children: false }]
+    await nextTick()
+    assert.equal(f.vm.visibleTree.some((row: any) => row.noticeAfter), true)
   } finally { f.close() }
 })

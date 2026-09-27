@@ -85,6 +85,6 @@ func TestBuildConfigResponse_ShareReceiverAdminSeesPresenceOnly(t *testing.T) {
 	for _, detail := range []string{"owner-private.example.com", "owner-bucket", "ap-owner", "owner-app"} {
 		assert.NotContains(t, string(body), detail)
 	}
-	cos := config["multimodal"].(map[string]interface{})["cos"].(map[string]interface{})
-	assert.Equal(t, map[string]bool{"secretId": true, "secretKey": true}, cos["credentials"])
+	// The removed COS provider is no longer echoed back, even for legacy rows.
+	assert.NotContains(t, config["multimodal"].(map[string]interface{}), "cos")
 }

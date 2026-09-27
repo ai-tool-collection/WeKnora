@@ -2,11 +2,14 @@ package im
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/ai-tool-collection/WeKnora/internal/types"
+	"github.com/ai-tool-collection/WeKnora/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -113,19 +116,19 @@ func TestFindIncompleteXMLTag(t *testing.T) {
 	}
 }
 
-func TestResolveIMFileServiceForPath_LocalSchemeDespiteCOSDefault(t *testing.T) {
+func TestResolveIMFileServiceForPath_LocalSchemeDespiteS3Default(t *testing.T) {
 	t.Setenv("SYSTEM_SIGNING_KEY", "")
 	t.Setenv("SYSTEM_AES_KEY", "weknora-test-aes-key-32bytes!!!")
 	t.Setenv("APP_EXTERNAL_URL", "https://weknora.example.com")
 
 	tenant := &types.Tenant{
 		StorageEngineConfig: &types.StorageEngineConfig{
-			DefaultProvider: "cos",
-			COS: &types.COSEngineConfig{
-				SecretID:   "id",
+			DefaultProvider: "s3",
+			S3: &types.S3EngineConfig{
+				AccessKey:  "id",
 				SecretKey:  "key",
 				BucketName: "bucket",
-				Region:     "ap-shanghai",
+				Region:     "us-east-1",
 			},
 		},
 	}
@@ -143,12 +146,12 @@ func TestRewriteStorageURLs_LocalUsesPresignedAPI(t *testing.T) {
 
 	tenant := &types.Tenant{
 		StorageEngineConfig: &types.StorageEngineConfig{
-			DefaultProvider: "cos",
-			COS: &types.COSEngineConfig{
-				SecretID:   "id",
+			DefaultProvider: "s3",
+			S3: &types.S3EngineConfig{
+				AccessKey:  "id",
 				SecretKey:  "key",
 				BucketName: "bucket",
-				Region:     "ap-shanghai",
+				Region:     "us-east-1",
 			},
 		},
 	}
@@ -156,32 +159,42 @@ func TestRewriteStorageURLs_LocalUsesPresignedAPI(t *testing.T) {
 	in := "![img](local://10000/exports/abc.png)"
 	out := rewriteStorageURLs(context.Background(), in, newIMFileServiceResolver(tenant, nil))
 	assert.Contains(t, out, "/api/v1/files/presigned")
-	assert.NotContains(t, out, "myqcloud.com")
+	assert.NotContains(t, out, "amazonaws.com")
 }
 
-func TestRewriteStorageURLs_COSPathNotSignedAsLocalKey(t *testing.T) {
-	// Without real COS credentials, GetFileURL may fail; ensure we never embed
-	// local:// as a COS object key when rewriting fails.
+func TestRewriteStorageURLs_S3PathNotSignedAsLocalKey(t *testing.T) {
+	// Ensure we never embed local:// as an S3 object key when rewriting. A
+	// local fake endpoint answers the bucket probe so the test never leaves
+	// the machine.
+	fakeS3 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(fakeS3.Close)
+	t.Setenv("SSRF_WHITELIST", "127.0.0.1")
+	utils.ResetSSRFWhitelistForTest()
+	t.Cleanup(utils.ResetSSRFWhitelistForTest)
 	tenant := &types.Tenant{
 		StorageEngineConfig: &types.StorageEngineConfig{
-			DefaultProvider: "cos",
-			COS: &types.COSEngineConfig{
-				SecretID:   "id",
-				SecretKey:  "key",
-				BucketName: "test-bucket",
-				Region:     "ap-shanghai",
-				PathPrefix: "weknora",
+			DefaultProvider: "s3",
+			S3: &types.S3EngineConfig{
+				Endpoint:       fakeS3.URL,
+				AccessKey:      "id",
+				SecretKey:      "key",
+				BucketName:     "test-bucket",
+				Region:         "us-east-1",
+				PathPrefix:     "weknora",
+				ForcePathStyle: true,
 			},
 		},
 	}
-	path := "cos://test-bucket/ap-shanghai/weknora/10000/exports/abc.png"
+	path := "s3://test-bucket/weknora/10000/exports/abc.png"
 	svc := resolveIMFileServiceForPath(tenant, path, nil)
 	require.NotNil(t, svc)
 
 	in := "![img](" + path + ")"
 	out := rewriteStorageURLs(context.Background(), in, newIMFileServiceResolver(tenant, nil))
 	if out != in {
-		assert.False(t, strings.Contains(out, "local%3A"), "COS URL must not treat local:// as object key")
+		assert.False(t, strings.Contains(out, "local%3A"), "S3 URL must not treat local:// as object key")
 	}
 }
 
@@ -223,7 +236,7 @@ func TestHoldbackCutoff(t *testing.T) {
 		},
 		{
 			"bare truncated scoped URL without markdown wrapper",
-			"prefix storage://backend-a/cos://bucket/10000/exp",
+			"prefix storage://backend-a/s3://bucket/10000/exp",
 			7,
 		},
 	}
@@ -356,12 +369,12 @@ func TestCleanIMContent_AfterStreamReassembly(t *testing.T) {
 
 	tenant := &types.Tenant{
 		StorageEngineConfig: &types.StorageEngineConfig{
-			DefaultProvider: "cos",
-			COS: &types.COSEngineConfig{
-				SecretID:   "id",
+			DefaultProvider: "s3",
+			S3: &types.S3EngineConfig{
+				AccessKey:  "id",
 				SecretKey:  "key",
 				BucketName: "bucket",
-				Region:     "ap-shanghai",
+				Region:     "us-east-1",
 			},
 		},
 	}
@@ -405,7 +418,7 @@ func TestRewriteStorageURLs_MultipleImagesInOneChunk(t *testing.T) {
 	t.Setenv("APP_EXTERNAL_URL", "https://weknora.example.com")
 
 	tenant := &types.Tenant{
-		StorageEngineConfig: &types.StorageEngineConfig{DefaultProvider: "cos"},
+		StorageEngineConfig: &types.StorageEngineConfig{DefaultProvider: "s3"},
 	}
 
 	doc := "### 1\n\n![a](local://10000/exports/bb524693.png)\n\n### 2\n\n" +

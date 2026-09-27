@@ -38,7 +38,7 @@ func newSQLiteDataSourceDeleteFixture(t *testing.T) *sqliteDataSourceDeleteFixtu
 		TenantID:        1,
 		KnowledgeBaseID: "kb-sqlite-delete",
 		Name:            "SQLite delete",
-		Type:            types.ConnectorTypeFeishu,
+		Type:            types.ConnectorTypeNotion,
 		Status:          types.DataSourceStatusActive,
 		SyncSchedule:    "0 0 * * * *",
 	}

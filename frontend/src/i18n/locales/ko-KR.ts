@@ -710,6 +710,9 @@ export default {
       authHeaders: '사용자 지정 헤더 (선택)',
       authHeadersHint: '비공개 피드 접근용. 한 줄에 하나씩 「이름: 값」 형식으로 입력하세요. 예: Authorization: Bearer xxxx'
     },
+    confluence: {
+      cloudFolderLimitation: 'Confluence Cloud는 아직 스페이스 최상위 폴더 등 컨테이너 아래의 페이지를 여기에 나열할 수 없습니다. 스페이스 전체를 선택하면 함께 동기화됩니다.'
+    },
     connectorDesc: {
       notion: 'Notion에서 페이지 및 데이터베이스 동기화',
       confluence: 'Confluence 스페이스와 페이지를 Markdown으로 동기화',
@@ -3270,6 +3273,13 @@ export default {
     referenceSourceView: '원문 보기',
     referenceSourceRelocate: '다시 찾기',
     referenceSourceLocating: '인용 위치를 찾는 중…',
+    referenceSourceExact: "원문 구절을 정확히 찾았습니다",
+    referenceSourcePartial: "확인된 원문을 강조했습니다. 인용 일부는 아직 일치하지 않습니다",
+    referenceSourceBlock: "원문 영역을 찾았습니다. 정확한 텍스트 일치는 확인되지 않았습니다",
+    referenceSourceAmbiguous: "일치하는 구절이 여러 개여서 위치를 특정할 수 없습니다",
+    referenceSourceStale: "원문 또는 내용이 변경되어 정확히 찾을 수 없습니다",
+    referenceSourcePrevious: "이전 인용 위치",
+    referenceSourceNext: "다음 인용 위치",
     referenceSourceFoundPage: '{page}페이지에서 찾았습니다',
     referenceSourceNotFound: '인용 위치를 정확히 찾지 못해 원문을 열었습니다',
     referenceSourceOpenWeb: '원본 웹페이지에서 해당 위치 열기',
@@ -5945,6 +5955,14 @@ export default {
     noActivity: '파싱 활동 없음',
     totalDuration: '총 소요시간: {d}',
     errorCode: {
+      DOCREADER_UNAVAILABLE: "문서 분석 서비스를 사용할 수 없습니다",
+      DOCREADER_UNAVAILABLE_SUGGESTION: "DocReader에 연결할 수 없거나 연결이 끊겼습니다. 서비스 상태, 반복 재시작, 네트워크를 확인한 후 다시 시도하세요. 파일을 다시 업로드할 필요는 없습니다.",
+      DOCREADER_TIMEOUT: "문서 분석 시간 초과",
+      DOCREADER_TIMEOUT_SUGGESTION: "DocReader 상태와 부하를 확인한 후 다시 시도하세요. 필요한 경우 큰 파일을 나누세요.",
+      DOCREADER_PARSE_FAILED: "문서 분석 실패",
+      DOCREADER_PARSE_FAILED_SUGGESTION: "파일 형식을 확인하고 관리자에게 이번 DocReader 로그 확인을 요청하세요.",
+      TASK_STALLED: '진행이 없어 자동 중단됨',
+      TASK_STALLED_SUGGESTION: '임계 시간을 넘도록 진행이 없고 대기열에도 해당 작업이 없어 실패로 표시되었습니다. 「다시 시도」를 누르세요. 반복되면 이 단계가 의존하는 서비스(문서 파싱, 모델, 벡터 저장소)를 확인하세요.',
       UNKNOWN_SUGGESTION: '자세한 내용은 애플리케이션 로그를 확인하세요.'
     },
     status: {

@@ -710,6 +710,9 @@ export default {
       authHeaders: 'Пользовательские заголовки (необязательно)',
       authHeadersHint: 'Для приватных лент. По одному в строке в формате «Имя: Значение», например Authorization: Bearer xxxx'
     },
+    confluence: {
+      cloudFolderLimitation: 'Confluence Cloud пока не может показать здесь страницы из папок верхнего уровня пространства; при выборе всего пространства они будут синхронизированы.'
+    },
     connectorDesc: {
       notion: 'Синхронизация страниц и баз данных из Notion',
       confluence: 'Синхронизация пространств и страниц Confluence в Markdown',
@@ -3270,6 +3273,13 @@ export default {
     referenceSourceView: 'Открыть оригинал',
     referenceSourceRelocate: 'Найти снова',
     referenceSourceLocating: 'Поиск цитируемого фрагмента…',
+    referenceSourceExact: "Фрагмент источника найден",
+    referenceSourcePartial: "Проверенные фрагменты выделены; часть цитаты не сопоставлена",
+    referenceSourceBlock: "Найдена область источника; точное совпадение текста не подтверждено",
+    referenceSourceAmbiguous: "Найдено несколько совпадений; точное место неизвестно",
+    referenceSourceStale: "Источник или содержимое изменены; точное место цитаты недоступно",
+    referenceSourcePrevious: "Предыдущее место цитирования",
+    referenceSourceNext: "Следующее место цитирования",
     referenceSourceFoundPage: 'Найдено на странице {page}',
     referenceSourceNotFound: 'Не удалось точно найти фрагмент; открыт оригинал',
     referenceSourceOpenWeb: 'Открыть веб-страницу на этом фрагменте',
@@ -5945,6 +5955,14 @@ export default {
     noActivity: 'Нет активности парсинга',
     totalDuration: 'Всего: {d}',
     errorCode: {
+      DOCREADER_UNAVAILABLE: "Сервис обработки документов недоступен",
+      DOCREADER_UNAVAILABLE_SUGGESTION: "Не удалось подключиться к DocReader или соединение прервано. Проверьте состояние сервиса, повторные перезапуски и сеть. Повторите попытку после восстановления; загружать файл заново не нужно.",
+      DOCREADER_TIMEOUT: "Превышено время обработки документа",
+      DOCREADER_TIMEOUT_SUGGESTION: "Проверьте состояние и нагрузку DocReader перед повторной попыткой. При необходимости разделите большой файл.",
+      DOCREADER_PARSE_FAILED: "Ошибка обработки документа",
+      DOCREADER_PARSE_FAILED_SUGGESTION: "Проверьте формат файла и попросите администратора изучить журналы DocReader для этой попытки.",
+      TASK_STALLED: 'Остановлено из-за отсутствия прогресса',
+      TASK_STALLED_SUGGESTION: 'Обработка не продвигалась дольше порога, и в очереди не осталось задач, поэтому она помечена как ошибочная. Нажмите «Повторить»; если это повторяется, проверьте сервис, от которого зависит этап (разбор документов, модель или векторное хранилище).',
       UNKNOWN_SUGGESTION: 'Проверьте логи приложения для подробностей.'
     },
     status: {

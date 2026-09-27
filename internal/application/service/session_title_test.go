@@ -55,7 +55,7 @@ func TestSanitizeGeneratedTitle(t *testing.T) {
 				"| 发布日期 | 2026-09-01 |",
 			query: "打开 https://github.com/ai-tool-collection/WeKnora ，找到最新 Release 的版本号和发布日期；" +
 				"然后打开 https://httpbin.org/forms/post ，用以下信息填写订单表单",
-			want:          "打开 https://github.com/Tencent/…",
+			want:          "打开 https://github.com/ai-tool-…",
 			wantFromQuery: true,
 		},
 		{

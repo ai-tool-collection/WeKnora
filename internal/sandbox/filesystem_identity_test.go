@@ -13,35 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCubeFilesystemIdentityIsRequestScoped(t *testing.T) {
-	for _, route := range []string{"/files?path=/workspace/a", "/filesystem.Filesystem/MakeDir"} {
-		recorder := &recordingRoundTripper{}
-		transport := &cubeFilesystemTransport{next: recorder}
-		for _, maintenance := range []bool{false, true, false} {
-			ctx := context.Background()
-			user := DefaultSandboxExecUser
-			if maintenance {
-				ctx = withMaintenanceFilesystem(ctx)
-				user = "root"
-			}
-			req := httptest.NewRequest(http.MethodGet, "https://sandbox.example"+route, nil).WithContext(ctx)
-			req.Header.Set("Authorization", basicAuthorizationFor("root"))
-			_, err := transport.RoundTrip(req)
-			require.NoError(t, err)
-			require.Equal(t, basicAuthorizationFor(user), recorder.request.Header.Get("Authorization"))
-			require.Equal(t, basicAuthorizationFor("root"), req.Header.Get("Authorization"), "input request must not be mutated")
-		}
-	}
-	for _, route := range []string{"/sandboxes", "/process.Process/Start"} {
-		recorder := &recordingRoundTripper{}
-		req := httptest.NewRequest(http.MethodPost, "https://sandbox.example"+route, nil)
-		req.Header.Set("Authorization", "preserve-me")
-		_, err := (&cubeFilesystemTransport{next: recorder}).RoundTrip(req)
-		require.NoError(t, err)
-		require.Equal(t, "preserve-me", recorder.request.Header.Get("Authorization"))
-	}
-}
-
 func TestEnvdMaintenanceFilesystemIdentity(t *testing.T) {
 	recorder := &recordingRoundTripper{}
 	transport := NewEnvdCompatTransport(recorder, DefaultSandboxExecUser)
@@ -79,14 +50,9 @@ func TestFileTransferSkipsShortHTTPTimeout(t *testing.T) {
 	assertBudget := func(t *testing.T, transport http.RoundTripper, route string, short bool) {
 		t.Helper()
 		recorder := &recordingRoundTripper{}
-		switch typed := transport.(type) {
-		case *cubeFilesystemTransport:
-			typed.next = recorder
-		case *e2bRPCTimeoutTransport:
-			typed.next = recorder
-		default:
-			t.Fatalf("unexpected transport %T", transport)
-		}
+		typed, ok := transport.(*e2bRPCTimeoutTransport)
+		require.True(t, ok, "unexpected transport %T", transport)
+		typed.next = recorder
 		req := httptest.NewRequest(http.MethodGet, "https://sandbox.example"+route, nil).WithContext(parent)
 		_, err := transport.RoundTrip(req)
 		require.NoError(t, err)
@@ -100,13 +66,7 @@ func TestFileTransferSkipsShortHTTPTimeout(t *testing.T) {
 		require.Greater(t, remaining, time.Second)
 	}
 
-	cube := &cubeFilesystemTransport{timeout: 50 * time.Millisecond}
 	e2b := &e2bRPCTimeoutTransport{timeout: 50 * time.Millisecond}
-	assertBudget(t, cube, "/files?path=/workspace/a", false)
-	assertBudget(t, cube, "/filesystem.Filesystem/WriteFile", false)
-	assertBudget(t, cube, "/filesystem.Filesystem/MakeDir", true)
-	assertBudget(t, cube, "/process.Process/Start", false)
-	assertBudget(t, cube, "/sandboxes/sbx-1/snapshots", false)
 	assertBudget(t, e2b, "/files", false)
 	assertBudget(t, e2b, "/filesystem.Filesystem/Read", false)
 	assertBudget(t, e2b, "/filesystem.Filesystem/MakeDir", true)

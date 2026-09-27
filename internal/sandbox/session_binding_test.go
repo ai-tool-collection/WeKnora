@@ -47,7 +47,7 @@ func testSessionSandboxBindingStore(t *testing.T, store SessionSandboxBindingSto
 	require.NoError(t, err)
 	require.False(t, created)
 
-	deleted, err := store.DeleteIfMatch(ctx, key, SandboxTypeE2B, "sandbox-a")
+	deleted, err := store.DeleteIfMatch(ctx, key, SandboxTypeDocker, "sandbox-a")
 	require.NoError(t, err)
 	require.False(t, deleted)
 	deleted, err = store.DeleteIfMatch(ctx, key, SandboxTypeE2B, "sandbox-b")
@@ -425,7 +425,7 @@ func TestSessionSandboxBindingWithoutTrafficTokenStaysValid(t *testing.T) {
 	key := SessionSandboxKey{TenantID: 1, SessionID: "session-1"}
 	raw := []byte(`{
 		"version": ` + strconv.Itoa(SessionSandboxBindingVersion) + `,
-		"provider": "cube",
+		"provider": "e2b",
 		"tenant_id": 1,
 		"session_id": "session-1",
 		"sandbox_id": "sandbox-1",

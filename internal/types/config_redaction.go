@@ -98,10 +98,6 @@ func MergeParserEngineConfigForUpdate(incoming, existing *ParserEngineConfig) *P
 		return nil
 	}
 	out := *incoming
-	var prev ParserEngineConfig
-	if existing != nil {
-		prev = *existing
-	}
 	// Chat attachment parser rules are configured per agent; preserve any legacy
 	// tenant-level rules when the settings UI omits this field on engine updates.
 	if incoming.ChatParserEngineRules == nil && existing != nil {

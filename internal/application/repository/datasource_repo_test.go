@@ -30,8 +30,8 @@ func TestDataSourceRepositoryUpdateSyncStateClearsErrorMessage(t *testing.T) {
 		ID:              "ds-1",
 		TenantID:        1,
 		KnowledgeBaseID: "kb-1",
-		Name:            "Feishu",
-		Type:            types.ConnectorTypeFeishu,
+		Name:            "Notion",
+		Type:            types.ConnectorTypeNotion,
 		Status:          types.DataSourceStatusError,
 		ErrorMessage:    "previous failure",
 	}
@@ -60,8 +60,8 @@ func TestDataSourceRepositoryUpdatePersistsDisabledSyncDeletions(t *testing.T) {
 		ID:              "ds-sync-deletions",
 		TenantID:        1,
 		KnowledgeBaseID: "kb-1",
-		Name:            "Feishu",
-		Type:            types.ConnectorTypeFeishu,
+		Name:            "Notion",
+		Type:            types.ConnectorTypeNotion,
 		SyncDeletions:   true,
 	}
 	require.NoError(t, repo.Create(ctx, ds))
@@ -90,8 +90,8 @@ func TestDataSourceRepositoryCreatePersistsDisabledSyncDeletions(t *testing.T) {
 		ID:              "ds-create-sync-deletions",
 		TenantID:        1,
 		KnowledgeBaseID: "kb-1",
-		Name:            "Feishu",
-		Type:            types.ConnectorTypeFeishu,
+		Name:            "Notion",
+		Type:            types.ConnectorTypeNotion,
 		SyncDeletions:   false,
 	}
 	require.NoError(t, repo.Create(ctx, ds))
@@ -118,8 +118,8 @@ func TestDataSourceRepositoryCreatePersistsEnabledSyncDeletions(t *testing.T) {
 		ID:              "ds-create-sync-deletions-enabled",
 		TenantID:        1,
 		KnowledgeBaseID: "kb-1",
-		Name:            "Feishu",
-		Type:            types.ConnectorTypeFeishu,
+		Name:            "Notion",
+		Type:            types.ConnectorTypeNotion,
 		SyncDeletions:   true,
 	}
 	require.NoError(t, repo.Create(ctx, ds))
@@ -140,14 +140,14 @@ func TestDataSourceRepositoryDeleteSoftDeletesOnSQLite(t *testing.T) {
 		TenantID:        1,
 		KnowledgeBaseID: "kb-1",
 		Name:            "Delete target",
-		Type:            types.ConnectorTypeFeishu,
+		Type:            types.ConnectorTypeNotion,
 	}
 	other := &types.DataSource{
 		ID:              "ds-delete-other",
 		TenantID:        1,
 		KnowledgeBaseID: "kb-1",
 		Name:            "Other data source",
-		Type:            types.ConnectorTypeFeishu,
+		Type:            types.ConnectorTypeNotion,
 	}
 	require.NoError(t, repo.Create(ctx, target))
 	require.NoError(t, repo.Create(ctx, other))

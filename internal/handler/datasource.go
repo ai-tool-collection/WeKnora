@@ -332,7 +332,7 @@ func (h *DataSourceHandler) ValidateCredentials(c *gin.Context) {
 }
 
 // @Summary List available resources in data source
-// @Description List resources available for sync in the external system. Pass parent_id to lazily load the direct children of a resource (used for large hierarchical sources such as Feishu wiki).
+// @Description List resources available for sync in the external system. Pass parent_id to lazily load the direct children of a resource (used for large hierarchical sources such as Confluence spaces).
 // @Tags DataSource
 // @Produce json
 // @Param id path string true "Data source ID"

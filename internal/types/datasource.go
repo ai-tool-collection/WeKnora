@@ -61,7 +61,7 @@ type DataSource struct {
 	// User-friendly name
 	Name string `json:"name"`
 
-	// Connector type (feishu, notion, confluence, etc.)
+	// Connector type (notion, confluence, gitlab, rss, etc.)
 	Type string `json:"type" gorm:"type:varchar(50);index"`
 
 	// Encrypted configuration (API credentials, tokens, etc.)

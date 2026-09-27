@@ -109,7 +109,7 @@ func TestIsNamedSandboxBackendType(t *testing.T) {
 		raw  string
 		want bool
 	}{
-		{"cube", true},
+		{"cube", false}, // removed CubeSandbox integration
 		{"e2b", true},
 		{"docker", true},
 		{"local", false},

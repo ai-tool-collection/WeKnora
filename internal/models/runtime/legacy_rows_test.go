@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/providers"
 	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
 	"github.com/ai-tool-collection/WeKnora/internal/types"
 )

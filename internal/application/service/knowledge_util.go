@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -14,6 +15,7 @@ import (
 
 	filesvc "github.com/ai-tool-collection/WeKnora/internal/application/service/file"
 	werrors "github.com/ai-tool-collection/WeKnora/internal/errors"
+	"github.com/ai-tool-collection/WeKnora/internal/infrastructure/docparser"
 	"github.com/ai-tool-collection/WeKnora/internal/logger"
 	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
@@ -101,6 +103,44 @@ func isValidURL(url string) bool {
 		return true
 	}
 	return false
+}
+
+// readMultipartFileContent reads the full upload payload. Each Open() returns a
+// fresh reader, so callers that hash or SaveFile later open again themselves.
+func readMultipartFileContent(file *multipart.FileHeader) ([]byte, error) {
+	f, err := file.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = f.Close() }()
+	return io.ReadAll(f)
+}
+
+// ValidateJSONUploadContent rejects malformed .json uploads before they are
+// stored and queued. Shares the same validity gate as the simple JSON reader.
+// Call this from HTTP upload / replace handlers only — CreateKnowledgeFromFile
+// itself must not, so datasource sync and IM can still create a knowledge row
+// that fails in async parse (delete-then-create must not leave a gap).
+func ValidateJSONUploadContent(fileName string, file *multipart.FileHeader) error {
+	if normalizeFileExtension(getFileType(fileName)) != "json" {
+		return nil
+	}
+	data, err := readMultipartFileContent(file)
+	if err != nil {
+		return err
+	}
+	// The upload queue shows this message verbatim, so phrase it here rather
+	// than in docparser, whose error text is shared with the async JSON reader.
+	switch err := docparser.ValidateJSONContent(data); {
+	case err == nil:
+		return nil
+	case errors.Is(err, docparser.ErrEmptyJSONContent):
+		return werrors.NewBadRequestError("JSON file is empty")
+	case errors.Is(err, docparser.ErrInvalidJSONContent):
+		return werrors.NewBadRequestError("JSON file content is invalid; check the format")
+	default:
+		return werrors.NewBadRequestError(err.Error())
+	}
 }
 
 // calculateFileHash calculates MD5 hash of a file

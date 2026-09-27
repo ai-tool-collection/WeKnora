@@ -82,8 +82,10 @@ services:
       - full
 
   minio:
-    image: quay.io/minio/minio:latest
+    image: ${MINIO_IMAGE:-cgr.dev/chainguard/minio:latest}
     container_name: WeKnora-minio-dev
+    # Chainguard defaults to uid 65532; root keeps volumes written by older MinIO images usable.
+    user: "0:0"
     ports:
       - "${MINIO_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-9001}:9001"
@@ -94,7 +96,7 @@ services:
     volumes:
       - minio_data_dev:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "mc", "ready", "local"]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -438,8 +440,9 @@ services:
       - full
 
   langfuse-minio:
-    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    image: ${MINIO_IMAGE:-cgr.dev/chainguard/minio:latest}
     container_name: WeKnora-langfuse-minio-dev
+    user: "0:0"
     restart: unless-stopped
     entrypoint: sh
     command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'

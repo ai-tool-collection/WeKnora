@@ -167,7 +167,7 @@ type Session struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 
-	// IMPlatform is the originating IM platform (e.g. "feishu", "wecom") when
+	// IMPlatform is the originating IM platform (e.g. "slack", "telegram") when
 	// this session is bound to an IM channel. It is not stored on the sessions
 	// table (it lives in im_channel_sessions) and is populated on read so the
 	// Web console can classify a session's origin folder without a list query.

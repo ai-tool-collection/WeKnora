@@ -27,7 +27,8 @@
 | 模型協定與端點 | 上列 provider 所需協定、Ollama 與明確核准的自訂端點 | Tencent LKEAP、Ark、DashScope 特有客戶端及中國預設 API URL | `internal/models/api/`、`internal/models/chat/`、`embedding/`、`rerank/`、`asr/`、`vlm/`、`config/builtin_models.yaml.example` |
 | 網頁搜尋 | DuckDuckGo、Google、Bing、Tavily、Ollama、SearXNG、Keenable、Exa、Brave、Serply | Baidu、Bocha、Metaso、Zhipu | `internal/container/container.go` 的註冊、`internal/types/web_search_provider.go`、`internal/infrastructure/web_search/`、前端設定頁 |
 | 即時通訊 | Slack、Telegram、Mattermost | DingTalk、Feishu／Lark、QQ Bot、WeChat、WeCom、Yunzhijia | `internal/handler/im.go`、`internal/im/`、前端通道選項、設定及文件 |
-| 物件儲存 | local、MinIO、S3 相容儲存 | COS、TOS、OSS 的專用實作與設定 | `internal/application/service/file/`、`.env*`、`docker-compose*.yml`、`helm/values.yaml` |
+| 資料來源 connector | Confluence、GitLab、Notion、RSS | DingTalk、Feishu／Lark(含 Drive)、Tencent IMA、Yuque | `internal/datasource/connector/`、`internal/datasource/connector.go`、`frontend/src/views/knowledge/settings/DataSourceEditorDialog.vue`、datasource i18n |
+| 物件儲存 | local、MinIO、S3 相容儲存;Compose 的 MinIO 映像為 `cgr.dev/chainguard/minio`(可用 `MINIO_IMAGE` 覆寫) | COS、TOS、OSS、KS3、OBS 的專用實作與設定;上游改用的 `pgsty/minio` 社群映像 | `internal/application/service/file/`、`internal/storageallowlist/`、`.env*`、`docker-compose*.yml`、`helm/values.yaml` |
 | 向量儲存 | PostgreSQL／pgvector、Elasticsearch、OpenSearch、Qdrant、Weaviate，以及自架 Milvus、Doris | Tencent VectorDB | `internal/types/retriever.go`、`internal/types/vectorstore.go`、`internal/application/repository/retriever/`、Compose／Helm |
 | 文件解析 | DocReader builtin、simple、anydoc | MinerU、PaddleOCR-VL、WeKnoraCloud reader | `internal/infrastructure/docparser/engines.go`、`docreader/`、前端引擎選項、範例環境檔 |
 | 沙箱與技能 | 目前保留的本地、Docker、E2B 等實作；技能來源須經驗證 | CubeSandbox 託管整合、SkillHub.cn 下載來源 | `internal/sandbox/`、`internal/application/service/tenant_skill_source.go`、`scripts/` |
@@ -45,14 +46,16 @@
 4. **BrowserSkill** 是可選的本地整合。`scripts/build_browserskill.sh` 只接受經審查、符合 `scripts/browserskill-release.json` 指定 commit 的本地原始碼，不再自動 clone；其授權聲明仍須隨資產保存。若政策改成連這個來源也不得保留，必須一併移除功能、構建、UI、設定與文件。
 5. `go.mod` 仍有 ByteDance Sonic 相關的**間接依賴**，需追查引入鏈並評估替代方案。請勿把「服務已移除」寫成「供應鏈已完全排除中國來源」。
 6. 後端仍有歷史簡體中文註解、錯誤訊息、IM 文案與測試資料；部分發行檔名、腳本與範例仍有技術性舊品牌字串。清理尚未完成。翻譯使用者可見字串時，要同步更新測試及所有既有語系，並避免改動需要相容的儲存值。
-7. 來源與 lockfile 掃描不能證明執行時絕無外連。自訂模型 URL、插件、MCP、網頁擷取與使用者設定的 S3 端點仍可產生對外流量；部署者應以 egress allowlist 和網路紀錄驗證實際目的地。
+7. **MinIO 映像**:quay.io 自 2026-09-24 關閉 `minio/minio` 匿名拉取,上游改用 Pigsty 維護的 `pgsty/minio`;本 fork 改用 Chainguard 從原始碼建置的 `cgr.dev/chainguard/minio`。其免費版只提供 `latest` tag,需要固定版本時以 digest 釘選。映像預設以 uid 65532 執行且沒有 `curl`,Compose 因此設 `user: "0:0"` 相容舊版 root 寫入的 volume,healthcheck 改用 `mc ready local`。
+8. **Swagger 產物**:已提交的 `docs/swagger.*` 仍含已移除的 `/wechat/qrcode` 路由與 COS、TOS、OSS、KS3、OBS、Cube 定義,且缺少 `/wiki-search` 等新端點。以 swag v1.16.4/v1.16.6 執行 `make docs` 會改變所有 definition 命名並遺失 `ErrorCode` enum,導致 `go test ./docs` 失敗;需先確認上游使用的 swag 版本再重新生成。
+9. 來源與 lockfile 掃描不能證明執行時絕無外連。自訂模型 URL、插件、MCP、網頁擷取與使用者設定的 S3 端點仍可產生對外流量；部署者應以 egress allowlist 和網路紀錄驗證實際目的地。
 
 ## 4. 每次更新上游的標準流程
 
 ### A. 準備與差異盤點
 
-1. 先把此 fork 的清理工作提交成可回溯的基線，確認 `git status --short` 為空。**目前工作樹仍有大量未提交變更，不適合直接執行上游合併。**
-2. 記下本 fork 與上游的 commit SHA、版本與預計納入的功能。`git remote -v` 確認來源；目前只有 `origin`，沒有預先設定的 `upstream`。由維護者核對上游倉庫與分支後再 fetch。
+1. 先把此 fork 的清理工作提交成可回溯的基線，確認 `git status --short` 為空。
+2. 記下本 fork 與上游的 commit SHA、版本與預計納入的功能。`git remote -v` 確認來源；目前只有 `origin`，沒有預先設定的 `upstream`。上游由維護者同步到 `main`,再以 `git merge main` 帶入清理分支。
 3. 在獨立分支／worktree 作業。先用 `git diff --name-status HEAD..<reviewed-upstream-ref>` 與 `git log --oneline HEAD..<reviewed-upstream-ref>` 檢視變更，記錄新增的資料夾、依賴、workflow、環境變數、外部 URL 和 UI 選項。
 4. 合併或挑選上游功能時，逐項帶入需要的功能與安全修正；不要用整個上游目錄覆蓋此 fork 的 provider、IM、儲存、解析、部署或文件目錄。
 
@@ -63,8 +66,11 @@
 1. **後端能力鏈：**實作 → 註冊／工廠 → 型別與列舉 → handler／路由 → 設定與環境變數 → 資料遷移 → 測試。移除實作後，不能讓通用 provider 對舊 ID 自動回退。
 2. **前端能力鏈：**型別 → 選單與表單 → 圖示資產 → i18n → 範例與測試。後端拒絕的服務不得仍顯示為可設定項。
 3. **發行鏈：**Dockerfile、Compose、Helm、GitHub Actions、MCP package metadata、lockfile、更新檢查器與範例 URL。檢查是否引入新的中國映像／套件 registry 或自動下載腳本。
-4. **生成鏈：**模型 catalog seed／generated JSON、Swagger、protobuf、前端 widget 與文件站。修改來源後重新生成，再檢查生成產物；不要只手改生成檔。
+4. **生成鏈：**模型 catalog seed／generated JSON、Swagger、protobuf、前端 widget 與文件站。修改來源後重新生成，再檢查生成產物；不要只手改生成檔。protobuf 生成檔(`*.pb.go`、`*_pb2.py`)的序列化 descriptor 帶長度前綴,直接文字取代 `go_package` 會讓程式在 init 時 panic。
 5. **升級資料：**對已存在的 provider、通道與儲存設定，確認舊金鑰不會送往被移除服務。歷史欄位與遷移應以向後相容為優先；停用執行路徑與安全移轉使用者資料可分開處理。
+6. **Go module path:**上游 import 為 `github.com/Tencent/WeKnora`,合併後新增與衝突檔案都要改寫為 fork module path,否則無法編譯。
+7. **被刪除功能的新增檔案:**上游對已移除功能新增的檔案(例如 connector 測試)不會產生衝突,會被靜默帶入;要用 `git diff --name-only --diff-filter=A` 另行檢查。
+8. **共用 helper 與測試:**刪除整合檔案前確認其中沒有被保留功能共用的函式(例如 E2B 沙箱曾依賴 Cube 檔案內的 `parseProxyURL`),並同步修改引用已移除型別的測試;以具 CGO 的 `go vet ./...` 與 `go test ./...` 驗證,不能只編譯主程式。
 
 ### C. 靜態搜尋與人工分類
 
@@ -72,7 +78,7 @@
 
 ```sh
 rg --hidden -n -i 'aliyun|alibaba|dashscope|deepseek|doubao|hunyuan|lkeap|longcat|mimo|minimax|modelscope|moonshot|qianfan|qiniu|siliconflow|volcengine|weknoracloud|zhipu' internal frontend/src config docreader scripts .github helm
-rg --hidden -n -i 'baidu|bocha|metaso|dingtalk|feishu|larksuite|qqbot|wechat|wecom|yunzhijia|tencent.?vectordb|mineru|paddleocr|cube.?sandbox|skillhub\.cn' internal frontend/src config docreader scripts .github helm
+rg --hidden -n -i 'baidu|bocha|metaso|dingtalk|feishu|larksuite|qqbot|wechat|wecom|yunzhijia|yuque|ima\.qq|pgsty|tencent.?vectordb|mineru|paddleocr|cube.?sandbox|skillhub\.cn' internal frontend/src config docreader scripts .github helm docker-compose.yml docker-compose.dev.yml
 rg --hidden -n -i 'aliyuncs\.com|baidubce\.com|tencentcloudapi\.com|myqcloud\.com|qcloud\.com|volces\.com|bigmodel\.cn|modelscope\.cn|siliconflow\.cn|weixin\.qq\.com|dingtalk\.com' internal frontend/src config docreader scripts .github helm
 rg --hidden -n -i 'cos|tos|oss|zh-CN|zh_CN|zh-Hans|WeKnora|Tencent' .env.example .env.lite.example docker-compose.yml docker-compose.dev.yml helm frontend/src website-docs mcp-server Makefile SECURITY.md
 rg --hidden -n -i 'registry\.npm\.taobao\.org|npmmirror\.com|registry\.nlark\.com|mirrors\.aliyun|hub\.docker\.com/r/' frontend/package-lock.json website-docs/package-lock.json go.mod go.sum mcp-server/uv.lock

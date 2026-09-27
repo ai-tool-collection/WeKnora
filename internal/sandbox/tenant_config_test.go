@@ -412,10 +412,10 @@ func TestResolveEffectiveConfigReportsMissingImageBeforeHostProblems(t *testing.
 
 func TestEffectiveTemplateIDPerProvider(t *testing.T) {
 	require.Equal(t, "e2b-tpl", EffectiveTemplateID(&Config{
-		Type: SandboxTypeE2B, E2BTemplate: "e2b-tpl", E2BTemplate: "cube-tpl",
+		Type: SandboxTypeE2B, E2BTemplate: "e2b-tpl", DockerImage: "docker-img",
 	}))
-	require.Equal(t, "cube-tpl", EffectiveTemplateID(&Config{
-		Type: SandboxTypeE2B, E2BTemplate: "e2b-tpl", E2BTemplate: "cube-tpl",
+	require.Equal(t, "docker-img", EffectiveTemplateID(&Config{
+		Type: SandboxTypeDocker, E2BTemplate: "e2b-tpl", DockerImage: "docker-img",
 	}))
 	require.Empty(t, EffectiveTemplateID(&Config{Type: SandboxTypeDisabled}))
 	require.Empty(t, EffectiveTemplateID(nil))

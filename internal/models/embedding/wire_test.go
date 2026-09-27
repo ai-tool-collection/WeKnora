@@ -124,28 +124,6 @@ func TestEmbeddingWireFormatPerVendor(t *testing.T) {
 		}
 		return body
 	}
-	arkBody := func(model, text string, extra map[string]any) map[string]any {
-		body := map[string]any{
-			"model": model,
-			"input": []any{map[string]any{"type": "text", "text": text}},
-		}
-		for k, v := range extra {
-			body[k] = v
-		}
-		return body
-	}
-	dashBody := func(model string, input []string, extra map[string]any) map[string]any {
-		contents := make([]any, len(input))
-		for i, s := range input {
-			contents[i] = map[string]any{"text": s}
-		}
-		body := map[string]any{"model": model, "input": map[string]any{"contents": contents}}
-		for k, v := range extra {
-			body[k] = v
-		}
-		return body
-	}
-	const dashPath = "/api/v1/services/embeddings/multimodal-embedding/multimodal-embedding"
 
 	cases := []struct {
 		name     string
@@ -230,12 +208,6 @@ func TestEmbeddingWireFormatPerVendor(t *testing.T) {
 			wantBody: openAIBody("nvidia/nemotron-3-embed-1b", []string{"q"}, map[string]any{
 				"encoding_format": "float", "input_type": "query", "truncate": "END",
 			}),
-		},
-		{
-			name: "modelscope documents nothing beyond the baseline", provider: "modelscope",
-			model: "Qwen/Qwen3-Embedding-8B", base: "/v1", override: true,
-			wantPath: "/v1/embeddings", wantAuth: [2]string{"Authorization", "Bearer k"},
-			wantBody: openAIBody("Qwen/Qwen3-Embedding-8B", three, nil),
 		},
 		{
 			name: "novita documents encoding_format only", provider: "novita",
@@ -333,5 +305,20 @@ func TestEmbeddingWireFormatPerVendor(t *testing.T) {
 			assert.Equal(t, tc.wantAuth[1], first.header.Get(tc.wantAuth[0]))
 			assert.Equal(t, tc.wantBody, first.body)
 		})
+	}
+}
+
+// Legacy rows naming a removed provider must fail before any request is built,
+// so stored keys are never sent to the old endpoint.
+func TestEmbedderRejectsRemovedProviders(t *testing.T) {
+	for _, provider := range []string{"modelscope", "aliyun", "zhipu", "siliconflow", "volcengine"} {
+		_, err := newEmbedder(Config{
+			Source:    types.ModelSourceRemote,
+			Provider:  provider,
+			BaseURL:   "https://relay.example.com/v1",
+			ModelName: "m",
+			APIKey:    "k",
+		}, nil, nil)
+		require.Error(t, err, provider)
 	}
 }

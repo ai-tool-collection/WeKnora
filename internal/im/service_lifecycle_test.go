@@ -18,7 +18,7 @@ import (
 
 type lifecycleTestAdapter struct{}
 
-func (*lifecycleTestAdapter) Platform() Platform                { return Platform("test") }
+func (*lifecycleTestAdapter) Platform() Platform                { return Platform("mattermost") }
 func (*lifecycleTestAdapter) VerifyCallback(*gin.Context) error { return nil }
 func (*lifecycleTestAdapter) ParseCallback(*gin.Context) (*IncomingMessage, error) {
 	return nil, nil
@@ -170,7 +170,7 @@ func createLifecycleChannel(t *testing.T, db *gorm.DB, id, agentID string) *IMCh
 		ID:          id,
 		TenantID:    1,
 		AgentID:     agentID,
-		Platform:    "test",
+		Platform:    "mattermost",
 		Enabled:     true,
 		Mode:        "webhook",
 		OutputMode:  "full",
@@ -189,13 +189,13 @@ func TestEnsureChannelAdapterRefreshesStaleConfig(t *testing.T) {
 	channel := createLifecycleChannel(t, db, "channel-refresh", "agent-old")
 	counters := &lifecycleFactoryCounters{}
 	svc := newLifecycleTestService(db, nil, "instance-one")
-	svc.RegisterAdapterFactory("test", counters.factory())
+	svc.RegisterAdapterFactory("mattermost", counters.factory())
 	t.Cleanup(svc.Stop)
 
 	if err := svc.StartChannel(channel); err != nil {
 		t.Fatalf("start initial channel: %v", err)
 	}
-	if err := db.Model(&IMChannel{}).Where("id = ?", channel.ID).
+	if err := db.Model(&IMChannel{Platform: channel.Platform}).Where("id = ?", channel.ID).
 		Updates(map[string]any{"agent_id": "agent-new", "credentials": types.JSON(`{"token":"v2"}`)}).Error; err != nil {
 		t.Fatalf("update durable channel: %v", err)
 	}
@@ -217,13 +217,13 @@ func TestEnsureChannelAdapterStopsDisabledCachedChannel(t *testing.T) {
 	channel := createLifecycleChannel(t, db, "channel-disabled", "agent")
 	counters := &lifecycleFactoryCounters{}
 	svc := newLifecycleTestService(db, nil, "instance-one")
-	svc.RegisterAdapterFactory("test", counters.factory())
+	svc.RegisterAdapterFactory("mattermost", counters.factory())
 	t.Cleanup(svc.Stop)
 
 	if err := svc.StartChannel(channel); err != nil {
 		t.Fatalf("start channel: %v", err)
 	}
-	if err := db.Model(&IMChannel{}).Where("id = ?", channel.ID).Update("enabled", false).Error; err != nil {
+	if err := db.Model(&IMChannel{Platform: channel.Platform}).Where("id = ?", channel.ID).Update("enabled", false).Error; err != nil {
 		t.Fatalf("disable channel: %v", err)
 	}
 	if _, _, err := svc.EnsureChannelAdapter(channel.ID); err == nil {
@@ -242,7 +242,7 @@ func TestEnsureChannelAdapterKeepsRuntimeOnDatabaseFailure(t *testing.T) {
 	channel := createLifecycleChannel(t, db, "channel-db-failure", "agent")
 	counters := &lifecycleFactoryCounters{}
 	svc := newLifecycleTestService(db, nil, "instance-one")
-	svc.RegisterAdapterFactory("test", counters.factory())
+	svc.RegisterAdapterFactory("mattermost", counters.factory())
 	t.Cleanup(svc.Stop)
 
 	if err := svc.StartChannel(channel); err != nil {
@@ -278,8 +278,8 @@ func TestChannelConfigEventReloadsOtherReplica(t *testing.T) {
 	countersTwo := &lifecycleFactoryCounters{}
 	svcOne := newLifecycleTestService(db, redisOne, "instance-one")
 	svcTwo := newLifecycleTestService(db, redisTwo, "instance-two")
-	svcOne.RegisterAdapterFactory("test", countersOne.factory())
-	svcTwo.RegisterAdapterFactory("test", countersTwo.factory())
+	svcOne.RegisterAdapterFactory("mattermost", countersOne.factory())
+	svcTwo.RegisterAdapterFactory("mattermost", countersTwo.factory())
 	svcOne.startChannelConfigSubscriber()
 	svcTwo.startChannelConfigSubscriber()
 	t.Cleanup(svcOne.Stop)
@@ -343,7 +343,7 @@ func TestServiceStopIsIdempotent(t *testing.T) {
 	channel := createLifecycleChannel(t, db, "channel-stop", "agent")
 	counters := &lifecycleFactoryCounters{}
 	svc := newLifecycleTestService(db, nil, "instance-one")
-	svc.RegisterAdapterFactory("test", counters.factory())
+	svc.RegisterAdapterFactory("mattermost", counters.factory())
 	if err := svc.StartChannel(channel); err != nil {
 		t.Fatalf("start channel: %v", err)
 	}
@@ -372,7 +372,7 @@ func TestStartChannelDoesNotLeakAdapterWhenStoppedDuringFactory(t *testing.T) {
 	factoryEntered := make(chan struct{})
 	releaseFactory := make(chan struct{})
 	inner := counters.factory()
-	svc.RegisterAdapterFactory("test", func(
+	svc.RegisterAdapterFactory("mattermost", func(
 		ctx context.Context,
 		ch *IMChannel,
 		handler func(context.Context, *IncomingMessage) error,
@@ -409,7 +409,7 @@ func TestSameChannelRuntimeConfigUsesSemanticCredentials(t *testing.T) {
 		ID:          "channel",
 		TenantID:    1,
 		AgentID:     "agent",
-		Platform:    "test",
+		Platform:    "mattermost",
 		Enabled:     true,
 		Mode:        "webhook",
 		OutputMode:  "full",
@@ -444,7 +444,7 @@ func TestLeaderElectionFailsClosedWhenRedisUnavailable(t *testing.T) {
 	redisClient := redis.NewClient(&redis.Options{Addr: "127.0.0.1:1"})
 	_ = redisClient.Close()
 	svc := newLifecycleTestService(db, redisClient, "instance-one")
-	svc.RegisterAdapterFactory("test", counters.factory())
+	svc.RegisterAdapterFactory("mattermost", counters.factory())
 	t.Cleanup(svc.Stop)
 
 	if err := svc.StartChannel(channel); err != nil {
@@ -468,7 +468,7 @@ func TestLeadershipLossStopsAdapterAndSchedulesRecovery(t *testing.T) {
 	db := newLifecycleTestDB(t)
 	channel := createLifecycleChannel(t, db, "channel-leader-loss", "agent")
 	channel.Mode = "websocket"
-	if err := db.Model(&IMChannel{}).Where("id = ?", channel.ID).
+	if err := db.Model(&IMChannel{Platform: channel.Platform}).Where("id = ?", channel.ID).
 		Update("mode", channel.Mode).Error; err != nil {
 		t.Fatalf("persist websocket mode: %v", err)
 	}
@@ -479,7 +479,7 @@ func TestLeadershipLossStopsAdapterAndSchedulesRecovery(t *testing.T) {
 
 	counters := &lifecycleFactoryCounters{}
 	svc := newLifecycleTestService(db, redisClient, "instance-one")
-	svc.RegisterAdapterFactory("test", counters.factory())
+	svc.RegisterAdapterFactory("mattermost", counters.factory())
 	t.Cleanup(svc.Stop)
 
 	if err := svc.StartChannel(channel); err != nil {

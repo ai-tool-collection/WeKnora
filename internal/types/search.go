@@ -149,6 +149,8 @@ func (st SearchTargets) ContainsKB(kbID string) bool {
 
 // SearchResult represents the search result
 type SearchResult struct {
+	// CitationSources retains independently citeable bodies after context expansion.
+	CitationSources []*SearchResult `json:"-" gorm:"-"`
 	// ID
 	ID string `gorm:"column:id"              json:"id"`
 	// Content
@@ -189,7 +191,7 @@ type SearchResult struct {
 	// Used to indicate the source of the knowledge, such as "url"
 	KnowledgeSource string `json:"knowledge_source"`
 
-	// KnowledgeChannel indicates through which channel the knowledge was ingested (web, api, wechat, etc.)
+	// KnowledgeChannel indicates through which channel the knowledge was ingested (web, api, slack, etc.)
 	KnowledgeChannel string `json:"knowledge_channel"`
 
 	// ChunkMetadata stores chunk-level metadata (e.g., generated questions)

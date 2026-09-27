@@ -12,9 +12,9 @@ import (
 // so it is the one client whose target is fully attacker-influenced within a
 // workspace. Save-time validation cannot cover it: a hostname can resolve to a
 // public address while the form is validated and to the cloud metadata service
-// by the time the probe connects. Both providers must therefore refuse
+// by the time the probe connects. The provider must therefore refuse
 // link-local at dial time, and they must do so even under the private-endpoint
-// opt-in that self-hosted Cube deployments need.
+// opt-in that self-hosted E2B-compatible deployments need.
 func TestNewRemoteClientForCheckRefusesLinkLocalAtDial(t *testing.T) {
 	const metadata = "http://169.254.169.254"
 
@@ -22,17 +22,6 @@ func TestNewRemoteClientForCheckRefusesLinkLocalAtDial(t *testing.T) {
 		name string
 		cfg  *Config
 	}{
-		{
-			name: "cube",
-			cfg: &Config{
-				AllowPrivateEndpoints: true,
-				Type:                  SandboxTypeE2B,
-				E2BAPIURL:             metadata,
-				E2BProxyURL:           metadata,
-				E2BSandboxDomain:      "cube.app",
-				E2BTemplate:           "tpl-test",
-			},
-		},
 		{
 			name: "e2b",
 			cfg: &Config{

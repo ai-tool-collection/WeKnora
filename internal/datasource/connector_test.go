@@ -2,16 +2,25 @@ package datasource
 
 import (
 	"testing"
-
-	"github.com/ai-tool-collection/WeKnora/internal/types"
 )
 
-func TestFeishuMetadataDoesNotAdvertiseWebhook(t *testing.T) {
-	meta := ConnectorMetadataRegistry[types.ConnectorTypeFeishu]
+func TestConnectorMetadataDoesNotAdvertiseWebhook(t *testing.T) {
+	for connectorType, meta := range ConnectorMetadataRegistry {
+		for _, capability := range meta.Capabilities {
+			if capability == "webhook" {
+				t.Fatalf("%s connector should not advertise webhook until webhook sync is implemented", connectorType)
+			}
+		}
+	}
+}
 
-	for _, capability := range meta.Capabilities {
-		if capability == "webhook" {
-			t.Fatalf("Feishu connector should not advertise webhook until webhook sync is implemented")
+// Removed China-hosted connectors must not come back through an upstream merge.
+func TestConnectorMetadataExcludesRemovedConnectors(t *testing.T) {
+	for _, removed := range []string{
+		"feishu", "lark", "feishu_drive", "lark_drive", "yuque", "dingtalk", "ima",
+	} {
+		if _, ok := ConnectorMetadataRegistry[removed]; ok {
+			t.Fatalf("removed connector %q is registered", removed)
 		}
 	}
 }
