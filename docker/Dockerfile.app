@@ -1,16 +1,36 @@
+# BrowserSkill is optional and the repository does not ship its source. By
+# default this stage emits an empty directory. To build it, pass
+# WITH_BROWSERSKILL=1 and a reviewed checkout at the pinned commit as the
+# `browserskill-src` build context, e.g.
+#   docker build --build-arg WITH_BROWSERSKILL=1 \
+#     --build-context browserskill-src=/path/to/BrowserSkill -f docker/Dockerfile.app .
+# The empty stage below stands in when no such context is supplied.
+FROM scratch AS browserskill-src
+
 # Build extension and daemon from the same pinned source on the runtime architecture.
 FROM --platform=$TARGETPLATFORM node:24-bookworm-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e AS browserskill
 WORKDIR /build
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends git python3 ca-certificates curl build-essential cmake pkg-config && \
-    rm -rf /var/lib/apt/lists/*
+ARG WITH_BROWSERSKILL=0
+RUN if [ "$WITH_BROWSERSKILL" = "1" ]; then \
+        apt-get update && \
+        apt-get install -y --no-install-recommends git python3 ca-certificates curl build-essential cmake pkg-config && \
+        rm -rf /var/lib/apt/lists/*; \
+    fi
 ENV RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/usr/local/cargo
 ENV PATH=/usr/local/cargo/bin:$PATH
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
+RUN if [ "$WITH_BROWSERSKILL" = "1" ]; then \
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable; \
+    fi
 COPY scripts/build_browserskill.sh scripts/browserskill-release.json ./scripts/
 ARG TARGETOS
 ARG TARGETARCH
-RUN bash scripts/build_browserskill.sh /opt/weknora/browserskill "${TARGETOS}/${TARGETARCH}"
+RUN --mount=type=bind,from=browserskill-src,target=/browserskill-src \
+    if [ "$WITH_BROWSERSKILL" = "1" ]; then \
+        git config --global --add safe.directory /browserskill-src && \
+        BROWSERSKILL_SOURCE_DIR=/browserskill-src bash scripts/build_browserskill.sh /opt/weknora/browserskill "${TARGETOS}/${TARGETARCH}"; \
+    else \
+        mkdir -p /opt/weknora/browserskill; \
+    fi
 
 # Build stage
 FROM golang:1.26-bookworm AS builder
@@ -92,6 +112,7 @@ WORKDIR /app
 ARG APK_MIRROR_ARG
 
 # Pairing derives the gateway URL from the user's page origin by default.
+# docker-entrypoint.sh clears these when the image was built without BrowserSkill.
 ENV BROWSERSKILL_BINARY=/opt/weknora/browserskill/bsk \
     BROWSERSKILL_EXTENSION_PATH=/opt/weknora/browserskill/browser-skill-weknora-0.3.1.zip
 COPY --from=browserskill /opt/weknora/browserskill /opt/weknora/browserskill

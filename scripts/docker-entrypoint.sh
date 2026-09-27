@@ -64,5 +64,12 @@ case "${DOCKER_HOST:-}" in
         ;;
 esac
 
+# ─── Optional BrowserSkill integration ───
+# Images built without WITH_BROWSERSKILL=1 keep the ENV defaults but ship no
+# daemon. Clear them so the app does not report an integration it cannot run.
+if [ -n "${BROWSERSKILL_BINARY:-}" ] && [ ! -x "$BROWSERSKILL_BINARY" ]; then
+    unset BROWSERSKILL_BINARY BROWSERSKILL_EXTENSION_PATH
+fi
+
 # ─── Drop privileges and exec the main process ───
 exec gosu appuser "$@"
