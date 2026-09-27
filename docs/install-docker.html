@@ -1,0 +1,2400 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- artifact:start -->
+<title>Knowledge Hub 本機安裝手冊</title>
+<meta name="description" content="用 Docker Compose 在本機建置並啟動 Knowledge Hub (feature/clean 分支) 的逐步手冊">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=Saira+Stencil+One&display=swap">
+<style>
+:root {
+  --bg: #EDF1F0;
+  --surface: #FFFFFF;
+  --surface-2: #F5F8F7;
+  --ink: #132221;
+  --ink-2: #364846;
+  --muted: #5C6C6A;
+  --line: #D2DBD9;
+  --line-strong: #A9B9B6;
+  --accent: #0A6870;
+  --accent-hover: #075259;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DAECEC;
+  --code-bg: #112220;
+  --code-bar: #19302D;
+  --code-ink: #D5E4E1;
+  --code-muted: #82A09B;
+  --code-accent: #7FD3D8;
+  --ok: #17754A;
+  --ok-soft: #E1F2E8;
+  --warn: #8A5000;
+  --warn-soft: #FBF0DA;
+  --warn-line: #D99A2B;
+  --danger: #AF251D;
+  --danger-soft: #FBE4E2;
+  --info: #22529E;
+  --info-soft: #E3EBF9;
+  --shadow: 0 1px 2px rgba(19, 34, 33, .06), 0 10px 28px -14px rgba(19, 34, 33, .22);
+  --font-sans: "IBM Plex Sans", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Noto Sans TC", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-stencil: "Saira Stencil One", "Arial Narrow", Impact, sans-serif;
+  --gutter: clamp(16px, 4vw, 40px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0B1312;
+    --surface: #111C1B;
+    --surface-2: #162321;
+    --ink: #E1EBE9;
+    --ink-2: #B7C6C3;
+    --muted: #8A9C99;
+    --line: #243331;
+    --line-strong: #3A4D4A;
+    --accent: #45B9C0;
+    --accent-hover: #6CCBD1;
+    --accent-ink: #052326;
+    --accent-soft: #12302F;
+    --code-bg: #070E0D;
+    --code-bar: #0F1C1B;
+    --code-ink: #D5E4E1;
+    --code-muted: #6F8A86;
+    --code-accent: #7FD3D8;
+    --ok: #57C98F;
+    --ok-soft: #10281C;
+    --warn: #EFB456;
+    --warn-soft: #2A2011;
+    --warn-line: #C98B2A;
+    --danger: #F2847B;
+    --danger-soft: #2D1513;
+    --info: #92B6F2;
+    --info-soft: #142137;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 30px -16px rgba(0, 0, 0, .7);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0B1312;
+  --surface: #111C1B;
+  --surface-2: #162321;
+  --ink: #E1EBE9;
+  --ink-2: #B7C6C3;
+  --muted: #8A9C99;
+  --line: #243331;
+  --line-strong: #3A4D4A;
+  --accent: #45B9C0;
+  --accent-hover: #6CCBD1;
+  --accent-ink: #052326;
+  --accent-soft: #12302F;
+  --code-bg: #070E0D;
+  --code-bar: #0F1C1B;
+  --code-ink: #D5E4E1;
+  --code-muted: #6F8A86;
+  --code-accent: #7FD3D8;
+  --ok: #57C98F;
+  --ok-soft: #10281C;
+  --warn: #EFB456;
+  --warn-soft: #2A2011;
+  --warn-line: #C98B2A;
+  --danger: #F2847B;
+  --danger-soft: #2D1513;
+  --info: #92B6F2;
+  --info-soft: #142137;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 30px -16px rgba(0, 0, 0, .7);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.72 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:hover { color: var(--accent-hover); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+img { max-width: 100%; }
+p { margin: 0; }
+ul, ol { margin: 0; padding-left: 1.35em; display: flex; flex-direction: column; gap: 6px; }
+b, strong { font-weight: 600; }
+code {
+  font-family: var(--font-mono);
+  font-size: .86em;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: .06em .36em;
+  overflow-wrap: anywhere;
+}
+h1, h2, h3 { text-wrap: balance; }
+h3 { margin: 10px 0 0; font-size: 1.06rem; line-height: 1.45; }
+
+.page { padding-inline: var(--gutter); }
+
+/* ---------- masthead ---------- */
+.masthead {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-block: 44px 36px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: end;
+}
+.eyebrow {
+  font: 500 .8rem/1.4 var(--font-mono);
+  letter-spacing: .06em;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.masthead h1 { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.wordmark {
+  font-family: var(--font-stencil);
+  font-weight: 400;
+  font-size: clamp(2.7rem, 7.4vw, 4.9rem);
+  line-height: .92;
+  letter-spacing: .01em;
+  color: var(--accent);
+}
+.h1-sub { font-size: clamp(1.35rem, 3vw, 1.85rem); font-weight: 700; line-height: 1.3; }
+.lede { margin-top: 18px; max-width: 58ch; color: var(--ink-2); font-size: 1.05rem; }
+
+.plate {
+  position: relative;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  background:
+    radial-gradient(circle at 9px 9px, var(--line-strong) 2.2px, transparent 2.8px),
+    radial-gradient(circle at calc(100% - 9px) 9px, var(--line-strong) 2.2px, transparent 2.8px),
+    radial-gradient(circle at 9px calc(100% - 9px), var(--line-strong) 2.2px, transparent 2.8px),
+    radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), var(--line-strong) 2.2px, transparent 2.8px),
+    var(--surface);
+  padding: 20px 22px;
+}
+.plate-title {
+  font: 600 .72rem/1 var(--font-mono);
+  letter-spacing: .14em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+.plate dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; }
+.plate dt { font: 500 .7rem/1.9 var(--font-mono); letter-spacing: .1em; color: var(--muted); white-space: nowrap; }
+.plate dd { margin: 0; font: 500 .86rem/1.6 var(--font-mono); color: var(--ink); overflow-wrap: anywhere; }
+
+/* ---------- layout ---------- */
+.layout {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: 56px;
+  padding-block: 8px 96px;
+}
+.rail {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 20px);
+  align-self: start;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding-bottom: 12px;
+}
+.rail-top, .rail-sticky { display: flex; flex-direction: column; gap: 22px; }
+.rail-label { font: 600 .7rem/1 var(--font-mono); letter-spacing: .12em; color: var(--muted); margin-bottom: 8px; }
+
+.seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--surface);
+}
+.seg button {
+  font: 500 .82rem/1 var(--font-sans);
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+.seg button:hover { background: var(--surface-2); }
+.seg button[aria-checked="true"] { background: var(--ink); color: var(--bg); }
+
+.progress-row { display: flex; justify-content: space-between; align-items: baseline; font-size: .86rem; }
+.progress-row output { font: 600 .86rem var(--font-mono); font-variant-numeric: tabular-nums; }
+.meter { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 8px; }
+.meter span { display: block; height: 100%; width: var(--p, 0%); background: var(--accent); border-radius: inherit; transition: width .45s cubic-bezier(.3, .7, .2, 1); }
+
+.rail-nav ol { list-style: none; padding: 0; gap: 1px; }
+.rail-nav a {
+  display: grid;
+  grid-template-columns: 26px 1fr 16px;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: .9rem;
+  line-height: 1.35;
+}
+.rail-nav a:hover { background: var(--surface); color: var(--ink); }
+.rail-nav .n { font: 500 .74rem var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.rail-nav .tick { width: 14px; height: 14px; color: var(--ok); opacity: 0; transform: scale(.4); transition: opacity .25s, transform .25s; }
+.rail-nav li.is-done .tick { opacity: 1; transform: scale(1); }
+.rail-nav li.is-done .t { color: var(--muted); }
+.rail-nav li.is-active a { background: var(--accent-soft); color: var(--ink); }
+.rail-nav li.is-active .n { color: var(--accent); }
+.rail-nav .sep { height: 1px; background: var(--line); margin: 8px 8px; }
+
+.switch { display: flex; align-items: center; gap: 10px; font-size: .88rem; cursor: pointer; user-select: none; }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch .track { width: 34px; height: 20px; border-radius: 99px; background: var(--line-strong); position: relative; flex: none; transition: background .2s; }
+.switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); transition: transform .2s; }
+.switch input:checked + .track { background: var(--accent); }
+.switch input:checked + .track::after { transform: translateX(14px); }
+.switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rail-tools { display: flex; flex-direction: column; gap: 12px; }
+.linkish { font: 500 .82rem var(--font-sans); background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+.linkish:hover { color: var(--danger); }
+.linkish.armed { color: var(--danger); font-weight: 600; }
+
+main { min-width: 0; max-width: 800px; display: flex; flex-direction: column; gap: 64px; }
+.sec-title { font-size: 1.6rem; margin: 0 0 16px; line-height: 1.3; }
+.sec { display: flex; flex-direction: column; gap: 16px; }
+.sec > .sec-title { margin-bottom: 0; }
+.group-label {
+  display: flex; align-items: center; gap: 14px;
+  font: 600 .74rem/1 var(--font-mono); letter-spacing: .14em; color: var(--muted);
+  margin-bottom: -36px;
+}
+.group-label::after { content: ""; flex: 1; height: 1px; background: var(--line-strong); }
+
+.howto { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.howto li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: .92rem; color: var(--ink-2); display: flex; flex-direction: column; gap: 4px; }
+.howto b { color: var(--ink); font-size: .95rem; }
+
+/* ---------- steps ---------- */
+.step { display: flex; flex-direction: column; scroll-margin-top: 24px; }
+.step-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 4px 18px;
+  align-items: end;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid var(--ink);
+}
+.step-no { font-family: var(--font-stencil); font-size: 3.5rem; line-height: .8; color: var(--accent); transition: color .3s; }
+.step.is-done .step-no { color: var(--ok); }
+.step-kicker { font: 500 .78rem/1.3 var(--font-mono); color: var(--muted); }
+.step-head h2 { margin: 4px 0 0; font-size: 1.5rem; line-height: 1.3; }
+.done-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  font: 500 .84rem/1 var(--font-sans);
+  padding: 8px 12px 8px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 99px;
+  background: var(--surface);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background .2s, border-color .2s, color .2s;
+}
+.done-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.done-toggle .box { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--line-strong); display: grid; place-items: center; transition: background .2s, border-color .2s; }
+.done-toggle .box svg { width: 12px; height: 12px; color: #fff; opacity: 0; transform: scale(.3); transition: opacity .2s, transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+.done-toggle input:checked + .box { background: var(--ok); border-color: var(--ok); }
+.done-toggle input:checked + .box svg { opacity: 1; transform: scale(1); }
+.done-toggle:has(input:checked) { border-color: var(--ok); color: var(--ok); background: var(--ok-soft); }
+.done-toggle input:focus-visible + .box { outline: 2px solid var(--accent); outline-offset: 2px; }
+.step-body { display: flex; flex-direction: column; gap: 16px; padding-top: 20px; }
+.step-foot { display: none; }
+.page.focus .step:not(.is-current) { display: none; }
+.page.focus .step-foot {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+  margin-top: 28px; padding-top: 18px; border-top: 1px dashed var(--line-strong);
+}
+
+/* ---------- buttons ---------- */
+.btn {
+  font: 500 .88rem/1.2 var(--font-sans);
+  padding: 9px 15px;
+  border-radius: 7px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background .2s, border-color .2s, transform .1s;
+}
+.btn:hover { border-color: var(--ink-2); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn[disabled] { opacity: .4; cursor: default; }
+
+/* ---------- command blocks ---------- */
+.cmd { border-radius: 8px; overflow: hidden; background: var(--code-bg); border: 1px solid var(--code-bar); }
+.cmd-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 5px 6px 5px 14px;
+  background: var(--code-bar);
+  font: 500 .74rem/1.6 var(--font-mono);
+  color: var(--code-muted);
+  letter-spacing: .03em;
+}
+.cmd pre { margin: 0; padding: 14px 16px; overflow-x: auto; }
+.cmd code { background: none; border: 0; padding: 0; font: .86rem/1.65 var(--font-mono); color: var(--code-ink); white-space: pre; overflow-wrap: normal; }
+.cmd .c { color: var(--code-muted); }
+.cmd.output code { color: var(--code-accent); }
+.copy {
+  font: 500 .74rem/1 var(--font-sans);
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid #36504C;
+  background: transparent;
+  color: var(--code-ink);
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s;
+}
+.copy:hover { background: #24403C; }
+.copy.done { border-color: #4CC38A; color: #7BE0AE; }
+.os-variants { display: flex; flex-direction: column; gap: 0; }
+.os-tabs { display: flex; gap: 2px; margin-bottom: -1px; }
+.os-tabs button {
+  font: 500 .76rem/1 var(--font-sans);
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: pointer;
+}
+.os-tabs button[aria-selected="true"] { background: var(--code-bar); border-color: var(--code-bar); color: var(--code-ink); }
+.os-variants .cmd { border-top-left-radius: 0; }
+.page[data-os="windows"] [data-os]:not([data-os~="windows"]),
+.page[data-os="mac"] [data-os]:not([data-os~="mac"]),
+.page[data-os="linux"] [data-os]:not([data-os~="linux"]) { display: none; }
+
+/* ---------- callouts ---------- */
+.note {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 12px;
+  align-items: start;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-size: .94rem;
+}
+.note-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: 600 .72rem/1 var(--font-sans);
+  letter-spacing: .06em;
+  padding: 5px 8px;
+  border-radius: 4px;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+.note > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.note.warn { background: var(--warn-soft); border-color: var(--warn-line); }
+.note.warn .note-tag { background: var(--warn-line); color: #2B1A00; }
+.note.danger { background: var(--danger-soft); border-color: var(--danger); }
+.note.danger .note-tag { background: var(--danger); color: #fff; }
+.note.danger .note-tag::before {
+  content: ""; width: 10px; height: 10px; border-radius: 2px;
+  background: repeating-linear-gradient(-45deg, #fff 0 2px, transparent 2px 4px);
+}
+.note.tip { background: var(--accent-soft); border-color: var(--accent); }
+.note.tip .note-tag { background: var(--accent); color: var(--accent-ink); }
+.note.info { background: var(--info-soft); border-color: var(--info); }
+.note.info .note-tag { background: var(--info); color: var(--surface); }
+.note.ok { background: var(--ok-soft); border-color: var(--ok); }
+.note.ok .note-tag { background: var(--ok); color: var(--surface); }
+.note code { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.rules { gap: 10px; }
+.rules li::marker { font-family: var(--font-mono); font-weight: 600; }
+
+/* ---------- tables ---------- */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+th { font: 600 .74rem/1.4 var(--font-mono); letter-spacing: .06em; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td code { white-space: nowrap; }
+.nowrap { white-space: nowrap; }
+
+details.more { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+details.more > summary { cursor: pointer; padding: 12px 16px; font-weight: 600; font-size: .95rem; list-style: none; display: flex; align-items: center; gap: 10px; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform .2s; flex: none; }
+details.more[open] > summary::before { transform: rotate(45deg); }
+details.more > .more-body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+
+/* ---------- boot sequence ---------- */
+.boot { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 20px; box-shadow: var(--shadow); }
+.boot-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) 32px minmax(0, 1fr) 32px minmax(0, 1fr) 32px minmax(0, .95fr);
+  align-items: center;
+}
+.boot-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.node {
+  border: 1.5px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 9px 11px;
+  background: var(--surface-2);
+  display: flex; flex-direction: column; gap: 1px;
+  min-width: 0;
+  transition: border-color .35s, opacity .35s, background .35s;
+}
+.node-name { font: 600 .84rem/1.3 var(--font-mono); }
+.node-img { font: .7rem/1.35 var(--font-mono); color: var(--muted); overflow-wrap: anywhere; }
+.node-status { display: flex; align-items: flex-start; gap: 6px; margin-top: 5px; font: .7rem/1.35 var(--font-mono); color: var(--ink-2); min-height: 2.7em; }
+.dot { width: 8px; height: 8px; margin-top: 3px; border-radius: 50%; background: var(--line-strong); flex: none; transition: background .35s; }
+.node[data-state="waiting"] { opacity: .55; border-style: dashed; }
+.node[data-state="starting"] { border-color: var(--warn-line); }
+.node[data-state="starting"] .dot { background: var(--warn-line); animation: pulse 1s ease-in-out infinite; }
+.node[data-state="healthy"], .node[data-state="up"], .node[data-state="ready"] { border-color: var(--ok); background: var(--ok-soft); }
+.node[data-state="healthy"] .dot, .node[data-state="up"] .dot, .node[data-state="ready"] .dot { background: var(--ok); }
+.wire { height: 2px; margin-inline: 4px; background: var(--line-strong); position: relative; overflow: hidden; border-radius: 2px; transition: background .35s; }
+.wire.lit { background: var(--ok); }
+.wire.lit::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 40%;
+  background: linear-gradient(90deg, transparent, var(--surface), transparent);
+  animation: flow 1.1s linear infinite;
+}
+@keyframes pulse { 50% { opacity: .35; transform: scale(.8); } }
+@keyframes flow { to { left: 100%; } }
+.boot-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.boot-controls output { font: 500 .84rem var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.boot-range-wrap { position: relative; padding-bottom: 20px; }
+.boot-range-wrap input { width: 100%; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.ticks { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; font: .7rem var(--font-mono); color: var(--muted); }
+.ticks span { position: absolute; transform: translateX(-50%); }
+.ticks span:first-child { transform: none; }
+.ticks span:last-child { transform: translateX(-100%); }
+.boot-events { list-style: none; padding: 0; gap: 6px; font-size: .9rem; }
+.boot-events li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; color: var(--muted); transition: color .3s; }
+.boot-events li.is-reached { color: var(--ink); }
+.boot-events .t { font: 500 .8rem/1.9 var(--font-mono); font-variant-numeric: tabular-nums; }
+.boot-events li.is-reached .t { color: var(--accent); }
+.boot-note { font-size: .82rem; color: var(--muted); }
+
+/* ---------- generator ---------- */
+.gen { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 18px; box-shadow: var(--shadow); }
+.gen-head { display: flex; flex-direction: column; gap: 6px; }
+.gen-head h3 { margin: 0; }
+.gen-head p { font-size: .9rem; color: var(--ink-2); }
+.gen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: .86rem; font-weight: 600; min-width: 0; }
+.field .hint { font-weight: 400; font-size: .78rem; color: var(--muted); line-height: 1.45; }
+.field .err { font-weight: 500; font-size: .78rem; color: var(--danger); }
+.field input[type="text"], .field input[type="email"], .field input[type="number"], .field select {
+  font: .92rem/1.3 var(--font-sans);
+  padding: 8px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink);
+  width: 100%;
+  min-width: 0;
+}
+.field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+.checks { display: flex; flex-direction: column; gap: 10px; }
+.check { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; font-size: .9rem; align-items: start; cursor: pointer; }
+.check input { width: 16px; height: 16px; margin: 4px 0 0; accent-color: var(--accent); }
+.check .hint { display: block; font-size: .78rem; color: var(--muted); }
+.secrets { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.secrets-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-size: .86rem; font-weight: 600; }
+.secrets dl { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; }
+.secrets dt, .secrets dd { margin: 0; padding: 8px 14px; border-bottom: 1px solid var(--line); font: .78rem/1.5 var(--font-mono); }
+.secrets dt { font-weight: 600; color: var(--ink-2); }
+.secrets dd.v { word-break: break-all; color: var(--ink); padding-left: 0; }
+.secrets dd.len { color: var(--muted); white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+.secrets dl > :nth-last-child(-n+3) { border-bottom: 0; }
+.out-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.tabs { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; padding: 3px; gap: 3px; background: var(--bg); }
+.tabs button { font: 500 .8rem/1 var(--font-sans); padding: 7px 12px; border: 0; border-radius: 5px; background: transparent; color: var(--ink-2); cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.gen .cmd pre { max-height: 380px; }
+.gen .cmd code { white-space: pre; }
+
+/* ---------- ops ---------- */
+.ops { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.ops-row { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 8px 18px; padding: 12px 14px; border-bottom: 1px solid var(--line); align-items: center; }
+.ops-row:last-child { border-bottom: 0; }
+.ops-row > span { font-size: .9rem; font-weight: 600; }
+.ops-row > span small { display: block; font-weight: 400; font-size: .78rem; color: var(--muted); }
+.ops-row .cmd pre { padding: 9px 12px; }
+.inline-cmd { display: flex; align-items: center; border-radius: 6px; background: var(--code-bg); overflow: hidden; }
+.inline-cmd pre { margin: 0; flex: 1; min-width: 0; padding: 8px 12px; overflow-x: auto; }
+.inline-cmd code { background: none; border: 0; padding: 0; color: var(--code-ink); font: .84rem/1.5 var(--font-mono); white-space: pre; }
+.inline-cmd .copy { margin-right: 6px; flex: none; }
+
+/* ---------- troubleshooting ---------- */
+.ts-search { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.ts-search input {
+  flex: 1 1 260px; min-width: 0;
+  font: .95rem var(--font-sans);
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.ts-search input:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+.ts-search output { font: .82rem var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.issues { display: flex; flex-direction: column; gap: 8px; }
+.issue { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.issue > summary { cursor: pointer; list-style: none; padding: 12px 16px; display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 4px 12px; align-items: start; }
+.issue > summary::-webkit-details-marker { display: none; }
+.issue > summary::before { content: ""; width: 7px; height: 7px; margin-top: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); transition: transform .2s; }
+.issue[open] > summary::before { transform: rotate(45deg); }
+.issue .sym { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.issue .sym b { font-size: .95rem; }
+.issue .sym code { align-self: flex-start; font-size: .78rem; color: var(--danger); background: var(--danger-soft); border-color: transparent; }
+.issue-body { padding: 0 16px 16px 42px; display: flex; flex-direction: column; gap: 10px; font-size: .93rem; }
+.issue-body .k { font: 600 .72rem/1 var(--font-mono); letter-spacing: .1em; color: var(--muted); display: block; margin-bottom: 4px; }
+.ts-empty { padding: 18px; border: 1px dashed var(--line-strong); border-radius: 8px; color: var(--muted); font-size: .92rem; }
+
+.foot { max-width: 1180px; margin: 0 auto; padding-block: 28px 48px; border-top: 1px solid var(--line); font-size: .84rem; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 960px) {
+  .masthead { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-block: 28px 20px; }
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .rail { display: contents; }
+  .rail-top { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 14px 20px; }
+  .rail-top > * { flex: 1 1 220px; }
+  .rail-sticky {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    gap: 8px;
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 10px var(--gutter);
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .rail-sticky .rail-label { display: none; }
+  .progress-row { font-size: .8rem; }
+  .meter { margin-top: 5px; height: 4px; }
+  .rail-nav ol { flex-direction: row; overflow-x: auto; gap: 4px; padding-bottom: 2px; scrollbar-width: thin; }
+  .rail-nav li { flex: none; }
+  .rail-nav a { grid-template-columns: auto auto auto; padding: 5px 9px; font-size: .82rem; border: 1px solid var(--line); background: var(--surface); }
+  .rail-nav .sep { width: 1px; height: auto; margin: 4px 4px; }
+  html { scroll-padding-top: 110px; }
+  .step { scroll-margin-top: 110px; }
+  main { gap: 52px; }
+  .group-label { margin-bottom: -30px; }
+}
+@media (max-width: 720px) {
+  .boot-flow { grid-template-columns: minmax(0, 1fr); }
+  .wire { width: 2px; height: 22px; justify-self: center; margin-inline: 0; }
+  .wire.lit::after { left: 0; right: 0; width: auto; top: -40%; bottom: auto; height: 40%; background: linear-gradient(180deg, transparent, var(--surface), transparent); animation-name: flow-v; }
+  @keyframes flow-v { to { top: 100%; } }
+  .ops-row { grid-template-columns: minmax(0, 1fr); }
+  .step-head { grid-template-columns: auto minmax(0, 1fr); }
+  .step-head .done-toggle { grid-column: 1 / -1; justify-self: start; margin-top: 8px; }
+  .step-no { font-size: 2.8rem; }
+  .issue-body { padding-left: 16px; }
+  .secrets dl { grid-template-columns: minmax(0, 1fr) auto; }
+  .secrets dt { grid-column: 1 / -1; border-bottom: 0; padding-bottom: 0; }
+  .secrets dd.v { padding-left: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="page" data-os="windows">
+
+<header class="masthead">
+  <div>
+    <p class="eyebrow">FEATURE/CLEAN · v0.8.2 · DOCKER COMPOSE</p>
+    <h1><span class="wordmark">Knowledge Hub</span><span class="h1-sub">本機安裝手冊</span></h1>
+    <p class="lede">用 Docker Compose 在自己的電腦上從原始碼建置並啟動 Knowledge Hub. 共 10 個步驟,每一步都附上驗證方式,以及最容易踩到的陷阱.</p>
+  </div>
+  <div class="plate" aria-label="這次安裝的內容">
+    <p class="plate-title">STACK MANIFEST</p>
+    <dl>
+      <dt>PROJECT</dt><dd>knowledge-hub</dd>
+      <dt>CONTAINERS</dt><dd>5 個 (3 個本機建置)</dd>
+      <dt>HOST PORTS</dt><dd>80 網頁 · 8080 API</dd>
+      <dt>VOLUMES</dt><dd>postgres-data · data-files · docreader-tmp</dd>
+      <dt>DOCKER RAM</dt><dd>至少 8 GB</dd>
+      <dt>FIRST BUILD</dt><dd>數十分鐘</dd>
+    </dl>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="rail" aria-label="手冊導覽">
+    <div class="rail-top">
+      <div>
+        <p class="rail-label" id="os-label">你的系統</p>
+        <div class="seg" role="radiogroup" aria-labelledby="os-label">
+          <button type="button" role="radio" data-os-pick="windows" aria-checked="true">Windows</button>
+          <button type="button" role="radio" data-os-pick="mac" aria-checked="false">macOS</button>
+          <button type="button" role="radio" data-os-pick="linux" aria-checked="false">Linux</button>
+        </div>
+      </div>
+      <div class="rail-tools">
+        <label class="switch"><input type="checkbox" id="focus-toggle"><span class="track"></span>一次顯示一個步驟</label>
+        <button type="button" class="linkish" id="reset-progress">重設進度</button>
+      </div>
+    </div>
+    <div class="rail-sticky">
+      <div>
+        <p class="rail-label">進度</p>
+        <div class="progress-row"><span>已完成步驟</span><output id="progress-count">0 / 10</output></div>
+        <div class="meter" aria-hidden="true"><span id="progress-bar"></span></div>
+      </div>
+      <nav class="rail-nav" aria-label="步驟">
+        <ol id="rail-list">
+          <li data-target="step-1"><a href="#step-1"><span class="n">01</span><span class="t">系統需求</span><svg class="tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></a></li>
+          <li data-target="step-2"><a href="#step-2"><span class="n">02</span><span class="t">安裝 Docker</span><svg class="tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></a></li>
+          <li data-target="step-3"><a href="#step-3"><span class="n">03</span><span class="t">取得原始碼</span><svg class="tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></a></li>
+          <li data-target="step-4"><a href="#step-4"><span class="n">04</span><span class="t">設定 .env</span><svg class="tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></a></li>
+          <li data-target="step-5"><a href="#step-5"><span class="n">05</span><span class="t">檢查連接埠</span><svg class="tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></a></li>
+          <li data-target="step-6"><a href="#step-6"><span class="n">06</span><span class="t">建置與啟動</span><svg class="tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></a></li>
+          <li data-target="step-7"><a href="#step-7"><span class="n">07</span><span class="t">驗證服務</span><svg class="tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></a></li>
+          <li data-target="step-8"><a href="#step-8"><span class="n">08</span><span class="t">帳號與管理員</span><svg class="tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></a></li>
+          <li data-target="step-9"><a href="#step-9"><span class="n">09</span><span class="t">連接模型</span><svg class="tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></a></li>
+          <li data-target="step-10"><a href="#step-10"><span class="n">10</span><span class="t">建立知識庫</span><svg class="tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></a></li>
+          <li class="sep" aria-hidden="true"></li>
+          <li data-target="operations"><a href="#operations"><span class="n">··</span><span class="t">日常操作</span></a></li>
+          <li data-target="profiles"><a href="#profiles"><span class="n">··</span><span class="t">選用元件</span></a></li>
+          <li data-target="troubleshooting"><a href="#troubleshooting"><span class="n">··</span><span class="t">疑難排解</span></a></li>
+        </ol>
+      </nav>
+    </div>
+  </aside>
+
+  <main>
+
+    <!-- ================= overview ================= -->
+    <section class="sec" id="overview">
+      <h2 class="sec-title">開始之前</h2>
+      <p>完成這份手冊後,你會有一個在本機執行的 Knowledge Hub:上傳文件,由你接上的 AI 模型回答問題,並附上原文出處. 所有資料都存在你電腦上的 Docker volume 裡.</p>
+      <ul class="howto">
+        <li><b>選擇你的系統</b>左側 (手機在上方) 的 Windows, macOS, Linux 會切換整頁的指令.</li>
+        <li><b>標記完成</b>每一步右上角的 "完成" 會記錄進度,只存在你的瀏覽器.</li>
+        <li><b>一次一步</b>開啟 "一次顯示一個步驟",頁面只留目前的步驟,用底部按鈕前後切換.</li>
+        <li><b>複製指令</b>每個指令區塊都有複製按鈕. <code>#</code> 開頭的是註解,一起貼上執行也沒關係.</li>
+      </ul>
+      <div class="note info"><span class="note-tag">對應版本</span><div><p>本手冊依據 <code>feature/clean</code> 分支 (v0.8.2) 的 <code>docker-compose.yml</code>, <code>.env.example</code> 與 <code>docker/</code> 內的 Dockerfile 撰寫. 這個分支移除了中國營運的服務整合,介面語言只有英文,日文,韓文與俄文,沒有中文介面.</p></div></div>
+      <details class="more">
+        <summary>已經熟悉 Docker? 看最短路徑</summary>
+        <div class="more-body">
+          <div class="os-variants">
+            <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell</span><button type="button" class="copy">複製</button></div><pre><code>git clone https://github.com/ai-tool-collection/WeKnora.git knowledge-hub
+cd knowledge-hub
+git checkout feature/clean
+Copy-Item .env.example .env
+# 先用第 4 步的產生器把密碼與金鑰填進 .env,再繼續
+docker compose up -d --build
+docker compose ps</code></pre></div>
+            <div class="cmd" data-os="mac linux"><div class="cmd-bar"><span>Terminal</span><button type="button" class="copy">複製</button></div><pre><code>git clone https://github.com/ai-tool-collection/WeKnora.git knowledge-hub
+cd knowledge-hub
+git checkout feature/clean
+cp .env.example .env
+# 先用第 4 步的產生器把密碼與金鑰填進 .env,再繼續
+docker compose up -d --build
+docker compose ps</code></pre></div>
+          </div>
+          <p>就算很熟悉 Docker,也建議先讀 <a href="#step-4">第 4 步</a> 開頭的 5 條規則,那是最常出錯的地方.</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================= architecture ================= -->
+    <section class="sec" id="architecture">
+      <h2 class="sec-title">會啟動哪些東西</h2>
+      <p>預設設定會啟動 5 個容器. 其中 3 個映像在你的電腦上從原始碼建置,2 個從 Docker Hub 下載. 只有 frontend 和 app 對外開放連接埠,資料庫, Redis 和 docreader 只在 Docker 內部網路 <code>knowledge-hub-network</code> 裡互相連線.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>容器</th><th>映像</th><th>用途</th><th>本機連接埠</th></tr></thead>
+          <tbody>
+            <tr><td><code>knowledge-hub-frontend</code></td><td><code>knowledge-hub-ui:local</code><br>本機建置</td><td>nginx,提供網頁並把 <code>/api</code> 轉給 app</td><td><code>FRONTEND_PORT</code><br>預設 80</td></tr>
+            <tr><td><code>knowledge-hub-app</code></td><td><code>knowledge-hub-app:local</code><br>本機建置</td><td>Go API 伺服器,啟動時自動執行資料庫 migration</td><td><code>APP_PORT</code><br>預設 8080</td></tr>
+            <tr><td><code>knowledge-hub-docreader</code></td><td><code>knowledge-hub-docreader:local</code><br>本機建置</td><td>文件解析服務 (gRPC 50051)</td><td>不開放</td></tr>
+            <tr><td><code>knowledge-hub-postgres</code></td><td><code>paradedb/paradedb:v0.22.6-pg17</code></td><td>PostgreSQL 17,同時負責向量與全文檢索</td><td>不開放</td></tr>
+            <tr><td><code>knowledge-hub-redis</code></td><td><code>redis:7.0-alpine</code></td><td>回答串流與背景工作佇列</td><td>不開放</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>資料存在 3 個 volume: <code>postgres-data</code> (資料庫), <code>data-files</code> (上傳的原始檔), <code>docreader-tmp</code> (解析時的暫存圖片). 刪除容器不會刪到 volume,只有 <code>docker compose down -v</code> 會.</p>
+
+      <h3>啟動順序: 為什麼網頁要等一兩分鐘</h3>
+      <p>容器之間有相依關係. app 要等 postgres 和 docreader 的健康檢查都通過才會建立,frontend 又要等 app 通過. 健康檢查每 30 秒執行一次,所以每一層至少要等大約 30 秒. 按下播放看整個過程,也可以直接拖曳時間軸.</p>
+
+      <figure class="boot" id="boot" aria-label="容器啟動流程示意">
+        <div class="boot-flow">
+          <div class="boot-col">
+            <div class="node" data-node="postgres" data-state="healthy"><span class="node-name">postgres</span><span class="node-img">paradedb · pg17</span><span class="node-status"><i class="dot"></i><span class="st">Up About a minute (healthy)</span></span></div>
+            <div class="node" data-node="redis" data-state="up"><span class="node-name">redis</span><span class="node-img">redis:7.0-alpine</span><span class="node-status"><i class="dot"></i><span class="st">Up About a minute</span></span></div>
+            <div class="node" data-node="docreader" data-state="healthy"><span class="node-name">docreader</span><span class="node-img">本機建置 · gRPC</span><span class="node-status"><i class="dot"></i><span class="st">Up About a minute (healthy)</span></span></div>
+          </div>
+          <div class="wire lit" data-wire="1" aria-hidden="true"></div>
+          <div class="boot-col">
+            <div class="node" data-node="app" data-state="healthy"><span class="node-name">app</span><span class="node-img">本機建置 · :8080</span><span class="node-status"><i class="dot"></i><span class="st">Up 39 seconds (healthy)</span></span></div>
+          </div>
+          <div class="wire lit" data-wire="2" aria-hidden="true"></div>
+          <div class="boot-col">
+            <div class="node" data-node="frontend" data-state="up"><span class="node-name">frontend</span><span class="node-img">nginx · :80</span><span class="node-status"><i class="dot"></i><span class="st">Up 8 seconds</span></span></div>
+          </div>
+          <div class="wire lit" data-wire="3" aria-hidden="true"></div>
+          <div class="boot-col">
+            <div class="node" data-node="browser" data-state="ready"><span class="node-name">你的瀏覽器</span><span class="node-img">http://localhost</span><span class="node-status"><i class="dot"></i><span class="st">可以開啟</span></span></div>
+          </div>
+        </div>
+        <div class="boot-controls">
+          <button type="button" class="btn primary" id="boot-play">播放啟動流程</button>
+          <output id="boot-clock">t = 70 秒 (示意)</output>
+        </div>
+        <div class="boot-range-wrap">
+          <input type="range" id="boot-range" min="0" max="70" step="1" value="70" aria-label="模擬經過的秒數">
+          <div class="ticks" aria-hidden="true"><span style="left:0%">0s</span><span style="left:42.86%">30s</span><span style="left:85.71%">60s</span><span style="left:100%">70s</span></div>
+        </div>
+        <ol class="boot-events" id="boot-events">
+          <li data-t="0" class="is-reached"><span class="t">0 秒</span><span>postgres, redis, docreader 同時建立. redis 沒有健康檢查,啟動後就算就緒.</span></li>
+          <li data-t="30" class="is-reached"><span class="t">約 30 秒</span><span>postgres 與 docreader 第一次健康檢查通過.</span></li>
+          <li data-t="31" class="is-reached"><span class="t">約 31 秒</span><span>app 建立並啟動. 第一次啟動會先執行資料庫 migration.</span></li>
+          <li data-t="61" class="is-reached"><span class="t">約 61 秒</span><span>app 的 <code>/health</code> 健康檢查通過.</span></li>
+          <li data-t="62" class="is-reached"><span class="t">約 62 秒</span><span>frontend (nginx) 啟動,網頁可以開啟.</span></li>
+        </ol>
+        <figcaption class="boot-note">時間是依健康檢查間隔推算的示意值. 第一次啟動要跑 migration,或電腦比較慢時,整個過程可能要 2 到 3 分鐘. 超過 5 分鐘還沒全部 healthy 再開始排查.</figcaption>
+      </figure>
+    </section>
+
+    <p class="group-label">安裝步驟 · 共 10 步</p>
+
+    <!-- ================= step 1 ================= -->
+    <section class="step" id="step-1" data-step="1">
+      <header class="step-head">
+        <span class="step-no" aria-hidden="true">01</span>
+        <div><p class="step-kicker">約 5 分鐘</p><h2>確認系統需求</h2></div>
+        <label class="done-toggle"><input type="checkbox" data-done="1"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>完成</label>
+      </header>
+      <div class="step-body">
+        <p>這個安裝方式會在本機建置 3 個映像. 前端建置時 Node.js 的記憶體上限設為 4 GB,app 映像還要編譯 Go 與 Rust. 資源不足最常見的症狀,就是建置到一半被系統強制中止.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>項目</th><th>最低</th><th>建議</th></tr></thead>
+            <tbody>
+              <tr><td>分配給 Docker 的記憶體</td><td class="nowrap">8 GB</td><td class="nowrap">12 GB 以上</td></tr>
+              <tr><td>CPU</td><td class="nowrap">4 核心</td><td class="nowrap">8 核心以上</td></tr>
+              <tr><td>可用磁碟空間</td><td class="nowrap">30 GB</td><td class="nowrap">50 GB 以上</td></tr>
+              <tr><td>CPU 架構</td><td colspan="2">x86_64 (amd64) 或 arm64,包含 Apple Silicon</td></tr>
+              <tr><td>作業系統</td><td colspan="2">Windows 10/11 (搭配 WSL 2), macOS, 主流 Linux 發行版</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="boot-note">表格中的數字是依建置內容估計的建議值,不是官方測試過的最低規格.</p>
+
+        <h3>網路</h3>
+        <p>第一次建置要下載大量套件,連線對象包含 Docker Hub, GitHub, sh.rustup.rs, proxy.golang.org, npm registry, PyPI 與 Debian 套件庫. 公司網路如果有 Proxy 或防火牆,請先在 Docker 裡設定 Proxy (Docker Desktop: Settings → Resources → Proxies),否則建置會在中途逾時.</p>
+
+        <h3>查看目前的硬體</h3>
+        <div class="os-variants">
+          <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell</span><button type="button" class="copy">複製</button></div><pre><code># 實體記憶體 (GB)
+[math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
+# CPU 邏輯核心數
+$env:NUMBER_OF_PROCESSORS
+# C 槽可用空間 (GB)
+[math]::Round((Get-PSDrive C).Free / 1GB)</code></pre></div>
+          <div class="cmd" data-os="mac"><div class="cmd-bar"><span>Terminal (zsh)</span><button type="button" class="copy">複製</button></div><pre><code># 實體記憶體 (GB)
+echo $(( $(sysctl -n hw.memsize) / 1073741824 ))
+# CPU 核心數
+sysctl -n hw.ncpu
+# 可用磁碟空間
+df -h /</code></pre></div>
+          <div class="cmd" data-os="linux"><div class="cmd-bar"><span>Terminal (bash)</span><button type="button" class="copy">複製</button></div><pre><code>free -h
+nproc
+df -h /</code></pre></div>
+        </div>
+        <div class="note tip"><span class="note-tag">提示</span><div><p>實體記憶體 16 GB 以上的電腦,通常可以分 8 GB 以上給 Docker. 如果整台電腦只有 8 GB,建置時請關掉瀏覽器以外的大型程式,並參考第 6 步的 <code>WITH_ANYDOC=0</code> 與逐一建置的做法.</p></div></div>
+      </div>
+      <footer class="step-foot"></footer>
+    </section>
+
+    <!-- ================= step 2 ================= -->
+    <section class="step" id="step-2" data-step="2">
+      <header class="step-head">
+        <span class="step-no" aria-hidden="true">02</span>
+        <div><p class="step-kicker">約 10 到 20 分鐘</p><h2>安裝 Docker 並分配資源</h2></div>
+        <label class="done-toggle"><input type="checkbox" data-done="2"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>完成</label>
+      </header>
+      <div class="step-body">
+        <p>你需要 Docker Engine 與 Compose v2,指令是 <code>docker compose</code> (中間是空格). 舊版有連字號的 <code>docker-compose</code> (v1) 不建議使用.</p>
+
+        <div data-os="windows" class="sec">
+          <ol>
+            <li>確認已啟用虛擬化: 工作管理員 → 效能 → CPU,右下角的 "虛擬化" 要顯示 "已啟用". 沒有的話要到 BIOS/UEFI 開啟.</li>
+            <li>以系統管理員身分開啟 PowerShell,執行 <code>wsl --install</code>,完成後重新開機.</li>
+            <li>安裝 <a href="https://docs.docker.com/desktop/setup/install/windows-install/" target="_blank" rel="noopener">Docker Desktop for Windows</a>,安裝時保留 "Use WSL 2 instead of Hyper-V".</li>
+            <li>設定 WSL 能用的記憶體. 使用 WSL 2 時,Docker Desktop 的記憶體上限由 WSL 決定,預設是實體記憶體的一半. 在 <code>%UserProfile%\.wslconfig</code> 寫入下面內容 (依你的電腦調整),再執行 <code>wsl --shutdown</code> 並重新開啟 Docker Desktop.</li>
+          </ol>
+          <div class="cmd"><div class="cmd-bar"><span>%UserProfile%\.wslconfig</span><button type="button" class="copy">複製</button></div><pre><code>[wsl2]
+memory=12GB
+processors=8</code></pre></div>
+        </div>
+
+        <div data-os="mac" class="sec">
+          <ol>
+            <li>安裝 <a href="https://docs.docker.com/desktop/setup/install/mac-install/" target="_blank" rel="noopener">Docker Desktop for Mac</a>,依晶片選 Apple Silicon 或 Intel 版本.</li>
+            <li>開啟 Docker Desktop → Settings → Resources,把 Memory 調到 8 GB 以上,Disk usage limit 至少留 50 GB,按 Apply &amp; restart.</li>
+          </ol>
+        </div>
+
+        <div data-os="linux" class="sec">
+          <ol>
+            <li>依 <a href="https://docs.docker.com/engine/install/" target="_blank" rel="noopener">Docker 官方文件</a> 安裝 Docker Engine 與 <code>docker-compose-plugin</code>. 不建議使用發行版內建的舊套件 (例如 <code>docker.io</code>).</li>
+            <li>啟動服務,把自己加入 docker 群組,然後登出再登入:</li>
+          </ol>
+          <div class="cmd"><div class="cmd-bar"><span>Terminal (bash)</span><button type="button" class="copy">複製</button></div><pre><code>sudo systemctl enable --now docker
+sudo usermod -aG docker $USER</code></pre></div>
+          <div class="note warn"><span class="note-tag">注意</span><div><p>docker 群組等同 root 權限,只加入你信任的帳號. Rootless Docker 或 Podman 不能直接使用 80 埠,請在第 4 步把 <code>FRONTEND_PORT</code> 改成 1024 以上,例如 8000. 本手冊以 Docker 為準,Podman 沒有完整驗證.</p></div></div>
+        </div>
+
+        <h3>驗證安裝</h3>
+        <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>docker version
+docker compose version
+docker run --rm hello-world</code></pre></div>
+        <div class="note ok"><span class="note-tag">成功</span><div><p><code>docker version</code> 同時有 Client 與 Server 兩段, <code>docker compose version</code> 顯示 v2 以上的版本, hello-world 印出 "Hello from Docker!".</p></div></div>
+        <div class="note warn"><span class="note-tag">注意</span><div><p>如果只有 Client 沒有 Server,或出現 "Cannot connect to the Docker daemon",代表 Docker 沒有在執行. Windows 與 macOS 請先開啟 Docker Desktop,等左下角顯示 Engine running 再試一次.</p></div></div>
+      </div>
+      <footer class="step-foot"></footer>
+    </section>
+
+    <!-- ================= step 3 ================= -->
+    <section class="step" id="step-3" data-step="3">
+      <header class="step-head">
+        <span class="step-no" aria-hidden="true">03</span>
+        <div><p class="step-kicker">約 2 分鐘</p><h2>取得原始碼</h2></div>
+        <label class="done-toggle"><input type="checkbox" data-done="3"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>完成</label>
+      </header>
+      <div class="step-body">
+        <p>建議放在路徑沒有空白也沒有中文的位置. 資料夾名稱會成為 Compose 的專案名稱,volume 名稱也會用它開頭,例如 <code>knowledge-hub_postgres-data</code>.</p>
+        <div class="os-variants">
+          <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell</span><button type="button" class="copy">複製</button></div><pre><code>cd $HOME
+git clone https://github.com/ai-tool-collection/WeKnora.git knowledge-hub
+cd knowledge-hub
+git checkout feature/clean
+git status</code></pre></div>
+          <div class="cmd" data-os="mac linux"><div class="cmd-bar"><span>Terminal</span><button type="button" class="copy">複製</button></div><pre><code>cd ~
+git clone https://github.com/ai-tool-collection/WeKnora.git knowledge-hub
+cd knowledge-hub
+git checkout feature/clean
+git status</code></pre></div>
+        </div>
+        <div class="note ok"><span class="note-tag">成功</span><div><p><code>git status</code> 第一行顯示 <code>On branch feature/clean</code>.</p></div></div>
+        <div class="note tip" data-os="windows"><span class="note-tag">提示</span><div><p>熟悉 WSL 的話,把專案 clone 在 WSL 自己的檔案系統 (例如 <code>~/knowledge-hub</code>),並在 WSL 終端機操作,建置通常會比放在 C 槽快. 這時請把上方的系統切換成 Linux,照 Linux 的指令做.</p></div></div>
+        <div class="note warn" data-os="windows"><span class="note-tag">注意</span><div><p>不要用會自動轉換換行字元的編輯器存檔 <code>.sh</code> 檔. 專案的 <code>.gitattributes</code> 已強制 <code>.sh</code> 使用 LF,但檔案如果被存成 CRLF,app 容器會出現 "no such file or directory" 而無法啟動.</p></div></div>
+        <p>之後所有指令都在這個資料夾 (有 <code>docker-compose.yml</code> 的地方) 執行.</p>
+      </div>
+      <footer class="step-foot"></footer>
+    </section>
+
+    <!-- ================= step 4 ================= -->
+    <section class="step" id="step-4" data-step="4">
+      <header class="step-head">
+        <span class="step-no" aria-hidden="true">04</span>
+        <div><p class="step-kicker">約 5 分鐘 · 最重要的一步</p><h2>設定 .env</h2></div>
+        <label class="done-toggle"><input type="checkbox" data-done="4"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>完成</label>
+      </header>
+      <div class="step-body">
+        <p><code>docker-compose.yml</code> 從專案根目錄的 <code>.env</code> 讀取設定,app 容器也會直接載入整個檔案. 找不到 <code>.env</code> 時 Compose 會直接報錯. 你可以用下面的產生器做出完整的 <code>.env</code>,也可以複製範本後手動修改.</p>
+
+        <div class="note danger"><span class="note-tag">先讀這 5 條</span><div>
+          <ol class="rules">
+            <li><b>資料庫的帳號,密碼與名稱只在第一次啟動時生效.</b> postgres 第一次啟動時用 <code>DB_USER</code>, <code>DB_PASSWORD</code>, <code>DB_NAME</code> 建立資料庫並寫進 volume. 之後再改 <code>.env</code>,資料庫不會跟著變,app 就連不上.</li>
+            <li><b><code>DB_NAME</code> 不能有空格.</b> 健康檢查 <code>pg_isready -d ${DB_NAME}</code> 和 app 的連線字串都沒有加引號,名稱有空格時 postgres 會一直 unhealthy. 請用 <code>knowledge_hub</code> 這種寫法.</li>
+            <li><b>密碼只用英文字母和數字.</b> <code>$</code> 會被 Compose 當成變數,空白後面的 <code>#</code> 會被當成註解,空白和引號也可能讓值被截斷.</li>
+            <li><b><code>SYSTEM_AES_KEY</code> 必須剛好 32 個字元,設定後不要再改.</b> 你在介面輸入的模型 API key 會用它加密. 長度不對時加密會被停用;換掉它之後,已經存下的 API key 全部無法解密.</li>
+            <li><b><code>JWT_SECRET</code> 要設定固定值.</b> 留空時 app 每次啟動都會隨機產生一個,重啟後所有人都會被登出.</li>
+          </ol>
+        </div></div>
+
+        <form class="gen" id="envgen" autocomplete="off" novalidate>
+          <div class="gen-head">
+            <h3>.env 產生器</h3>
+            <p>密碼與金鑰由瀏覽器的 <code>crypto.getRandomValues</code> 在本機產生,不會傳送到任何地方. 產生器以此分支的 <code>.env.example</code> 為範本,只修改下列項目,其餘維持預設.</p>
+          </div>
+          <div class="gen-grid">
+            <label class="field" for="env-tz">時區 <code>TZ</code>
+              <select id="env-tz">
+                <option value="Asia/Taipei" selected>Asia/Taipei</option>
+                <option value="UTC">UTC</option>
+                <option value="Asia/Tokyo">Asia/Tokyo</option>
+                <option value="Asia/Singapore">Asia/Singapore</option>
+                <option value="America/Los_Angeles">America/Los_Angeles</option>
+                <option value="America/New_York">America/New_York</option>
+                <option value="Europe/London">Europe/London</option>
+                <option value="Europe/Berlin">Europe/Berlin</option>
+              </select>
+              <span class="hint">影響 log 與排程的時間.</span>
+            </label>
+            <label class="field" for="env-locale">介面預設語言 <code>DEFAULT_LOCALE</code>
+              <select id="env-locale">
+                <option value="en-US" selected>English (en-US)</option>
+                <option value="ja-JP">日本語 (ja-JP)</option>
+                <option value="ko-KR">한국어 (ko-KR)</option>
+                <option value="ru-RU">Русский (ru-RU)</option>
+              </select>
+              <span class="hint">此分支沒有中文介面.</span>
+            </label>
+            <label class="field" for="env-fport">網頁連接埠 <code>FRONTEND_PORT</code>
+              <input type="number" id="env-fport" min="1" max="65535" value="80" inputmode="numeric">
+              <span class="hint">80 被占用或使用 rootless 時改成 8000.</span>
+              <span class="err" id="err-fport" hidden></span>
+            </label>
+            <label class="field" for="env-aport">API 連接埠 <code>APP_PORT</code>
+              <input type="number" id="env-aport" min="1" max="65535" value="8080" inputmode="numeric">
+              <span class="hint">只改本機對應的埠,容器內部仍是 8080.</span>
+              <span class="err" id="err-aport" hidden></span>
+            </label>
+            <label class="field" for="env-admin">系統管理員 Email
+              <input type="email" id="env-admin" placeholder="you@example.com">
+              <span class="hint">寫入 <code>WEKNORA_BOOTSTRAP_SYSTEM_ADMIN_EMAIL</code>,第 8 步會用到. 可以先留空.</span>
+              <span class="err" id="err-admin" hidden></span>
+            </label>
+          </div>
+          <div class="checks">
+            <label class="check" for="env-anydoc"><input type="checkbox" id="env-anydoc" checked><span>建置 anydoc 文件引擎 (<code>WITH_ANYDOC=1</code>)<span class="hint">取消勾選可跳過 Rust 編譯,建置較快也較省記憶體,Office 文件改由 docreader 解析.</span></span></label>
+            <label class="check" for="env-ssrf"><input type="checkbox" id="env-ssrf"><span>我會使用本機的 OpenAI 相容服務,例如 LM Studio, vLLM, llama.cpp<span class="hint">加入 <code>SSRF_WHITELIST=host.docker.internal</code>,否則新增模型時 Base URL 會被 SSRF 防護擋下. 只用雲端 API 或 Ollama 可以不勾.</span></span></label>
+          </div>
+          <div class="secrets">
+            <div class="secrets-head"><span>自動產生的密碼與金鑰</span><button type="button" class="btn" id="regen">重新產生</button></div>
+            <dl id="secret-list"></dl>
+          </div>
+          <div class="out-bar">
+            <div class="tabs" role="tablist" aria-label="輸出格式">
+              <button type="button" role="tab" id="tab-full" aria-selected="true" aria-controls="env-out">完整 .env</button>
+              <button type="button" role="tab" id="tab-diff" aria-selected="false" aria-controls="env-out">只看修改的行</button>
+            </div>
+          </div>
+          <div class="cmd"><div class="cmd-bar"><span id="env-out-label">.env (完整內容)</span><button type="button" class="copy">複製</button></div><pre><code id="env-out"></code></pre></div>
+          <div class="note warn"><span class="note-tag">注意</span><div><p>重新整理頁面或按 "重新產生" 都會換一組新的密碼. 第一次啟動之後請以你的 <code>.env</code> 檔為準,不要再用產生器覆蓋,否則資料庫密碼會對不上.</p></div></div>
+        </form>
+
+        <h3>把內容存成 .env</h3>
+        <p>按上方的複製,然後在專案資料夾執行:</p>
+        <div class="os-variants">
+          <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell</span><button type="button" class="copy">複製</button></div><pre><code># 會開啟記事本,詢問是否建立新檔時選 "是",貼上後存檔
+notepad .env</code></pre></div>
+          <div class="cmd" data-os="mac"><div class="cmd-bar"><span>Terminal (zsh)</span><button type="button" class="copy">複製</button></div><pre><code># 直接把剪貼簿的內容寫成 .env
+pbpaste &gt; .env</code></pre></div>
+          <div class="cmd" data-os="linux"><div class="cmd-bar"><span>Terminal (bash)</span><button type="button" class="copy">複製</button></div><pre><code># 貼上後按 Ctrl+O, Enter 存檔,再按 Ctrl+X 離開
+nano .env</code></pre></div>
+        </div>
+        <p>存好之後檢查設定能不能被正確解析:</p>
+        <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>docker compose config --quiet</code></pre></div>
+        <div class="note ok"><span class="note-tag">成功</span><div><p>沒有任何輸出就代表 <code>.env</code> 與 compose 檔都能正確解析. 出現 "variable is not set" 的警告,代表有必要的值沒填到.</p></div></div>
+
+        <details class="more">
+          <summary>不用產生器,手動修改 .env</summary>
+          <div class="more-body">
+            <div class="os-variants">
+              <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell</span><button type="button" class="copy">複製</button></div><pre><code>Copy-Item .env.example .env
+notepad .env</code></pre></div>
+              <div class="cmd" data-os="mac"><div class="cmd-bar"><span>Terminal (zsh)</span><button type="button" class="copy">複製</button></div><pre><code>cp .env.example .env
+open -e .env</code></pre></div>
+              <div class="cmd" data-os="linux"><div class="cmd-bar"><span>Terminal (bash)</span><button type="button" class="copy">複製</button></div><pre><code>cp .env.example .env
+nano .env</code></pre></div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>變數</th><th>建議值</th><th>說明</th></tr></thead>
+                <tbody>
+                  <tr><td><code>DB_PASSWORD</code></td><td>24 字元英數</td><td>只在第一次啟動生效</td></tr>
+                  <tr><td><code>DB_NAME</code></td><td><code>knowledge_hub</code></td><td>不能有空格</td></tr>
+                  <tr><td><code>REDIS_PASSWORD</code></td><td>24 字元英數</td><td>不可留空,否則 Redis 無法啟動</td></tr>
+                  <tr><td><code>JWT_SECRET</code></td><td>64 字元 hex</td><td>留空會在每次重啟後登出所有人</td></tr>
+                  <tr><td><code>SYSTEM_AES_KEY</code></td><td>32 字元 hex</td><td>長度必須剛好 32,設定後不可更改</td></tr>
+                  <tr><td><code>SYSTEM_SIGNING_KEY</code></td><td>64 字元 hex</td><td>嵌入頁面與檔案預簽連結使用</td></tr>
+                  <tr><td><code>TZ</code></td><td><code>Asia/Taipei</code></td><td>範本預設是 UTC</td></tr>
+                  <tr><td><code>DEFAULT_LOCALE</code></td><td><code>en-US</code></td><td>可選 en-US, ja-JP, ko-KR, ru-RU</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>產生隨機金鑰:</p>
+            <div class="os-variants">
+              <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell 7</span><button type="button" class="copy">複製</button></div><pre><code># 32 字元,給 SYSTEM_AES_KEY
+[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(16)).ToLower()
+# 64 字元,給 JWT_SECRET 與 SYSTEM_SIGNING_KEY
+[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)).ToLower()</code></pre></div>
+              <div class="cmd" data-os="mac linux"><div class="cmd-bar"><span>Terminal</span><button type="button" class="copy">複製</button></div><pre><code>openssl rand -hex 16   # 32 字元,給 SYSTEM_AES_KEY
+openssl rand -hex 32   # 64 字元,給 JWT_SECRET 與 SYSTEM_SIGNING_KEY</code></pre></div>
+            </div>
+            <p class="boot-note" data-os="windows">Windows 內建的 PowerShell 5.1 沒有這些 API,請改用 PowerShell 7 (<code>pwsh</code>) 或上方的產生器.</p>
+          </div>
+        </details>
+
+        <div class="note tip"><span class="note-tag">保管</span><div><p><code>.env</code> 已經被 <code>.gitignore</code> 排除. 不要 commit,也不要貼到聊天室或 issue. 請另外備份一份,尤其是 <code>SYSTEM_AES_KEY</code>: 遺失它就得重新輸入所有模型的 API key.</p></div></div>
+      </div>
+      <footer class="step-foot"></footer>
+    </section>
+
+    <!-- ================= step 5 ================= -->
+    <section class="step" id="step-5" data-step="5">
+      <header class="step-head">
+        <span class="step-no" aria-hidden="true">05</span>
+        <div><p class="step-kicker">約 2 分鐘</p><h2>檢查連接埠</h2></div>
+        <label class="done-toggle"><input type="checkbox" data-done="5"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>完成</label>
+      </header>
+      <div class="step-body">
+        <p>預設會用到本機的 80 (網頁) 與 8080 (API). 如果已經被其他程式占用,啟動時會出現 "port is already allocated" 或 "ports are not available".</p>
+        <div class="os-variants">
+          <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell</span><button type="button" class="copy">複製</button></div><pre><code>Get-NetTCPConnection -State Listen -LocalPort 80,8080 -ErrorAction SilentlyContinue |
+  Select-Object LocalPort, OwningProcess, @{n='Process';e={(Get-Process -Id $_.OwningProcess).ProcessName}}</code></pre></div>
+          <div class="cmd" data-os="mac"><div class="cmd-bar"><span>Terminal (zsh)</span><button type="button" class="copy">複製</button></div><pre><code>lsof -nP -iTCP:80 -sTCP:LISTEN
+lsof -nP -iTCP:8080 -sTCP:LISTEN</code></pre></div>
+          <div class="cmd" data-os="linux"><div class="cmd-bar"><span>Terminal (bash)</span><button type="button" class="copy">複製</button></div><pre><code>sudo ss -ltnp | grep -E ':(80|8080)\s'</code></pre></div>
+        </div>
+        <div class="note ok"><span class="note-tag">成功</span><div><p>沒有任何輸出,代表兩個埠都可以用.</p></div></div>
+        <div class="note tip"><span class="note-tag">被占用時</span><div>
+          <p>不需要關掉對方,在 <code>.env</code> 改 <code>FRONTEND_PORT</code> (例如 8000) 或 <code>APP_PORT</code> (例如 18080) 就好,之後網頁改開 <code>http://localhost:8000</code>.</p>
+          <p data-os="windows">Windows 上 80 埠顯示由 PID 4 (System) 占用,通常是 IIS 或其他使用 http.sys 的服務.</p>
+          <p>常見會占用 8080 的程式: 其他開發伺服器,以及 llama.cpp server (預設也是 8080).</p>
+        </div></div>
+      </div>
+      <footer class="step-foot"></footer>
+    </section>
+
+    <!-- ================= step 6 ================= -->
+    <section class="step" id="step-6" data-step="6">
+      <header class="step-head">
+        <span class="step-no" aria-hidden="true">06</span>
+        <div><p class="step-kicker">第一次約數十分鐘</p><h2>建置並啟動</h2></div>
+        <label class="done-toggle"><input type="checkbox" data-done="6"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>完成</label>
+      </header>
+      <div class="step-body">
+        <p>在專案資料夾執行下面的指令. Compose 會先建置 frontend, app, docreader 三個映像,下載 postgres 與 redis,再依相依順序啟動容器. <code>-d</code> 代表啟動完成後回到命令列,容器留在背景執行.</p>
+        <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>docker compose up -d --build</code></pre></div>
+        <div class="cmd output"><div class="cmd-bar"><span>結尾的範例輸出</span></div><pre><code> ✔ Container knowledge-hub-redis      Started
+ ✔ Container knowledge-hub-postgres   Healthy
+ ✔ Container knowledge-hub-docreader  Healthy
+ ✔ Container knowledge-hub-app        Healthy
+ ✔ Container knowledge-hub-frontend   Started</code></pre></div>
+
+        <h3>建置期間會看到什麼</h3>
+        <ul>
+          <li>大量的下載與編譯訊息. app 映像要安裝 Rust 並編譯 anydoc 文件引擎,通常最久.</li>
+          <li>建置結束後,畫面會停在 Waiting 大約 1 到 2 分鐘. 這是在等健康檢查,不是當機,可以回頭看 <a href="#architecture">啟動流程動畫</a>.</li>
+        </ul>
+
+        <div class="note warn"><span class="note-tag">注意</span><div><p>建置途中按 Ctrl+C 會中止,但不會弄壞任何東西. 再執行一次同樣的指令,已完成的部分會從快取接續. 筆電請接上電源,並暫時關閉睡眠.</p></div></div>
+
+        <details class="more">
+          <summary>記憶體不夠或想加快建置</summary>
+          <div class="more-body">
+            <p>方法一: 在 <code>.env</code> 加入 <code>WITH_ANYDOC=0</code>,跳過 Rust 工具鏈與 anydoc 引擎. 代價是 Office 文件改由 docreader 解析.</p>
+            <p>方法二: 一次只建置一個映像,降低記憶體尖峰:</p>
+            <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>docker compose build frontend
+docker compose build docreader
+docker compose build app
+docker compose up -d</code></pre></div>
+          </div>
+        </details>
+
+        <details class="more">
+          <summary>(選用) 讓系統資訊頁顯示前端的 commit</summary>
+          <div class="more-body">
+            <p>沒設定時系統資訊頁會顯示 unknown,不影響功能. 需要時在同一個終端機,於 <code>docker compose up</code> 之前執行:</p>
+            <div class="os-variants">
+              <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell</span><button type="button" class="copy">複製</button></div><pre><code>$env:VITE_FRONTEND_COMMIT = (git rev-parse --short HEAD)</code></pre></div>
+              <div class="cmd" data-os="mac linux"><div class="cmd-bar"><span>Terminal</span><button type="button" class="copy">複製</button></div><pre><code>export VITE_FRONTEND_COMMIT=$(git rev-parse --short HEAD)</code></pre></div>
+            </div>
+          </div>
+        </details>
+
+        <div class="note info"><span class="note-tag">說明</span><div><p>BrowserSkill 瀏覽器整合預設不會建置 (<code>WITH_BROWSERSKILL=0</code>),不影響一般功能. 需要時請參考 <code>docker/Dockerfile.app</code> 開頭的說明.</p></div></div>
+        <div class="note warn"><span class="note-tag">不要這樣啟動</span><div><p><code>scripts/start_all.sh</code> 不加參數時,會嘗試在本機安裝並啟動 Ollama (Linux 上會下載並執行遠端安裝腳本). 真的要用請加上 <code>--docker</code>. <code>make docker-run</code> 使用舊版的 <code>docker-compose</code> 指令,也不建議.</p></div></div>
+        <p>出現錯誤訊息時,把訊息的關鍵字貼到 <a href="#troubleshooting">疑難排解</a> 的搜尋框.</p>
+      </div>
+      <footer class="step-foot"></footer>
+    </section>
+
+    <!-- ================= step 7 ================= -->
+    <section class="step" id="step-7" data-step="7">
+      <header class="step-head">
+        <span class="step-no" aria-hidden="true">07</span>
+        <div><p class="step-kicker">約 3 分鐘</p><h2>驗證服務</h2></div>
+        <label class="done-toggle"><input type="checkbox" data-done="7"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>完成</label>
+      </header>
+      <div class="step-body">
+        <h3>容器狀態</h3>
+        <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>docker compose ps --format "table {{.Name}}\t{{.Status}}"</code></pre></div>
+        <div class="cmd output"><div class="cmd-bar"><span>範例輸出</span></div><pre><code>NAME                      STATUS
+knowledge-hub-app         Up 2 minutes (healthy)
+knowledge-hub-docreader   Up 3 minutes (healthy)
+knowledge-hub-frontend    Up About a minute
+knowledge-hub-postgres    Up 3 minutes (healthy)
+knowledge-hub-redis       Up 3 minutes</code></pre></div>
+        <div class="note ok"><span class="note-tag">成功</span><div><p>app, docreader, postgres 顯示 <code>(healthy)</code>. redis 與 frontend 沒有健康檢查,顯示 Up 就是正常. 如果 STATUS 出現 Restarting 或 unhealthy,先看下面的 log.</p></div></div>
+
+        <h3>API 健康檢查</h3>
+        <div class="os-variants">
+          <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell</span><button type="button" class="copy">複製</button></div><pre><code># PowerShell 的 curl 可能是別名,請輸入 curl.exe
+curl.exe -s http://localhost:8080/health</code></pre></div>
+          <div class="cmd" data-os="mac linux"><div class="cmd-bar"><span>Terminal</span><button type="button" class="copy">複製</button></div><pre><code>curl -s http://localhost:8080/health</code></pre></div>
+        </div>
+        <div class="cmd output"><div class="cmd-bar"><span>預期輸出</span></div><pre><code>{"status":"ok"}</code></pre></div>
+
+        <h3>確認 .env 有被讀到</h3>
+        <p>app 啟動時會印出 <code>[startup-env]</code> 開頭的設定摘要,敏感的值只顯示長度.</p>
+        <div class="os-variants">
+          <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell</span><button type="button" class="copy">複製</button></div><pre><code>docker compose logs app | Select-String "startup-env"</code></pre></div>
+          <div class="cmd" data-os="mac linux"><div class="cmd-bar"><span>Terminal</span><button type="button" class="copy">複製</button></div><pre><code>docker compose logs app | grep startup-env</code></pre></div>
+        </div>
+        <div class="note ok"><span class="note-tag">成功</span><div><p>可以看到 <code>JWT_SECRET=set (64 chars)</code>, <code>SYSTEM_AES_KEY=set (32 chars)</code>, <code>DB_NAME=knowledge_hub</code> 這類行.</p></div></div>
+        <div class="note warn"><span class="note-tag">注意</span><div><p>出現 "SYSTEM_AES_KEY is set but N bytes long" 或 "no usable signing key" 時,回到第 4 步修正 <code>.env</code>,再執行 <code>docker compose up -d</code>.</p></div></div>
+
+        <h3>開啟網頁</h3>
+        <p>瀏覽器開啟 <a href="http://localhost" target="_blank" rel="noopener">http://localhost</a>. 如果改過 <code>FRONTEND_PORT</code>,請在網址後面加上 <code>:埠號</code>.</p>
+        <p>想持續看 log 可以用 <code>docker compose logs -f app</code>,按 Ctrl+C 只會離開 log,容器不會停止.</p>
+      </div>
+      <footer class="step-foot"></footer>
+    </section>
+
+    <!-- ================= step 8 ================= -->
+    <section class="step" id="step-8" data-step="8">
+      <header class="step-head">
+        <span class="step-no" aria-hidden="true">08</span>
+        <div><p class="step-kicker">約 5 分鐘</p><h2>建立帳號與系統管理員</h2></div>
+        <label class="done-toggle"><input type="checkbox" data-done="8"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>完成</label>
+      </header>
+      <div class="step-body">
+        <ol>
+          <li>在登入頁找到 "New to Knowledge Hub?",點 Create Account.</li>
+          <li>填入 Username (2 到 20 個字元), Email 與 Password (8 到 32 個字元).</li>
+          <li>看到 "Registration successful. Please sign in" 之後,用 Email 與密碼登入.</li>
+          <li>如果出現 "Choose your workspace",選 Create workspace 建立自己的工作區.</li>
+        </ol>
+
+        <h3>讓帳號成為系統管理員</h3>
+        <div class="note warn"><span class="note-tag">注意</span><div><p>第一個註冊的帳號<b>不會</b>自動成為系統管理員. 平台層級的設定 (例如全域系統設定) 只有系統管理員能調整.</p></div></div>
+        <ol>
+          <li>確認 <code>.env</code> 裡有 <code>WEKNORA_BOOTSTRAP_SYSTEM_ADMIN_EMAIL=你註冊用的 Email</code>. 產生器有這個欄位,沒填的話現在手動加上.</li>
+          <li>重建 app 容器,讓它在啟動時執行升級:</li>
+        </ol>
+        <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>docker compose up -d --force-recreate --no-deps app</code></pre></div>
+        <div class="os-variants">
+          <div class="cmd" data-os="windows"><div class="cmd-bar"><span>PowerShell</span><button type="button" class="copy">複製</button></div><pre><code>docker compose logs app | Select-String "bootstrap"</code></pre></div>
+          <div class="cmd" data-os="mac linux"><div class="cmd-bar"><span>Terminal</span><button type="button" class="copy">複製</button></div><pre><code>docker compose logs app | grep bootstrap</code></pre></div>
+        </div>
+        <div class="note ok"><span class="note-tag">成功</span><div><p>log 出現 <code>[bootstrap] promoted user ... to system admin</code>. 登出再登入後,就能看到系統管理功能.</p></div></div>
+        <div class="note info"><span class="note-tag">說明</span><div><p>這個設定只在系統裡還沒有任何系統管理員時生效. 留在 <code>.env</code> 裡不會重複授權,也不會覆蓋之後在介面上調整的權限.</p></div></div>
+
+        <h3>(建議) 關閉公開註冊</h3>
+        <p>只有自己使用可以跳過. 如果這台電腦在區網上能被別人連到,建立好需要的帳號後,在 <code>.env</code> 設定 <code>DISABLE_REGISTRATION=true</code>,再執行 <code>docker compose up -d</code>.</p>
+        <div class="note warn"><span class="note-tag">注意</span><div><p>系統管理員在介面上儲存過的系統設定會寫進資料庫,優先權高於 <code>.env</code>. 以後改 <code>.env</code> 沒有效果時,先檢查介面上的設定.</p></div></div>
+      </div>
+      <footer class="step-foot"></footer>
+    </section>
+
+    <!-- ================= step 9 ================= -->
+    <section class="step" id="step-9" data-step="9">
+      <header class="step-head">
+        <span class="step-no" aria-hidden="true">09</span>
+        <div><p class="step-kicker">約 10 分鐘</p><h2>連接 AI 模型</h2></div>
+        <label class="done-toggle"><input type="checkbox" data-done="9"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>完成</label>
+      </header>
+      <div class="step-body">
+        <p>至少需要兩種模型: 對話模型 (chat) 負責回答,向量模型 (embedding) 負責把文件與問題轉成向量. 重排序模型 (rerank) 能提升檢索品質,但不是必要的.</p>
+        <p>到 <b>System Settings → Model Management</b> 新增模型. 每個模型都先測試連線成功再儲存.</p>
+
+        <h3>選項 A: 雲端 API</h3>
+        <p>此分支支援的 provider 包含 OpenAI, Azure OpenAI, Anthropic, Gemini, OpenRouter, NVIDIA, Jina, LiteLLM, GPUStack, Novita, Requesty,以及一般的 OpenAI 相容端點. 填入 API key 即可,API key 會用 <code>SYSTEM_AES_KEY</code> 加密後存進資料庫.</p>
+
+        <h3>選項 B: 本機 Ollama</h3>
+        <p>在主機 (不是容器裡) 安裝 <a href="https://ollama.com/download" target="_blank" rel="noopener">Ollama</a>,下載要用的模型. 下面的模型名稱只是範例:</p>
+        <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>ollama pull nomic-embed-text
+ollama pull llama3.1:8b</code></pre></div>
+        <p>app 透過 <code>OLLAMA_BASE_URL</code> 連到主機上的 Ollama,預設是 <code>http://host.docker.internal:11434</code>.</p>
+        <div class="note info" data-os="windows mac"><span class="note-tag">說明</span><div><p>Docker Desktop 會把 <code>host.docker.internal</code> 轉到你的主機,Ollama 維持預設設定即可.</p></div></div>
+        <div data-os="linux" class="sec">
+          <div class="note warn"><span class="note-tag">Linux 必做</span><div><p>Linux 上的 Ollama 預設只接受 127.0.0.1 的連線,容器連不到. 要讓它監聽所有介面:</p></div></div>
+          <div class="cmd"><div class="cmd-bar"><span>1. 開啟 systemd 覆寫設定</span><button type="button" class="copy">複製</button></div><pre><code>sudo systemctl edit ollama</code></pre></div>
+          <div class="cmd"><div class="cmd-bar"><span>2. 在編輯器中加入這兩行並存檔</span><button type="button" class="copy">複製</button></div><pre><code>[Service]
+Environment="OLLAMA_HOST=0.0.0.0"</code></pre></div>
+          <div class="cmd"><div class="cmd-bar"><span>3. 重新載入並重啟</span><button type="button" class="copy">複製</button></div><pre><code>sudo systemctl daemon-reload
+sudo systemctl restart ollama</code></pre></div>
+          <div class="note danger"><span class="note-tag">安全</span><div><p><code>OLLAMA_HOST=0.0.0.0</code> 會讓同一個網路的其他電腦也能使用你的 Ollama. 請用防火牆把 11434 埠限制為只允許本機與 Docker 網段.</p></div></div>
+        </div>
+        <p>從 app 容器裡確認連得到 Ollama:</p>
+        <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>docker compose exec app curl -s http://host.docker.internal:11434/api/tags</code></pre></div>
+        <div class="note ok"><span class="note-tag">成功</span><div><p>回傳一段包含你已下載模型清單的 JSON.</p></div></div>
+
+        <h3>選項 C: 本機的 OpenAI 相容服務</h3>
+        <p>LM Studio, vLLM, llama.cpp 這類服務,Base URL 要寫成 <code>http://host.docker.internal:埠號/v1</code>. 不能寫 localhost: 在容器裡,localhost 指的是 app 容器自己.</p>
+        <div class="note warn"><span class="note-tag">SSRF 防護</span><div><p>為了防止 SSRF,app 預設會拒絕 <code>host.docker.internal</code>, localhost 與內網位址,新增模型時會出現 SSRF 驗證錯誤. 請在 <code>.env</code> 加入 <code>SSRF_WHITELIST=host.docker.internal</code> (內網主機可以寫 IP 或 CIDR,用逗號分隔),再執行 <code>docker compose up -d</code>. 只加入你信任的主機. 產生器勾選對應選項就會自動加入.</p></div></div>
+
+        <h3>選 embedding 模型之前</h3>
+        <div class="note warn"><span class="note-tag">注意</span><div><p>知識庫匯入文件之後,更換 embedding 模型通常需要重建索引,因為不同模型的向量維度與語意空間不同. 先確定要用哪個模型,再開始大量匯入.</p></div></div>
+      </div>
+      <footer class="step-foot"></footer>
+    </section>
+
+    <!-- ================= step 10 ================= -->
+    <section class="step" id="step-10" data-step="10">
+      <header class="step-head">
+        <span class="step-no" aria-hidden="true">10</span>
+        <div><p class="step-kicker">約 5 分鐘</p><h2>建立知識庫並提問</h2></div>
+        <label class="done-toggle"><input type="checkbox" data-done="10"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span>完成</label>
+      </header>
+      <div class="step-body">
+        <ol>
+          <li>從左側選單進入 <b>Knowledge Base</b>,建立新的知識庫.</li>
+          <li>在知識庫設定的 <b>Model Configuration</b> 選擇剛才新增的 embedding 與 chat 模型.</li>
+          <li>上傳一份文件,例如 PDF, Word 或 Markdown. 單一檔案上限預設是 50 MB (<code>MAX_FILE_SIZE_MB</code>).</li>
+          <li>等文件狀態變成處理完成. 大型或圖片很多的 PDF 需要幾分鐘.</li>
+          <li>點 <b>New Chat</b>,選擇這個知識庫,問一個只有文件裡才有答案的問題.</li>
+        </ol>
+        <div class="note ok"><span class="note-tag">完成</span><div><p>回答附有引用來源,點開可以看到文件裡的原文段落. 到這裡安裝就全部完成了.</p></div></div>
+        <p>文件一直停在處理中時,同時看 docreader 與 app 的 log:</p>
+        <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>docker compose logs -f docreader app</code></pre></div>
+      </div>
+      <footer class="step-foot"></footer>
+    </section>
+
+    <!-- ================= operations ================= -->
+    <section class="sec" id="operations">
+      <h2 class="sec-title">日常操作</h2>
+      <p>以下指令都在專案資料夾執行,三種系統都一樣.</p>
+      <div class="ops">
+        <div class="ops-row"><span>查看狀態</span><div class="inline-cmd"><pre><code>docker compose ps</code></pre><button type="button" class="copy">複製</button></div></div>
+        <div class="ops-row"><span>即時查看 log<small>Ctrl+C 離開,容器不會停</small></span><div class="inline-cmd"><pre><code>docker compose logs -f app</code></pre><button type="button" class="copy">複製</button></div></div>
+        <div class="ops-row"><span>停止<small>保留容器與資料</small></span><div class="inline-cmd"><pre><code>docker compose stop</code></pre><button type="button" class="copy">複製</button></div></div>
+        <div class="ops-row"><span>再次啟動</span><div class="inline-cmd"><pre><code>docker compose up -d</code></pre><button type="button" class="copy">複製</button></div></div>
+        <div class="ops-row"><span>修改 .env 後套用<small>restart 不會重讀 .env</small></span><div class="inline-cmd"><pre><code>docker compose up -d</code></pre><button type="button" class="copy">複製</button></div></div>
+        <div class="ops-row"><span>移除容器<small>volume 與資料保留</small></span><div class="inline-cmd"><pre><code>docker compose down</code></pre><button type="button" class="copy">複製</button></div></div>
+      </div>
+      <div class="note danger"><span class="note-tag">危險</span><div><p><code>docker compose down -v</code> 會連同 volume 一起刪除,資料庫與上傳的檔案都會永久消失. 除非你確定要重來,否則不要加 <code>-v</code>.</p></div></div>
+
+      <h3>備份</h3>
+      <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code># 1. 資料庫,輸出為 pg_dump 自訂格式
+docker compose exec -T postgres sh -c 'pg_dump -U $POSTGRES_USER -d $POSTGRES_DB -Fc -f /tmp/kh.dump'
+docker compose cp postgres:/tmp/kh.dump ./kh-db.dump
+# 2. 上傳的原始檔案
+docker compose cp app:/data/files ./kh-files</code></pre></div>
+      <p>另外把 <code>.env</code> 複製一份存到安全的地方. 還原資料時必須搭配同一組 <code>SYSTEM_AES_KEY</code>.</p>
+
+      <h3>更新到新版本</h3>
+      <ol>
+        <li>先照上面的方式備份.</li>
+        <li>取得新程式並重新建置:</li>
+      </ol>
+      <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>git pull
+docker compose up -d --build
+docker compose logs -f app</code></pre></div>
+      <div class="note info"><span class="note-tag">說明</span><div><p><code>AUTO_MIGRATE=true</code> 時,app 啟動會自動執行資料庫 migration. 更新時沿用同一份 <code>.env</code>,特別是 <code>SYSTEM_AES_KEY</code> 與 <code>JWT_SECRET</code>.</p></div></div>
+      <div class="note warn"><span class="note-tag">注意</span><div><p>migration 失敗時不要刪除資料庫來繞過. 保留備份,從 log 找出失敗的 migration,修正權限或結構問題後再重新啟動.</p></div></div>
+
+      <details class="more">
+        <summary>從備份還原</summary>
+        <div class="more-body">
+          <div class="note danger"><span class="note-tag">危險</span><div><p>還原會覆蓋現有資料. 請先在測試環境演練,並使用和備份時相同的 <code>.env</code>.</p></div></div>
+          <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>docker compose stop app frontend
+docker compose cp ./kh-db.dump postgres:/tmp/kh.dump
+docker compose exec -T postgres sh -c 'pg_restore -U $POSTGRES_USER -d $POSTGRES_DB --clean --if-exists /tmp/kh.dump'
+docker compose up -d
+docker compose cp ./kh-files/. app:/data/files
+docker compose restart app</code></pre></div>
+          <p>最後的 <code>restart</code> 讓 app 重新套用檔案擁有者設定.</p>
+        </div>
+      </details>
+
+      <h3 id="uninstall">完全移除</h3>
+      <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code># 刪除容器,網路與所有 volume (資料會永久刪除)
+docker compose down -v --remove-orphans
+# 刪除本機建置的映像
+docker image rm knowledge-hub-app:local knowledge-hub-ui:local knowledge-hub-docreader:local</code></pre></div>
+      <p>還想釋放建置快取可以執行 <code>docker builder prune</code>,但它會清掉這台電腦上所有專案的建置快取.</p>
+    </section>
+
+    <!-- ================= profiles ================= -->
+    <section class="sec" id="profiles">
+      <h2 class="sec-title">選用元件</h2>
+      <p><code>docker-compose.yml</code> 還有一些預設不啟動的服務,用 profile 開啟. 建議把要用的 profile 寫進 <code>.env</code> 的 <code>COMPOSE_PROFILES</code>,這樣之後的 up, down, ps 都會自動包含它們:</p>
+      <div class="cmd"><div class="cmd-bar"><span>.env</span><button type="button" class="copy">複製</button></div><pre><code>COMPOSE_PROFILES=qdrant,searxng</code></pre></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>profile</th><th>用途</th><th>本機連接埠</th></tr></thead>
+          <tbody>
+            <tr><td><code>minio</code></td><td>S3 相容物件儲存. 還要設定 <code>STORAGE_TYPE=minio</code> 與 <code>MINIO_BUCKET_NAME</code></td><td>9000, 9001</td></tr>
+            <tr><td><code>qdrant</code></td><td>向量資料庫,搭配 <code>RETRIEVE_DRIVER=qdrant</code></td><td>6333, 6334</td></tr>
+            <tr><td><code>milvus</code></td><td>向量資料庫 (自架)</td><td>19530, 9091</td></tr>
+            <tr><td><code>weaviate</code></td><td>向量資料庫</td><td>9035, 50052</td></tr>
+            <tr><td><code>doris</code></td><td>Apache Doris 向量後端 (自架)</td><td>8030, 9030, 8040</td></tr>
+            <tr><td><code>neo4j</code></td><td>知識圖譜,搭配 <code>NEO4J_ENABLE=true</code></td><td>7474, 7687</td></tr>
+            <tr><td><code>searxng</code></td><td>自架網頁搜尋</td><td>127.0.0.1:8888</td></tr>
+            <tr><td><code>langfuse</code></td><td>LLM 呼叫追蹤與觀測</td><td>3000, 9100, 9101</td></tr>
+            <tr><td><code>odl-hybrid</code></td><td>OpenDataLoader hybrid 文件解析後端</td><td>不開放</td></tr>
+            <tr><td><code>dex</code></td><td>測試用的 OIDC 登入服務</td><td>5556</td></tr>
+            <tr><td><code>full</code></td><td>一次啟用沙箱, searxng, minio, neo4j, qdrant, dex, langfuse 與 MCP 伺服器</td><td>多個</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note warn"><span class="note-tag">注意</span><div>
+        <p>啟用 profile 只會啟動服務,還要設定表格裡對應的變數,app 才會真的使用它.</p>
+        <p>neo4j 與 minio 會把連接埠開在所有網路介面,預設帳密分別是 <code>neo4j / password</code> 與 <code>minioadmin / minioadmin</code>. 啟用前先在 <code>.env</code> 修改 <code>NEO4J_PASSWORD</code>, <code>MINIO_ACCESS_KEY_ID</code>, <code>MINIO_SECRET_ACCESS_KEY</code>.</p>
+        <p>不要把 <code>SEARXNG_PORT</code> 設成和 <code>APP_PORT</code> 一樣. <code>full</code> 對一般本機使用太重,建議只開需要的 profile.</p>
+      </div></div>
+    </section>
+
+    <!-- ================= troubleshooting ================= -->
+    <section class="sec" id="troubleshooting">
+      <h2 class="sec-title">疑難排解</h2>
+      <p>把錯誤訊息的關鍵字貼進搜尋框,例如 <code>port</code>, <code>unhealthy</code>, <code>SSRF</code>, <code>502</code>. 看 log 的通用指令是 <code>docker compose logs --tail 200 服務名稱</code>.</p>
+      <div class="ts-search">
+        <input type="search" id="ts-search" placeholder="輸入錯誤訊息或關鍵字" aria-label="搜尋疑難排解">
+        <output id="ts-count"></output>
+      </div>
+      <div class="issues" id="issues">
+
+        <details class="issue"><summary><span class="sym"><b>找不到 .env</b><code>env file ... .env not found</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>還沒有建立 <code>.env</code>. app 服務使用 <code>env_file: .env</code>,這個檔案必須存在.</p>
+          <p><span class="k">解法</span>回到 <a href="#step-4">第 4 步</a> 建立 <code>.env</code>,確認它和 <code>docker-compose.yml</code> 在同一層資料夾.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>建置 app 時要求 BrowserSkill 原始碼</b><code>Set BROWSERSKILL_SOURCE_DIR to a reviewed local BrowserSkill source checkout</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>你的程式碼是舊版,當時 BrowserSkill 還是必要的建置步驟;或是 <code>.env</code> 裡設定了 <code>WITH_BROWSERSKILL=1</code>.</p>
+          <p><span class="k">解法</span>執行 <code>git pull</code> 更新到最新的 feature/clean,並確認 <code>WITH_BROWSERSKILL</code> 沒有設成 1,再重新建置.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>建置到一半被中止,記憶體不足</b><code>JavaScript heap out of memory / exit code: 137 / Killed</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>分配給 Docker 的記憶體不夠,前端或 Rust 編譯時被系統中止.</p>
+          <p><span class="k">解法</span>依 <a href="#step-2">第 2 步</a> 提高 Docker 的記憶體,或用第 6 步的 <code>WITH_ANYDOC=0</code> 與逐一建置.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>下載套件逾時或失敗</b><code>TLS handshake timeout / i/o timeout / Could not resolve host</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>網路不穩,或公司 Proxy 與防火牆擋住了 Docker Hub, GitHub, npm, PyPI 等來源.</p>
+          <p><span class="k">解法</span>直接重跑 <code>docker compose up -d --build</code>,已完成的部分會用快取. 公司網路請先在 Docker 設定 Proxy.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>BuildKit 相關錯誤</b><code>the --mount option requires BuildKit</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>Docker 版本太舊,或關閉了 BuildKit. Dockerfile 使用了 <code>RUN --mount</code>.</p>
+          <p><span class="k">解法</span>更新 Docker,並確認沒有設定 <code>DOCKER_BUILDKIT=0</code>.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>連接埠被占用</b><code>port is already allocated / ports are not available</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>80 或 8080 已經有其他程式在用.</p>
+          <p><span class="k">解法</span>在 <code>.env</code> 改 <code>FRONTEND_PORT</code> 或 <code>APP_PORT</code>,再執行 <code>docker compose up -d</code>. 找出占用程式的方法見 <a href="#step-5">第 5 步</a>.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>容器名稱衝突</b><code>Conflict. The container name "/knowledge-hub-app" is already in use</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>compose 檔固定了容器名稱,同一台電腦只能跑一份. 通常是另一個資料夾的副本還在執行.</p>
+          <p><span class="k">解法</span>到原本的資料夾執行 <code>docker compose down</code>. 確定不需要時,也可以用 <code>docker rm -f knowledge-hub-app</code> 移除單一容器.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>postgres 一直 unhealthy</b><code>dependency failed to start: container knowledge-hub-postgres is unhealthy</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>最常見的是 <code>DB_NAME</code> 有空格,健康檢查的 <code>pg_isready</code> 會回報 "too many command-line arguments". 舊版範本的 <code>DB_NAME=Knowledge Hub</code> 就會發生.</p>
+          <p><span class="k">解法</span>把 <code>DB_NAME</code> 改成 <code>knowledge_hub</code>. 如果是全新安裝,還沒有任何資料,執行 <code>docker compose down -v</code> 清掉用舊名稱建立的資料庫,再 <code>docker compose up -d</code>.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>資料庫密碼錯誤</b><code>password authentication failed for user</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>第一次啟動之後修改了 <code>DB_PASSWORD</code>. 資料庫仍然使用第一次設定的密碼.</p>
+          <p><span class="k">解法</span>把 <code>.env</code> 改回原本的密碼. 如果要換新密碼,先進入 psql:</p>
+          <div class="cmd"><div class="cmd-bar"><span>終端機 (任何系統)</span><button type="button" class="copy">複製</button></div><pre><code>docker compose exec postgres sh -c 'psql -U $POSTGRES_USER -d $POSTGRES_DB'</code></pre></div>
+          <p>執行 <code>ALTER USER postgres WITH PASSWORD '新密碼';</code> (帳號依你的 <code>DB_USER</code>),輸入 <code>\q</code> 離開,把新密碼寫進 <code>.env</code> 後執行 <code>docker compose up -d</code>. 全新安裝沒有資料時,也可以 <code>docker compose down -v</code> 重來.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>redis 不斷重啟</b><code>wrong number of arguments / Restarting</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span><code>REDIS_PASSWORD</code> 是空的. redis 以 <code>--requirepass ${REDIS_PASSWORD}</code> 啟動,沒有值就會失敗.</p>
+          <p><span class="k">解法</span>在 <code>.env</code> 設定 <code>REDIS_PASSWORD</code> (只用英數字),再執行 <code>docker compose up -d</code>.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>app unhealthy 或一直重啟</b><code>container knowledge-hub-app is unhealthy</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>通常是連不上資料庫或 Redis,或 migration 失敗.</p>
+          <p><span class="k">解法</span>執行 <code>docker compose logs --tail 200 app</code>,先看 <code>[startup-env]</code> 區塊確認設定有被讀到,再往下找第一個 error. migration 失敗時不要刪除資料庫,見 <a href="#operations">日常操作</a> 的更新說明.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>網頁顯示 502 Bad Gateway</b><code>502 Bad Gateway</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>frontend 已經在跑,但 app 還沒準備好或正在重啟.</p>
+          <p><span class="k">解法</span>用 <code>docker compose ps</code> 確認 app 是 <code>(healthy)</code>,不是的話看 app 的 log.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>上傳檔案失敗,檔案太大</b><code>413 Request Entity Too Large</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>超過 <code>MAX_FILE_SIZE_MB</code>,預設 50 MB. nginx 與 app 都用這個值限制.</p>
+          <p><span class="k">解法</span>在 <code>.env</code> 設定更大的 <code>MAX_FILE_SIZE_MB</code>,再執行 <code>docker compose up -d</code>.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>每次重啟後所有人都被登出</b><code>JWT_SECRET=&lt;unset&gt;</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span><code>JWT_SECRET</code> 沒有設定,app 每次啟動都隨機產生新的簽章金鑰.</p>
+          <p><span class="k">解法</span>設定固定的 64 字元值,再執行 <code>docker compose up -d</code>. 設定後大家需要重新登入一次.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>模型 API key 失效,log 出現解密失敗</b><code>decrypt failed (SYSTEM_AES_KEY missing/rotated?)</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span><code>SYSTEM_AES_KEY</code> 和當初加密時不同,或長度不是 32.</p>
+          <p><span class="k">解法</span>改回原本的金鑰,再執行 <code>docker compose up -d</code>. 如果原本的金鑰遺失,只能在介面重新輸入所有 API key.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>金鑰長度錯誤的警告</b><code>SYSTEM_AES_KEY is set but N bytes long / no usable signing key</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span><code>SYSTEM_AES_KEY</code> 不是剛好 32 字元,這時加密會被停用;或沒有可用的 <code>SYSTEM_SIGNING_KEY</code>.</p>
+          <p><span class="k">解法</span>還沒輸入任何 API key 的話,修正 <code>.env</code> 後執行 <code>docker compose up -d</code>. 已經輸入過 API key 的話,請先閱讀上一則.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>新增模型時 Base URL 被拒</b><code>SSRF validation failed</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>app 預設拒絕 <code>host.docker.internal</code>, localhost 與內網位址.</p>
+          <p><span class="k">解法</span>在 <code>.env</code> 加入 <code>SSRF_WHITELIST=host.docker.internal</code> 或你的內網 IP, CIDR,再執行 <code>docker compose up -d</code>. 系統管理員若已在介面儲存過相關設定,以介面上的值為準.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>Base URL 用 localhost 連不到</b><code>connection refused</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>在容器裡, localhost 指的是 app 容器自己,不是你的電腦.</p>
+          <p><span class="k">解法</span>改用 <code>http://host.docker.internal:埠號</code>,並依上一則加入 SSRF 白名單.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>Linux 上連不到 Ollama</b><code>Ollama service unavailable</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>Ollama 預設只監聽 127.0.0.1,Docker 容器連不進去;或防火牆擋住 11434 埠.</p>
+          <p><span class="k">解法</span>依 <a href="#step-9">第 9 步</a> 設定 <code>OLLAMA_HOST=0.0.0.0</code>,再用 <code>docker compose exec app curl -s http://host.docker.internal:11434/api/tags</code> 測試.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>登入後看不到系統管理功能</b><code>is_system_admin = false</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>第一個註冊的帳號不會自動成為系統管理員.</p>
+          <p><span class="k">解法</span>依 <a href="#step-8">第 8 步</a> 設定 <code>WEKNORA_BOOTSTRAP_SYSTEM_ADMIN_EMAIL</code> 並重建 app 容器.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>修改 .env 沒有生效</b><code>docker compose restart</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span><code>restart</code> 只重啟既有的容器,不會重新讀取 <code>.env</code>. 另一個可能是系統管理員已在介面上儲存過該設定.</p>
+          <p><span class="k">解法</span>改用 <code>docker compose up -d</code>,它會重建設定有變動的容器.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>文件一直停在處理中</b><code>docreader</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>大型或圖片很多的 PDF 需要比較久;也可能是 docreader 出錯或逾時.</p>
+          <p><span class="k">解法</span>用 <code>docker compose logs -f docreader app</code> 觀察. 處理時間上限可以用 <code>WEKNORA_DOCUMENT_PROCESS_TIMEOUT</code> 調整,例如 <code>2h</code>.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>更換 embedding 模型後搜尋結果變差</b><code>embedding dimension</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>新舊模型的向量維度與語意空間不同,舊文件的索引還是用舊模型做的.</p>
+          <p><span class="k">解法</span>重建受影響知識庫的索引,或換回原本的模型.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>app 無法啟動,找不到 entrypoint</b><code>exec ./scripts/docker-entrypoint.sh: no such file or directory</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span><code>.sh</code> 檔被存成 CRLF 換行,常見於 Windows 編輯器.</p>
+          <p><span class="k">解法</span>把檔案換行改回 LF (例如 VS Code 右下角的 CRLF 點一下改成 LF),或重新 clone,然後重新建置.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>登入 API 回傳 HTML 404</b><code>POST /api/v1/auth/login 404</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>啟用 searxng 時把 <code>SEARXNG_PORT</code> 設成和 <code>APP_PORT</code> 一樣,請求被 searxng 接走.</p>
+          <p><span class="k">解法</span>把 <code>SEARXNG_PORT</code> 改回 8888 或其他空的埠.</p>
+        </div></details>
+
+        <details class="issue"><summary><span class="sym"><b>log 一直出現 Langfuse 連線錯誤</b><code>langfuse-web:3000</code></span></summary><div class="issue-body">
+          <p><span class="k">原因</span>舊版範本帶有 <code>LANGFUSE_PUBLIC_KEY</code> 與 <code>LANGFUSE_SECRET_KEY</code> 的佔位值,只要兩個都有值就會自動啟用追蹤.</p>
+          <p><span class="k">解法</span>沒有啟用 langfuse profile 的話,把這兩行註解掉或設定 <code>LANGFUSE_ENABLED=false</code>,再執行 <code>docker compose up -d</code>.</p>
+        </div></details>
+
+      </div>
+      <p class="ts-empty" id="ts-empty" hidden>沒有符合的項目. 試試錯誤訊息裡比較短的關鍵字,或看 <code>docker compose logs --tail 200 app</code> 裡第一個 error.</p>
+    </section>
+
+  </main>
+</div>
+
+<footer class="foot">
+  <p>本手冊依據 feature/clean 分支的 docker-compose.yml, .env.example 與 docker/ 內的 Dockerfile 撰寫 (2026-09-28). 檔案有變動時,以原始碼為準.</p>
+  <p>進度與系統選擇只存在你的瀏覽器. 產生器的密碼不會被儲存.</p>
+</footer>
+
+</div>
+
+<script type="text/plain" id="env-template"># =====================================================================
+# ---------------------------------------------------------------------
+#
+#
+# =====================================================================
+
+
+# #####################################################################
+# #####################################################################
+
+WEKNORA_VERSION=latest
+APK_MIRROR_ARG=
+# WITH_ANYDOC=1
+# WITH_BROWSERSKILL=0
+# APT_MIRROR=
+# VITE_FRONTEND_COMMIT=
+# NPM_REGISTRY=
+# NODE_MAX_OLD_SPACE_SIZE=4096
+
+GIN_MODE=release
+# LOG_LEVEL=debug
+# LOG_PATH=
+# LOG_FORMAT=
+# LLM_DEBUG_LOG=true
+TZ=UTC
+# WEKNORA_LANGUAGE=en-US
+# DEFAULT_LOCALE=en-US
+# VITE_DEFAULT_LOCALE=en-US
+AUTO_MIGRATE=true
+AUTO_RECOVER_DIRTY=true
+# WEKNORA_BOOTSTRAP_SYSTEM_ADMIN_EMAIL=
+
+APP_HOST=app
+APP_PORT=8080
+# APP_BACKEND_PORT=8080
+# APP_SCHEME=http
+FRONTEND_PORT=80
+DOCREADER_ADDR=docreader:50051
+DOCREADER_TRANSPORT=grpc
+# APP_EXTERNAL_URL=
+# FRONTEND_BASE_URL=
+# RESOURCE_URL_MODE=handle
+# MCP_PORT=8082
+
+
+# #####################################################################
+# #####################################################################
+
+DB_DRIVER=postgres
+DB_HOST=postgres
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres123!@#
+DB_NAME=knowledge_hub
+# DB_PATH=./data/weknora.db
+
+STREAM_MANAGER_TYPE=redis
+REDIS_ADDR=redis:6379
+# REDIS_USERNAME=
+REDIS_PASSWORD=redis123!@#
+REDIS_DB=0
+REDIS_PREFIX=stream:
+# WEKNORA_REDIS_NAMESPACE=
+# WEKNORA_REDIS_OP_TIMEOUT_MS=500
+
+# REDIS_USE_TLS=false
+# REDIS_TLS_SERVER_NAME=
+# REDIS_TLS_INSECURE_SKIP_VERIFY=false
+
+# WEKNORA_ASYNQ_CORE_CONCURRENCY=8
+# WEKNORA_ASYNQ_POSTPROCESS_CONCURRENCY=2
+# WEKNORA_ASYNQ_ENRICHMENT_CONCURRENCY=12
+# WEKNORA_ASYNQ_MAINTENANCE_CONCURRENCY=4
+# WEKNORA_ASYNQ_SHARED_CONCURRENCY=6
+# WEKNORA_WIKI_ASYNQ_CONCURRENCY=8
+# WEKNORA_MODEL_MAX_CONCURRENCY=32
+
+STORAGE_TYPE=local
+# STORAGE_ALLOW_LIST=local,minio,s3
+LOCAL_STORAGE_BASE_DIR=/data/files
+# LOCAL_STORAGE_PATH_PREFIX=
+# MAX_FILE_SIZE_MB=50
+# MAX_SKILL_BUNDLE_SIZE_MB=256
+
+# ----- MinIO（STORAGE_TYPE=minio）-----
+# MINIO_ENDPOINT=minio:9000
+# MINIO_ACCESS_KEY_ID=your_minio_access_key
+# MINIO_SECRET_ACCESS_KEY=your_minio_secret_key
+# MINIO_BUCKET_NAME=your_minio_bucket_name
+# MINIO_PATH_PREFIX=
+# MINIO_USE_SSL=false
+# MINIO_PORT=9000
+# MINIO_CONSOLE_PORT=9001
+# Compose MinIO image; the default Chainguard build publishes only the latest tag, pin a digest if needed.
+# MINIO_IMAGE=cgr.dev/chainguard/minio:latest
+# ----- AWS S3（STORAGE_TYPE=s3）-----
+# S3_ENDPOINT=https://s3.amazonaws.com
+# S3_REGION=us-east-1
+# S3_SECRET_KEY=your_s3_secret_key
+# S3_ACCESS_KEY=your_s3_access_key
+# S3_BUCKET_NAME=your_s3_bucket_name
+# S3_PATH_PREFIX=knowledge-hub/
+# S3_USE_SSL=true
+# S3_FORCE_PATH_STYLE=false
+# #####################################################################
+# #####################################################################
+
+# opensearch / qdrant / milvus / weaviate / doris.
+RETRIEVE_DRIVER=postgres
+# MULTI_STORE_RETRIEVE_TIMEOUT_SEC=
+# ----- Elasticsearch v7/v8 -----
+# ELASTICSEARCH_ADDR=http://localhost:9200
+# ELASTICSEARCH_USERNAME=your_elasticsearch_username
+# ELASTICSEARCH_PASSWORD=your_elasticsearch_password
+# ELASTICSEARCH_INDEX=knowledge_hub
+# OPENSEARCH_ADDR=http://opensearch:9200
+# OPENSEARCH_USERNAME=
+# OPENSEARCH_PASSWORD=
+# OPENSEARCH_INSECURE_SKIP_VERIFY=false
+# OPENSEARCH_INDEX=knowledge_hub
+# ----- Qdrant -----
+# QDRANT_HOST=qdrant
+# QDRANT_PORT=6334
+# QDRANT_REST_PORT=6333
+# QDRANT_COLLECTION=knowledge_hub_embeddings
+# QDRANT_API_KEY=your_qdrant_api_key
+# QDRANT_USE_TLS=false
+# ----- Milvus -----
+# MILVUS_ADDRESS=milvus:19530
+# MILVUS_COLLECTION=knowledge_hub_embeddings
+# MILVUS_USERNAME=your_milvus_username
+# MILVUS_PASSWORD=your_milvus_password
+# MILVUS_DB_NAME=your_milvus_db_name
+# ----- Weaviate -----
+# WEAVIATE_HOST=weaviate:8080
+# WEAVIATE_GRPC_ADDRESS=weaviate:50051
+# WEAVIATE_SCHEME=http
+# WEAVIATE_API_KEY=your_secret_key
+# WEAVIATE_COLLECTION=your_weaviate_db_name
+# ----- Apache Doris 4.1+ -----
+# DORIS_DATABASE=weknora
+# DORIS_USERNAME=root
+# DORIS_PASSWORD=
+# DORIS_TABLE_PREFIX=knowledge_hub_embeddings
+# DORIS_FE_HTTP_PORT=8030
+# DORIS_FE_MYSQL_PORT=9030
+# DORIS_BE_HTTP_PORT=8040
+# NEO4J_ENABLE=false
+# NEO4J_URI=bolt://neo4j:7687
+# NEO4J_USERNAME=neo4j
+# NEO4J_PASSWORD=password
+
+
+# #####################################################################
+# #####################################################################
+
+# ========== D1. LLM / VLM / Ollama ==========
+OLLAMA_OPTIONAL=true
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+# BATCH_EMBED_SIZE=
+# VLM_HTTP_TIMEOUT_SECONDS=180
+# WEKNORA_LLM_STREAM_RAW_DUMP=
+# WEKNORA_LLM_STREAM_RAW_DUMP_DIR=
+
+#
+# LLM_MODEL_NAME=
+# LLM_BASE_URL=
+# LLM_API_KEY=
+# LLM_PROVIDER=openai
+#
+# EMBEDDING_MODEL_NAME=
+# EMBEDDING_BASE_URL=
+# EMBEDDING_API_KEY=
+# EMBEDDING_PROVIDER=openai
+#
+# RERANK_MODEL_NAME=
+# RERANK_BASE_URL=
+# RERANK_API_KEY=
+# RERANK_PROVIDER=generic
+
+
+# #####################################################################
+# #####################################################################
+
+# GRPC_TLS_ENABLED=false
+# GRPC_TLS_CERT=/path/to/server.crt
+# GRPC_TLS_KEY=/path/to/server.key
+# GRPC_TLS_CA=/path/to/ca.crt
+# GRPC_TLS_SERVER_NAME=
+# GRPC_MTLS_REQUIRE_CLIENT_CERT=false
+# GRPC_AUTH_TOKEN=your-secret-token-at-least-16-bytes
+# DOCREADER_GRPC_MAX_WORKERS=4
+# DOCREADER_GRPC_MAX_FILE_SIZE_MB=50
+# DOCREADER_GRPC_PORT=50051
+# DOCREADER_DOCX_MAX_PAGES=0
+# DOCREADER_MARKITDOWN_MAX_WORKERS=1
+# DOCREADER_EXTERNAL_HTTP_PROXY=
+# DOCREADER_EXTERNAL_HTTPS_PROXY=
+
+# DOCREADER_ODL_MAX_WORKERS=1
+# DOCREADER_ODL_HYBRID=off
+# DOCREADER_ODL_HYBRID_URL=http://odl-hybrid:5002
+# DOCREADER_ODL_HYBRID_MODE=auto
+# DOCREADER_ODL_HYBRID_FALLBACK=false
+# DOCREADER_ODL_MARKDOWN_WITH_HTML=false
+# ODL_HYBRID_EXTRA_ARGS=--no-ocr
+# ODL_HYBRID_PORT=5002
+# ODL_HYBRID_STARTUP_WAIT_SEC=180
+
+# DOCREADER_PDF_RENDER_MAX_WORKERS=1
+# DOCREADER_PDF_RENDER_PARALLELISM=4
+# DOCREADER_PDF_RENDER_DPI=200
+# DOCREADER_PDF_JPEG_QUALITY=85
+# DOCREADER_PDF_RENDER_MAX_EDGE=2000
+
+# DOCREADER_PDF_FORCE_SCANNED=false
+# DOCREADER_PDF_SCAN_IMAGE_RATIO=0.5
+# DOCREADER_PDF_SCAN_MIN_CHARS=10
+
+# DOCREADER_PDF_LAYOUT_ORDERING=true
+# DOCREADER_PDF_WORD_GAP_WIDTH_RATIO=0.4
+# DOCREADER_PDF_MARGIN_COL_WIDTH_RATIO=0.12
+# DOCREADER_PDF_MIN_HEADING_LINE_CHARS=8
+# DOCREADER_PDF_DETECT_HEADINGS=true
+# DOCREADER_PDF_FILTER_HIDDEN_TEXT=true
+# DOCREADER_PDF_SANITIZE_TEXT=true
+# DOCREADER_PDF_STRIP_CHART_DEBRIS=true
+
+# DOCREADER_PDF_EXTRACT_EMBEDDED_IMAGES=true
+# DOCREADER_PDF_EMBED_MIN_PIXELS=80
+# DOCREADER_PDF_EMBED_MIN_AREA_RATIO=0.01
+# DOCREADER_PDF_EMBED_REPEAT_PAGE_FRAC=0.5
+# DOCREADER_PDF_EMBED_MAX_IMAGES=50
+
+# DOCREADER_PDF_RENDER_VECTOR_FIGURES=true
+# DOCREADER_PDF_MIN_CHART_REGION_CHARS=18
+# DOCREADER_PDF_MIN_CHART_REGION_AREA=0.015
+# DOCREADER_PDF_MAX_CHART_REGION_AREA=0.42
+# DOCREADER_PDF_MAX_FIGURE_HEIGHT_RATIO=0.38
+
+# WEKNORA_DOCUMENT_PROCESS_TIMEOUT=2h
+# WEKNORA_DOCREADER_CALL_TIMEOUT=30m
+# WEKNORA_HOUSEKEEPING_ENABLED=true
+# WEKNORA_CHAT_ATTACHMENT_TTL_HOURS=24
+# WEKNORA_CHAT_ATTACHMENT_WAIT_TIMEOUT_SEC=60
+# WEKNORA_CHAT_ATTACHMENT_OCR_CONCURRENCY=8
+# WEKNORA_CHAT_ATTACHMENT_OCR_MAX_PAGES=8
+
+# #####################################################################
+# #####################################################################
+
+# Generate once: openssl rand -hex 32
+JWT_SECRET=
+# Generate once: openssl rand -hex 16 (32 ASCII bytes); retain existing keys on upgrade.
+SYSTEM_AES_KEY=
+# Optional independent signing key for embed sessions and presigned URLs.
+# Generate once: openssl rand -hex 32. Falls back to a valid SYSTEM_AES_KEY.
+SYSTEM_SIGNING_KEY=
+
+# DISABLE_REGISTRATION=false
+# WEKNORA_AUTH_COMPLEX_PASSWORD_ENABLED=false
+# WEKNORA_AUTH_DEFAULT_TENANT_MODE=create_personal
+# WEKNORA_TENANT_SELF_SERVICE_CREATION_ENABLED=true
+# WEKNORA_TENANT_ENABLE_RBAC=true
+# WEKNORA_TENANT_ENABLE_CROSS_TENANT_ACCESS=false
+# WEKNORA_TENANT_MAX_OWNED_PER_USER=
+# WEKNORA_TENANT_AUTO_CREATE_API_KEY=false
+# WEKNORA_TENANT_DEFAULT_STORAGE_QUOTA_GB=10
+# WEKNORA_INVITATION_TTL=168h
+# WEKNORA_TENANT_AUTO_ACCEPT_INVITATION=false
+# WEKNORA_AUDIT_RETENTION_DAYS=90
+
+# OIDC_AUTH_ENABLE=false
+# OIDC_AUTH_ISSUER_URL=http://127.0.0.1:5556/dex
+# OIDC_AUTH_DISCOVERY_URL=http://127.0.0.1:5556/dex/.well-known/openid-configuration
+# OIDC_AUTH_PROVIDER_DISPLAY_NAME=OIDC
+# OIDC_AUTH_CLIENT_ID=client_id_for_oidc_client
+# OIDC_AUTH_CLIENT_SECRET=secret_for_oidc_client
+# OIDC_AUTH_AUTHORIZATION_ENDPOINT=http://127.0.0.1:5556/dex/auth
+# OIDC_AUTH_TOKEN_ENDPOINT=http://127.0.0.1:5556/dex/token
+# OIDC_AUTH_USER_INFO_ENDPOINT=http://127.0.0.1:5556/dex/userinfo
+# OIDC_AUTH_JWKS_URI=http://127.0.0.1:5556/dex/keys
+# OIDC_AUTH_SCOPES="openid profile email"
+# OIDC_USER_INFO_MAPPING_USER_NAME=name
+# OIDC_USER_INFO_MAPPING_EMAIL=email
+
+
+# #####################################################################
+# #####################################################################
+
+# ========== G1. Agent Skills Sandbox ==========
+WEKNORA_SANDBOX_DOCKER_ENABLED=false
+
+# WEKNORA_AGENT_LLM_TIMEOUT=300
+# WEKNORA_AGENT_TOOL_APPROVAL_TIMEOUT=600
+# WEKNORA_AGENT_TOOL_APPROVAL_FAIL_OPEN=
+
+
+# #####################################################################
+# #####################################################################
+
+#
+#
+#
+# SEARXNG_PORT=8888
+# Do not set SEARXNG_PORT to the same value as APP_PORT (default 8080).
+# On Linux, binding SearXNG to 127.0.0.1:8080 while the app also publishes
+# :8080 makes localhost:8080 hit SearXNG first — POST /api/v1/auth/login
+# then returns SearXNG's HTML 404 even though DISABLE_REGISTRATION only
+# closes registration (see discussion on issue #3296). Keep SearXNG on 8888
+# (or another free port).
+# SEARXNG_BIND=127.0.0.1
+# SEARXNG_SECRET=
+# TAVILY_API_KEY=tvly-your_tavily_api_key
+
+# WEKNORA_API_KEY=
+# MCP_SERVER_AUTH_TOKEN=
+# WEKNORA_CHAT_TIMEOUT=300
+# WEKNORA_VERIFY_SSL=true
+# MCP_ALLOWED_UPLOAD_DIRS=
+
+
+# #####################################################################
+# #####################################################################
+
+#
+#   3) docker compose up -d app
+#
+#   4) docker compose up -d app
+#
+# Setting both keys enables tracing; leave them commented unless Langfuse runs.
+# LANGFUSE_PUBLIC_KEY=pk-lf-xxxxxxxx
+# LANGFUSE_SECRET_KEY=sk-lf-xxxxxxxx
+# LANGFUSE_HOST=http://langfuse-web:3000
+# LANGFUSE_ENABLED=true
+# LANGFUSE_RELEASE=v0.4.2
+# LANGFUSE_ENVIRONMENT=production
+# LANGFUSE_FLUSH_AT=15
+# LANGFUSE_FLUSH_INTERVAL=3s
+# LANGFUSE_QUEUE_SIZE=2048
+# LANGFUSE_REQUEST_TIMEOUT=10s
+# LANGFUSE_SAMPLE_RATE=1.0
+# LANGFUSE_DEBUG=false
+
+# LANGFUSE_WEB_PORT=3000
+# LANGFUSE_MINIO_S3_PORT=9100
+# LANGFUSE_MINIO_CONSOLE_PORT=9101
+# LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT=http://localhost:9100
+# LANGFUSE_DB_NAME=langfuse
+# LANGFUSE_REDIS_DB=1
+# LANGFUSE_CLICKHOUSE_USER=clickhouse
+# LANGFUSE_CLICKHOUSE_PASSWORD=clickhouse
+# LANGFUSE_MINIO_USER=langfuseminio
+# LANGFUSE_MINIO_PASSWORD=langfuseminiosecret
+#   LANGFUSE_SALT=$(openssl rand -base64 32)
+#   LANGFUSE_ENCRYPTION_KEY=$(openssl rand -hex 32)
+#   LANGFUSE_NEXTAUTH_SECRET=$(openssl rand -base64 32)
+# LANGFUSE_SALT=
+# LANGFUSE_ENCRYPTION_KEY=
+# LANGFUSE_NEXTAUTH_SECRET=
+# LANGFUSE_NEXTAUTH_URL=http://localhost:3000
+# LANGFUSE_TELEMETRY_ENABLED=false
+# LANGFUSE_INIT_ORG_ID=knowledge-hub
+# LANGFUSE_INIT_ORG_NAME=Knowledge Hub
+# LANGFUSE_INIT_PROJECT_ID=knowledge-hub
+# LANGFUSE_INIT_PROJECT_NAME=Knowledge Hub
+# LANGFUSE_INIT_PROJECT_PUBLIC_KEY=pk-lf-weknora-init
+# LANGFUSE_INIT_PROJECT_SECRET_KEY=sk-lf-weknora-init
+# LANGFUSE_INIT_USER_EMAIL=admin@example.com
+# LANGFUSE_INIT_USER_NAME=Admin
+# LANGFUSE_INIT_USER_PASSWORD=change-me-please
+
+
+# #####################################################################
+# #####################################################################
+
+# SSRF_WHITELIST=internal.service,*.corp.example,172.16.0.0/12,2001:db8::1,fd00::/8
+#
+# SSRF_DNS_WHITELIST_ONLY=false
+#
+#   SSRF_WHITELIST_EXTRA=searxng,qdrant,milvus,weaviate,doris-fe,doris-be,minio,my-opensearch.internal
+#
+#
+#   SSRF_WHITELIST=localhost
+# IMAGE_HOST_KEEP_URL=images.example.com
+
+# WEKNORA_TRUSTED_PROXIES=
+CONCURRENCY_POOL_SIZE=5
+
+# BROWSERSKILL_BINARY=/opt/weknora/browserskill/bsk
+# BROWSERSKILL_PUBLIC_URL=wss://weknora.example.com/api/v1/local-browser/extension
+# BROWSERSKILL_MAX_CONNECTIONS=32
+# BROWSERSKILL_EXTENSION_PATH=/opt/weknora/browserskill/browser-skill-weknora-0.3.1.zip
+# BROWSERSKILL_INTERNAL_URL=http://10.0.0.12:8080
+# BROWSERSKILL_CLUSTER_SECRET=
+</script>
+<script>
+(function () {
+  "use strict";
+  document.documentElement.lang = "zh-Hant";
+
+  var store = {
+    get: function (key, fallback) {
+      try {
+        var raw = localStorage.getItem(key);
+        return raw === null ? fallback : JSON.parse(raw);
+      } catch (e) { return fallback; }
+    },
+    set: function (key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage unavailable */ }
+    }
+  };
+
+  var page = document.querySelector(".page");
+  var TOTAL = 10;
+  var OS_NAMES = { windows: "Windows", mac: "macOS", linux: "Linux" };
+
+  /* ---------- OS switch ---------- */
+  function detectOS() {
+    var p = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || "";
+    if (/win/i.test(p)) return "windows";
+    if (/mac|iphone|ipad/i.test(p)) return "mac";
+    return "linux";
+  }
+  var osPickers = document.querySelectorAll("[data-os-pick]");
+  function setOS(os) {
+    if (!OS_NAMES[os]) os = "windows";
+    page.dataset.os = os;
+    osPickers.forEach(function (b) { b.setAttribute("aria-checked", String(b.dataset.osPick === os)); });
+    // Tab buttons use data-tab-os: a data-os attribute would get them hidden by the OS filter rules.
+    document.querySelectorAll(".os-tabs button").forEach(function (b) { b.setAttribute("aria-selected", String(b.dataset.tabOs === os)); });
+    store.set("kh-install-os", os);
+  }
+  osPickers.forEach(function (b) { b.addEventListener("click", function () { setOS(b.dataset.osPick); }); });
+
+  // Every group of OS-specific commands gets its own tab row that drives the page-wide choice.
+  document.querySelectorAll(".os-variants").forEach(function (group) {
+    var present = {};
+    group.querySelectorAll(":scope > [data-os]").forEach(function (el) {
+      el.dataset.os.split(" ").forEach(function (os) { present[os] = true; });
+    });
+    var tabs = document.createElement("div");
+    tabs.className = "os-tabs";
+    tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", "作業系統");
+    ["windows", "mac", "linux"].forEach(function (os) {
+      if (!present[os]) return;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("role", "tab");
+      b.dataset.tabOs = os;
+      b.textContent = OS_NAMES[os];
+      b.addEventListener("click", function () { setOS(os); });
+      tabs.appendChild(b);
+    });
+    group.insertBefore(tabs, group.firstChild);
+  });
+  setOS(store.get("kh-install-os", detectOS()));
+
+  /* ---------- comment highlighting in command blocks ---------- */
+  document.querySelectorAll(".cmd:not(.output) pre code").forEach(function (code) {
+    if (code.id === "env-out") return;
+    code.innerHTML = code.innerHTML.split("\n").map(function (line) {
+      if (/^\s*#/.test(line)) return '<span class="c">' + line + "</span>";
+      return line.replace(/(\s{2,}#.*)$/, '<span class="c">$1</span>');
+    }).join("\n");
+  });
+
+  /* ---------- copy ---------- */
+  function flash(btn, text) {
+    var orig = btn.dataset.label || btn.textContent;
+    btn.dataset.label = orig;
+    btn.textContent = text;
+    btn.classList.add("done");
+    clearTimeout(btn._t);
+    btn._t = setTimeout(function () { btn.textContent = orig; btn.classList.remove("done"); }, 1800);
+  }
+  function selectText(el) {
+    try {
+      var range = document.createRange();
+      range.selectNodeContents(el);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } catch (e) { /* ignore */ }
+  }
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest(".copy");
+    if (!btn) return;
+    var holder = btn.closest(".cmd, .inline-cmd");
+    var code = holder && holder.querySelector("code");
+    if (!code) return;
+    var text = code.textContent.replace(/\n+$/, "");
+    var fallback = function () {
+      selectText(code);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+      flash(btn, ok ? "已複製" : "已選取,按 Ctrl+C");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { flash(btn, "已複製"); }, fallback);
+    } else {
+      fallback();
+    }
+  });
+
+  /* ---------- progress & focus mode ---------- */
+  var steps = Array.prototype.slice.call(document.querySelectorAll(".step"));
+  var doneInputs = document.querySelectorAll("[data-done]");
+  var done = new Set(store.get("kh-install-done", []));
+  var railItems = document.querySelectorAll("#rail-list li[data-target]");
+  var countEl = document.getElementById("progress-count");
+  var barEl = document.getElementById("progress-bar");
+  var focusToggle = document.getElementById("focus-toggle");
+  var current = 1;
+
+  function stepTitle(n) {
+    var s = document.getElementById("step-" + n);
+    return s ? s.querySelector("h2").textContent : "";
+  }
+  function renderProgress() {
+    doneInputs.forEach(function (input) {
+      var n = Number(input.dataset.done);
+      input.checked = done.has(n);
+      document.getElementById("step-" + n).classList.toggle("is-done", done.has(n));
+    });
+    railItems.forEach(function (li) {
+      var m = /^step-(\d+)$/.exec(li.dataset.target);
+      li.classList.toggle("is-done", !!m && done.has(Number(m[1])));
+    });
+    countEl.textContent = done.size + " / " + TOTAL;
+    barEl.style.setProperty("--p", (done.size / TOTAL * 100) + "%");
+  }
+  doneInputs.forEach(function (input) {
+    input.addEventListener("change", function () {
+      var n = Number(input.dataset.done);
+      if (input.checked) done.add(n); else done.delete(n);
+      store.set("kh-install-done", Array.from(done));
+      renderProgress();
+    });
+  });
+
+  // Footer navigation, used only in focus mode.
+  steps.forEach(function (s) {
+    var n = Number(s.dataset.step);
+    var foot = s.querySelector(".step-foot");
+    var prev = document.createElement("button");
+    prev.type = "button";
+    prev.className = "btn";
+    prev.textContent = "← 上一步";
+    prev.disabled = n === 1;
+    prev.addEventListener("click", function () { showStep(n - 1, true); });
+    var next = document.createElement("button");
+    next.type = "button";
+    next.className = "btn primary";
+    next.textContent = n < TOTAL ? "完成,下一步: " + stepTitle(n + 1) + " →" : "完成安裝";
+    next.addEventListener("click", function () {
+      done.add(n);
+      store.set("kh-install-done", Array.from(done));
+      renderProgress();
+      if (n < TOTAL) showStep(n + 1, true);
+    });
+    foot.appendChild(prev);
+    foot.appendChild(next);
+  });
+
+  function showStep(n, scroll) {
+    current = Math.min(Math.max(1, n), TOTAL);
+    steps.forEach(function (s) { s.classList.toggle("is-current", Number(s.dataset.step) === current); });
+    setActive("step-" + current);
+    if (scroll) document.getElementById("step-" + current).scrollIntoView({ block: "start" });
+  }
+  function firstOpenStep() {
+    for (var i = 1; i <= TOTAL; i++) if (!done.has(i)) return i;
+    return TOTAL;
+  }
+  function setFocus(on) {
+    page.classList.toggle("focus", on);
+    focusToggle.checked = on;
+    store.set("kh-install-focus", on);
+    if (on) showStep(current || firstOpenStep(), false);
+  }
+  focusToggle.addEventListener("change", function () {
+    if (focusToggle.checked) current = firstOpenStep();
+    setFocus(focusToggle.checked);
+    if (focusToggle.checked) document.getElementById("step-" + current).scrollIntoView({ block: "start" });
+  });
+
+  railItems.forEach(function (li) {
+    li.querySelector("a").addEventListener("click", function () {
+      var m = /^step-(\d+)$/.exec(li.dataset.target);
+      if (m && page.classList.contains("focus")) showStep(Number(m[1]), false);
+    });
+  });
+  document.querySelectorAll('main a[href^="#step-"]').forEach(function (a) {
+    a.addEventListener("click", function () {
+      var m = /^#step-(\d+)$/.exec(a.getAttribute("href"));
+      if (m && page.classList.contains("focus")) showStep(Number(m[1]), false);
+    });
+  });
+
+  var resetBtn = document.getElementById("reset-progress");
+  resetBtn.addEventListener("click", function () {
+    if (!resetBtn.classList.contains("armed")) {
+      resetBtn.classList.add("armed");
+      resetBtn.textContent = "再按一次確認重設";
+      clearTimeout(resetBtn._t);
+      resetBtn._t = setTimeout(function () { resetBtn.classList.remove("armed"); resetBtn.textContent = "重設進度"; }, 3500);
+      return;
+    }
+    clearTimeout(resetBtn._t);
+    resetBtn.classList.remove("armed");
+    resetBtn.textContent = "重設進度";
+    done.clear();
+    store.set("kh-install-done", []);
+    renderProgress();
+    if (page.classList.contains("focus")) showStep(1, true);
+  });
+
+  /* ---------- scroll spy ---------- */
+  function setActive(id) {
+    railItems.forEach(function (li) { li.classList.toggle("is-active", li.dataset.target === id); });
+    var active = document.querySelector("#rail-list li.is-active");
+    var list = document.getElementById("rail-list");
+    if (active && list.scrollWidth > list.clientWidth) {
+      var left = active.offsetLeft - list.clientWidth / 2 + active.clientWidth / 2;
+      list.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    }
+  }
+  if ("IntersectionObserver" in window) {
+    var targets = Array.prototype.map.call(railItems, function (li) { return document.getElementById(li.dataset.target); }).filter(Boolean);
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) { if (entry.isIntersecting) setActive(entry.target.id); });
+    }, { rootMargin: "-25% 0px -65% 0px" });
+    targets.forEach(function (t) { io.observe(t); });
+  }
+
+  renderProgress();
+  current = firstOpenStep();
+  if (store.get("kh-install-focus", false)) setFocus(true);
+
+  /* ---------- boot sequence ---------- */
+  var END = 70;
+  var PLAY_MS = 10000;
+  var NODES = {
+    postgres: { start: 0, healthy: 30 },
+    redis: { start: 0 },
+    docreader: { start: 0, healthy: 30 },
+    app: { start: 31, healthy: 61 },
+    frontend: { start: 62 },
+    browser: { start: 62, browser: true }
+  };
+  var WIRES = { 1: 30, 2: 61, 3: 62 };
+  var bootRange = document.getElementById("boot-range");
+  var bootClock = document.getElementById("boot-clock");
+  var bootPlay = document.getElementById("boot-play");
+  var bootEvents = document.querySelectorAll("#boot-events li");
+  var raf = 0;
+  var playing = false;
+
+  function human(s) {
+    if (s < 1) return "Less than a second";
+    if (s === 1) return "1 second";
+    if (s < 60) return s + " seconds";
+    if (s < 120) return "About a minute";
+    return Math.floor(s / 60) + " minutes";
+  }
+  function renderBoot(t) {
+    t = Math.round(t);
+    Object.keys(NODES).forEach(function (name) {
+      var spec = NODES[name];
+      var el = document.querySelector('.node[data-node="' + name + '"]');
+      var st = el.querySelector(".st");
+      var state, text;
+      if (spec.browser) {
+        state = t >= spec.start ? "ready" : "waiting";
+        text = t >= spec.start ? "可以開啟" : "連線被拒";
+      } else if (t < spec.start) {
+        state = "waiting";
+        text = "等待相依服務";
+      } else if (spec.healthy === undefined) {
+        state = "up";
+        text = "Up " + human(t - spec.start);
+      } else if (t < spec.healthy) {
+        state = "starting";
+        text = "Up " + human(t - spec.start) + " (health: starting)";
+      } else {
+        state = "healthy";
+        text = "Up " + human(t - spec.start) + " (healthy)";
+      }
+      el.dataset.state = state;
+      st.textContent = text;
+    });
+    Object.keys(WIRES).forEach(function (k) {
+      document.querySelector('.wire[data-wire="' + k + '"]').classList.toggle("lit", t >= WIRES[k]);
+    });
+    bootEvents.forEach(function (li) { li.classList.toggle("is-reached", t >= Number(li.dataset.t)); });
+    bootRange.value = String(t);
+    bootClock.textContent = "t = " + t + " 秒 (示意)";
+  }
+  function stopBoot(label) {
+    playing = false;
+    cancelAnimationFrame(raf);
+    bootPlay.textContent = label;
+  }
+  function playBoot() {
+    var from = Number(bootRange.value);
+    if (from >= END) from = 0;
+    var startAt = performance.now() - (from / END) * PLAY_MS;
+    playing = true;
+    bootPlay.textContent = "暫停";
+    var tick = function (now) {
+      var t = Math.min(END, ((now - startAt) / PLAY_MS) * END);
+      renderBoot(t);
+      if (t < END && playing) raf = requestAnimationFrame(tick);
+      else if (t >= END) stopBoot("重播");
+    };
+    raf = requestAnimationFrame(tick);
+  }
+  bootPlay.addEventListener("click", function () {
+    if (playing) stopBoot("繼續播放");
+    else playBoot();
+  });
+  bootRange.addEventListener("input", function () {
+    if (playing) stopBoot("繼續播放");
+    renderBoot(Number(bootRange.value));
+    if (Number(bootRange.value) >= END) bootPlay.textContent = "重播";
+  });
+  renderBoot(END);
+
+  /* ---------- .env generator ---------- */
+  var template = document.getElementById("env-template").textContent.replace(/^\n/, "");
+  var out = document.getElementById("env-out");
+  var outLabel = document.getElementById("env-out-label");
+  var secretList = document.getElementById("secret-list");
+  var tabFull = document.getElementById("tab-full");
+  var tabDiff = document.getElementById("tab-diff");
+  var view = "full";
+  var ALNUM = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  var secrets = {};
+  var cryptoOk = !!(window.crypto && window.crypto.getRandomValues);
+
+  function randAlnum(len) {
+    var chars = [];
+    var buf = new Uint8Array(1);
+    var limit = 256 - (256 % ALNUM.length);
+    while (chars.length < len) {
+      window.crypto.getRandomValues(buf);
+      if (buf[0] < limit) chars.push(ALNUM[buf[0] % ALNUM.length]);
+    }
+    return chars.join("");
+  }
+  function randHex(bytes) {
+    var b = new Uint8Array(bytes);
+    window.crypto.getRandomValues(b);
+    return Array.prototype.map.call(b, function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+  }
+  function regenerate() {
+    if (!cryptoOk) {
+      secretList.innerHTML = "<dt>錯誤</dt><dd class=\"v\">這個瀏覽器不支援 crypto.getRandomValues,請改用手動方式產生金鑰.</dd><dd class=\"len\"></dd>";
+      return;
+    }
+    secrets = {
+      DB_PASSWORD: randAlnum(24),
+      REDIS_PASSWORD: randAlnum(24),
+      JWT_SECRET: randHex(32),
+      SYSTEM_AES_KEY: randHex(16),
+      SYSTEM_SIGNING_KEY: randHex(32)
+    };
+    secretList.innerHTML = "";
+    Object.keys(secrets).forEach(function (k) {
+      var dt = document.createElement("dt");
+      dt.textContent = k;
+      var dd = document.createElement("dd");
+      dd.className = "v";
+      dd.textContent = secrets[k];
+      var len = document.createElement("dd");
+      len.className = "len";
+      len.textContent = secrets[k].length + " 字元";
+      secretList.appendChild(dt);
+      secretList.appendChild(dd);
+      secretList.appendChild(len);
+    });
+  }
+  function setKey(text, key, value) {
+    var re = new RegExp("^#?[ \\t]*" + key + "=.*$", "m");
+    if (re.test(text)) return text.replace(re, function () { return key + "=" + value; });
+    return text.replace(/\n*$/, "\n") + key + "=" + value + "\n";
+  }
+  function portValue(id, errId) {
+    var input = document.getElementById(id);
+    var err = document.getElementById(errId);
+    var n = Number(input.value);
+    var ok = Number.isInteger(n) && n >= 1 && n <= 65535;
+    err.hidden = ok;
+    if (!ok) err.textContent = "請輸入 1 到 65535 的整數";
+    return ok ? String(n) : input.defaultValue;
+  }
+  function collect() {
+    var pairs = [];
+    pairs.push(["TZ", document.getElementById("env-tz").value]);
+    pairs.push(["DEFAULT_LOCALE", document.getElementById("env-locale").value]);
+    var fport = portValue("env-fport", "err-fport");
+    var aport = portValue("env-aport", "err-aport");
+    if (fport === aport) {
+      var e = document.getElementById("err-aport");
+      e.hidden = false;
+      e.textContent = "不能和網頁連接埠相同";
+    }
+    pairs.push(["FRONTEND_PORT", fport]);
+    pairs.push(["APP_PORT", aport]);
+    pairs.push(["DB_NAME", "knowledge_hub"]);
+    Object.keys(secrets).forEach(function (k) { pairs.push([k, secrets[k]]); });
+    var admin = document.getElementById("env-admin");
+    var adminErr = document.getElementById("err-admin");
+    var email = admin.value.trim();
+    var emailOk = email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    adminErr.hidden = emailOk;
+    if (!emailOk) adminErr.textContent = "Email 格式不正確,暫時不會寫入";
+    if (email && emailOk) pairs.push(["WEKNORA_BOOTSTRAP_SYSTEM_ADMIN_EMAIL", email]);
+    if (!document.getElementById("env-anydoc").checked) pairs.push(["WITH_ANYDOC", "0"]);
+    if (document.getElementById("env-ssrf").checked) pairs.push(["SSRF_WHITELIST", "host.docker.internal"]);
+    return pairs;
+  }
+  function renderEnv() {
+    var pairs = collect();
+    if (view === "full") {
+      var text = template;
+      pairs.forEach(function (p) { text = setKey(text, p[0], p[1]); });
+      out.textContent = text;
+      outLabel.textContent = ".env (完整內容)";
+    } else {
+      out.textContent = pairs.map(function (p) { return p[0] + "=" + p[1]; }).join("\n");
+      outLabel.textContent = ".env (只列出要修改的行,請替換同名的行)";
+    }
+  }
+  function setView(v) {
+    view = v;
+    tabFull.setAttribute("aria-selected", String(v === "full"));
+    tabDiff.setAttribute("aria-selected", String(v === "diff"));
+    renderEnv();
+  }
+  tabFull.addEventListener("click", function () { setView("full"); });
+  tabDiff.addEventListener("click", function () { setView("diff"); });
+  document.getElementById("regen").addEventListener("click", function () { regenerate(); renderEnv(); });
+  ["env-tz", "env-locale", "env-fport", "env-aport", "env-admin", "env-anydoc", "env-ssrf"].forEach(function (id) {
+    var el = document.getElementById(id);
+    el.addEventListener("input", renderEnv);
+    el.addEventListener("change", renderEnv);
+  });
+  document.getElementById("envgen").addEventListener("submit", function (e) { e.preventDefault(); });
+  regenerate();
+  renderEnv();
+
+  /* ---------- troubleshooting search ---------- */
+  var issues = Array.prototype.slice.call(document.querySelectorAll(".issue"));
+  var tsInput = document.getElementById("ts-search");
+  var tsCount = document.getElementById("ts-count");
+  var tsEmpty = document.getElementById("ts-empty");
+  function filterIssues() {
+    var terms = tsInput.value.toLowerCase().split(/\s+/).filter(Boolean);
+    var shown = 0;
+    issues.forEach(function (d) {
+      var hay = d.textContent.toLowerCase();
+      var match = terms.every(function (t) { return hay.indexOf(t) !== -1; });
+      d.hidden = !match;
+      if (match) shown++;
+      if (terms.length && match && shown <= 3) d.open = true;
+      if (!terms.length) d.open = false;
+    });
+    tsCount.textContent = terms.length ? "符合 " + shown + " / " + issues.length + " 則" : "共 " + issues.length + " 則";
+    tsEmpty.hidden = shown !== 0;
+  }
+  tsInput.addEventListener("input", filterIssues);
+  filterIssues();
+})();
+</script>
+<!-- artifact:end -->
+</body>
+</html>
