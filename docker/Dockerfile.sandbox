@@ -6,30 +6,42 @@
 #   runtime          - the plain environment. Used by the Docker backend and
 #                      as the base image of E2B templates, whose builder
 #                      injects its own envd.
-#                      builds templates straight from the image and probes
-#                      :49983/health, so an image without envd can only ever
-#                      fail. See website-docs/06-development/04-sandbox-deployment.md.
 #   desktop-runtime  - runtime plus XFCE / x11vnc / websockify. Not a published
+#                      tag; the desktop target sits on it.
 #   desktop          - desktop-runtime, tagged for E2B (and a future Docker
 #                      desktop path). The Docker backend does not use this yet.
 #
-# Pin every FROM to TARGETPLATFORM. `docker build --platform` alone is not
-# enough: the legacy builder (DOCKER_BUILDKIT=0) on Apple Silicon still
-# that mixed image as READY and Exec fails with "exec format error".
-# --platform is linux/arm64 (sandbox / desktop).
-ARG TARGETPLATFORM=linux/amd64
+# Pin every FROM to TARGETPLATFORM. BuildKit already honours --platform; the
+# pin is for the legacy builder (DOCKER_BUILDKIT=0), which ignores --platform
+# whenever the host's arm64 python/node is already cached.
+#
+# Do not give this ARG a default. A declared default beats the value BuildKit
+# injects per platform, so a multi-platform build would run every platform on
+# the amd64 rootfs and only relabel the config. The legacy builder injects
+# nothing and rejects an empty --platform, hence the amd64 fallback in FROM:
+# under that builder an arm64 image needs --build-arg TARGETPLATFORM.
+ARG TARGETPLATFORM
 
 # Stage 1: Get Node.js binaries
-FROM --platform=$TARGETPLATFORM node:20-slim AS node-base
+FROM --platform=${TARGETPLATFORM:-linux/amd64} node:20-slim AS node-base
 
-FROM --platform=$TARGETPLATFORM ghcr.io/astral-sh/uv:0.12.4 AS uv-base
+FROM --platform=${TARGETPLATFORM:-linux/amd64} ghcr.io/astral-sh/uv:0.12.4 AS uv-base
 
 # Stage 2: Runtime image
 #
 # 3.12 is the floor because skill sources commonly use PEP 701 nested quotes
 # in f-strings (f"x={d["k"]}"). Install-time ast.parse runs this interpreter;
 # 3.11 rejects that syntax and the whole skill install fails.
-FROM --platform=$TARGETPLATFORM python:3.12-slim AS runtime
+FROM --platform=${TARGETPLATFORM:-linux/amd64} python:3.12-slim AS runtime
+
+# Fail the build when the rootfs is not the platform being built. No default:
+# BuildKit sets TARGETARCH per platform; the legacy builder leaves it empty.
+ARG TARGETARCH
+RUN arch="$(dpkg --print-architecture)"; \
+    if [ -n "$TARGETARCH" ] && [ "$arch" != "$TARGETARCH" ]; then \
+        echo "runtime rootfs is $arch but TARGETARCH=$TARGETARCH" >&2; \
+        exit 1; \
+    fi
 
 # Copy Node.js from node image (avoids NodeSource install overhead)
 COPY --from=node-base /usr/local/bin/node /usr/local/bin/

@@ -71,6 +71,8 @@
 6. **Go module path:**上游 import 為 `github.com/Tencent/WeKnora`,合併後新增與衝突檔案都要改寫為 fork module path,否則無法編譯。
 7. **被刪除功能的新增檔案:**上游對已移除功能新增的檔案(例如 connector 測試)不會產生衝突,會被靜默帶入;要用 `git diff --name-only --diff-filter=A` 另行檢查。
 8. **共用 helper 與測試:**刪除整合檔案前確認其中沒有被保留功能共用的函式(例如 E2B 沙箱曾依賴 Cube 檔案內的 `parseProxyURL`),並同步修改引用已移除型別的測試;以具 CGO 的 `go vet ./...` 與 `go test ./...` 驗證,不能只編譯主程式。
+9. **文件站與 Swagger 衝突:**`website-docs/` 是 fork 自行維護的英文精簡版,上游刪除或改寫的中文頁面不直接合併;fork 已刪除的頁面維持刪除,仍存在的頁面只把行為變更改寫成英文。`docs/swagger.yaml` 在 fork 中與 `swagger.json` 內容相同(JSON 也是合法 YAML),衝突時先解 `swagger.json`,再複製成 `swagger.yaml`;`docs/docs.go` 保留 `//go:embed swagger.json`,不要換回上游的內嵌字串模板。
+10. **沙箱映像:**上游 workflow、`scripts/build_images.sh` 與 `docker/Dockerfile.sandbox` 的 `cube`/`desktop-cube` target 與 `cubesandbox-base` 映像一律不帶入;只吸收對 `runtime`/`desktop` 通用的建置修正。
 
 ### C. 靜態搜尋與人工分類
 

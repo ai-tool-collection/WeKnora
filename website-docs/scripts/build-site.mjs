@@ -4,8 +4,12 @@ import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+// Run nested npm through the current Node binary so Windows needs no shell.
+const npmCLI = process.env.npm_execpath
+if (!npmCLI) throw new Error('Run the site build through npm so npm_execpath is available.')
 for (const script of ['check:links', 'build:docs']) {
-  const result = spawnSync('npm', ['run', script], { cwd: root, stdio: 'inherit', shell: process.platform === 'win32' })
+  const result = spawnSync(process.execPath, [npmCLI, 'run', script], { cwd: root, stdio: 'inherit' })
+  if (result.error) throw new Error(`Could not run npm ${script}: ${result.error.message}`)
   if (result.status !== 0) process.exit(result.status || 1)
 }
 

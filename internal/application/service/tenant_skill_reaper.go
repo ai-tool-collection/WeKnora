@@ -8,6 +8,7 @@ import (
 
 	"github.com/ai-tool-collection/WeKnora/internal/application/repository"
 	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/runtime"
 	"github.com/ai-tool-collection/WeKnora/internal/sandbox"
 	"github.com/ai-tool-collection/WeKnora/internal/tracing/langfuse"
 	"github.com/ai-tool-collection/WeKnora/internal/types"
@@ -871,12 +872,19 @@ func (s *TenantSkillService) Start(ctx context.Context) error {
 
 // Stop halts the cron and waits for in-flight sweeps to finish.
 func (s *TenantSkillService) Stop() {
+	s.StopWithin(0)
+}
+
+// StopWithin is Stop with a bound. timeout <= 0 waits for the in-flight sweep.
+func (s *TenantSkillService) StopWithin(timeout time.Duration) {
 	s.cronMu.Lock()
 	defer s.cronMu.Unlock()
 	if !s.started {
 		return
 	}
-	c := s.cron.Stop()
-	<-c.Done()
+	if !runtime.WaitFor(s.cron.Stop().Done(), timeout) {
+		logger.Warnf(context.Background(),
+			"[skill] in-flight reaper still running after %s; continuing shutdown", timeout)
+	}
 	s.started = false
 }

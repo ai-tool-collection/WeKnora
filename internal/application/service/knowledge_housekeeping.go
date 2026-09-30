@@ -30,6 +30,7 @@ import (
 	"github.com/ai-tool-collection/WeKnora/internal/config"
 	werrors "github.com/ai-tool-collection/WeKnora/internal/errors"
 	"github.com/ai-tool-collection/WeKnora/internal/logger"
+	"github.com/ai-tool-collection/WeKnora/internal/runtime"
 	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/ai-tool-collection/WeKnora/internal/types/interfaces"
 	"github.com/robfig/cron/v3"
@@ -119,13 +120,20 @@ func (h *HousekeepingService) Start(ctx context.Context) error {
 
 // Stop halts the cron and waits for in-flight sweeps to finish.
 func (h *HousekeepingService) Stop() {
+	h.StopWithin(0)
+}
+
+// StopWithin is Stop with a bound. timeout <= 0 waits for the in-flight sweep.
+func (h *HousekeepingService) StopWithin(timeout time.Duration) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if !h.started {
 		return
 	}
-	c := h.cron.Stop()
-	<-c.Done()
+	if !runtime.WaitFor(h.cron.Stop().Done(), timeout) {
+		logger.Warnf(context.Background(),
+			"[Housekeeping] in-flight sweep still running after %s; continuing shutdown", timeout)
+	}
 	h.started = false
 }
 
