@@ -99,7 +99,7 @@ const badgeStyle = computed((): Record<string, string> => (
 }
 
 .sandbox-badge--xs.sandbox-badge--mono::before {
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
 }
 </style>

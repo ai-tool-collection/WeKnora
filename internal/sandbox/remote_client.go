@@ -114,6 +114,12 @@ type RemoteCreateRequest struct {
 	// TemplateID references the pre-baked sandbox template. Required.
 	TemplateID string
 
+	// FromSnapshot is set when TemplateID is a skill or fork snapshot rather
+	// than a base template. Some E2B-compatible control planes reject
+	// create-from-snapshot requests that resend env vars or function-config
+	// overrides.
+	FromSnapshot bool
+
 	// Timeout controls the idle-timeout policy.
 	Timeout RemoteTimeoutPolicy
 

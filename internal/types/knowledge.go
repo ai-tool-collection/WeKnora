@@ -29,6 +29,7 @@ const (
 	ChannelNotion           = "notion"            // Notion
 	ChannelConfluence       = "confluence"        // Atlassian Confluence
 	ChannelRSS              = "rss"               // RSS / Atom feed
+	ChannelSeafile          = "seafile"           // Seafile
 )
 
 // Knowledge parse status constants

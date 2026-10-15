@@ -8,9 +8,25 @@ import (
 	"strings"
 	"testing"
 
+	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
 	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/gin-gonic/gin"
 )
+
+func TestProviderDTOIncludesEffectiveDefaultURLs(t *testing.T) {
+	for _, vendor := range modelruntime.List() {
+		t.Run(vendor.ID, func(t *testing.T) {
+			got := providerDTO(vendor, types.ModelTypeASR, true)
+			for _, kind := range vendor.ModelTypes {
+				want := vendor.GetDefaultURL(kind)
+				if got.DefaultURLs[modelTypeToFrontend(kind)] != want {
+					t.Errorf("%s default URL = %q, want runtime default %q",
+						kind, got.DefaultURLs[modelTypeToFrontend(kind)], want)
+				}
+			}
+		})
+	}
+}
 
 // listProvidersAs drives the real handler with one tenant role.
 func listProvidersAs(t *testing.T, role types.TenantRole) []map[string]any {

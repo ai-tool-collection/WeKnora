@@ -246,9 +246,18 @@ migrate-goto:
 	./scripts/migrate.sh goto $(version)
 
 # Generate API documentation (Swagger)
+#
+# internal/localsandbox is excluded because cmd/server does not depend on it
+# (its importers are behind the `desktop` build tag). Without the exclude,
+# swag walks into the directory, follows its `const X = core.X` aliases and
+# loads internal/localsandbox/core a second time through go/loader; that
+# second load re-registers every model under its short name without enum
+# values, so definitions lose their package-qualified names and
+# docs/swagger_contract_test.go fails.
 docs:
 	@echo "Generating Swagger API documentation..."
-	swag init -g $(MAIN_PATH)/main.go -o ./docs --parseDependency --parseInternal
+	swag init -g $(MAIN_PATH)/main.go -o ./docs --parseDependency --parseInternal \
+		--exclude ./internal/localsandbox
 	python scripts/sanitize_swagger.py
 	@echo "Swagger documentation generated in ./docs"
 

@@ -2,7 +2,6 @@ package file
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/ai-tool-collection/WeKnora/internal/utils"
@@ -48,11 +47,12 @@ func TestNewS3Client_Credentials(t *testing.T) {
 	})
 }
 
-func TestNewS3Client_PathStyleForCompatibleEndpoints(t *testing.T) {
+func TestS3UsePathStyle(t *testing.T) {
 	tests := []struct {
-		name          string
-		endpoint      string
-		wantPathStyle bool
+		name           string
+		endpoint       string
+		forcePathStyle bool
+		wantPathStyle  bool
 	}{
 		{
 			name:          "S3-compatible service uses path-style",
@@ -74,14 +74,18 @@ func TestNewS3Client_PathStyleForCompatibleEndpoints(t *testing.T) {
 			endpoint:      "https://s3.cn-north-1.amazonaws.com.cn",
 			wantPathStyle: false,
 		},
+		{
+			name:           "AWS endpoint honors force_path_style",
+			endpoint:       "https://s3.us-east-1.amazonaws.com",
+			forcePathStyle: true,
+			wantPathStyle:  true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Verify the path-style detection logic matches our implementation
-			usePathStyle := !strings.Contains(tt.endpoint, "amazonaws.com")
-			if usePathStyle != tt.wantPathStyle {
-				t.Errorf("endpoint %q: usePathStyle = %v, want %v", tt.endpoint, usePathStyle, tt.wantPathStyle)
+			if got := s3UsePathStyle(tt.endpoint, tt.forcePathStyle); got != tt.wantPathStyle {
+				t.Errorf("s3UsePathStyle(%q, %v) = %v, want %v", tt.endpoint, tt.forcePathStyle, got, tt.wantPathStyle)
 			}
 		})
 	}

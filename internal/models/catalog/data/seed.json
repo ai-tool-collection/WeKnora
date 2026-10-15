@@ -21,6 +21,60 @@
         "source": "https://docs.anthropic.com/en/docs/about-claude/models"
       },
       {
+        "id": "claude-opus-5-5",
+        "name": "Claude Opus 5.5",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "context_window": 1000000,
+        "max_output_tokens": 128000,
+        "cost": {
+          "input": 4,
+          "output": 20,
+          "cache_read": 0.2,
+          "cache_write": 5
+        },
+        "source": "https://platform.claude.com/docs/en/models/overview"
+      },
+      {
+        "id": "claude-sonnet-5-5",
+        "name": "Claude Sonnet 5.5",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "context_window": 1000000,
+        "max_output_tokens": 128000,
+        "cost": {
+          "input": 2,
+          "output": 10,
+          "cache_read": 0.1,
+          "cache_write": 2.5
+        },
+        "source": "https://platform.claude.com/docs/en/models/overview"
+      },
+      {
+        "id": "claude-haiku-5-5",
+        "name": "Claude Haiku 5.5",
+        "reasoning": true,
+        "input": [
+          "text",
+          "image"
+        ],
+        "context_window": 1000000,
+        "max_output_tokens": 128000,
+        "cost": {
+          "input": 0.1,
+          "output": 0.5,
+          "cache_read": 0.01,
+          "cache_write": 0.125
+        },
+        "source": "https://platform.claude.com/docs/en/models/overview"
+      },
+      {
         "id": "claude-opus-5",
         "name": "Claude Opus 5",
         "reasoning": true,
@@ -594,9 +648,20 @@
         "match": "o4*",
         "reasoning": true,
         "source": "https://platform.openai.com/docs/guides/reasoning"
+      },
+      {
+        "name": "Qwen3-VL-Embedding (self-hosted)",
+        "match": "*qwen3-vl-embedding*",
+        "type": "Embedding",
+        "input": [
+          "text",
+          "image"
+        ],
+        "source": "https://huggingface.co/Qwen/Qwen3-VL-Embedding-8B"
       }
     ],
     "gpustack": [],
+    "huggingface_tei": [],
     "jina": [
       {
         "id": "jina-embeddings-v5-omni-small",
@@ -642,6 +707,10 @@
         "id": "jina-embeddings-v4",
         "name": "Jina Embeddings v4",
         "type": "Embedding",
+        "input": [
+          "text",
+          "image"
+        ],
         "dimension": 2048,
         "context_window": 32768,
         "source": "https://jina.ai/models/jina-embeddings-v4/"
@@ -688,6 +757,10 @@
         "id": "jina-reranker-m0",
         "name": "Jina Reranker m0 (multimodal)",
         "type": "Rerank",
+        "input": [
+          "text",
+          "image"
+        ],
         "context_window": 10000,
         "source": "https://jina.ai/reranker/"
       },
@@ -802,6 +875,10 @@
         "id": "nvidia/llama-nemotron-rerank-vl-1b-v2",
         "name": "Llama Nemotron Rerank VL 1B v2",
         "type": "Rerank",
+        "input": [
+          "text",
+          "image"
+        ],
         "source": "https://build.nvidia.com"
       },
       {
@@ -1425,6 +1502,22 @@
         "source": "https://openrouter.ai/docs/api/api-reference/stt/create-transcription"
       }
     ],
+    "pinecone": [
+      {
+        "id": "bge-reranker-v2-m3",
+        "name": "BGE Reranker v2 M3 (Pinecone)",
+        "type": "Rerank",
+        "context_window": 1024,
+        "source": "https://docs.pinecone.io/reference/api/2025-10/inference/list_models"
+      },
+      {
+        "id": "pinecone-rerank-v0",
+        "name": "Pinecone Rerank v0",
+        "type": "Rerank",
+        "context_window": 512,
+        "source": "https://docs.pinecone.io/reference/api/2025-10/inference/list_models"
+      }
+    ],
     "requesty": [
       {
         "id": "openai/gpt-6-astra",
@@ -1545,6 +1638,38 @@
         "name": "Whisper",
         "type": "ASR",
         "source": "https://docs.requesty.ai/api-reference/endpoint/audio-transcriptions-create"
+      }
+    ],
+    "cohere": [
+      {
+        "id": "rerank-v4.0-pro",
+        "name": "rerank-v4.0-pro",
+        "type": "Rerank",
+        "input": [
+          "text"
+        ],
+        "context_window": 32768,
+        "source": "https://docs.cohere.com/docs/models#rerank"
+      },
+      {
+        "id": "rerank-v4.0-fast",
+        "name": "rerank-v4.0-fast",
+        "type": "Rerank",
+        "input": [
+          "text"
+        ],
+        "context_window": 32768,
+        "source": "https://docs.cohere.com/docs/models#rerank"
+      },
+      {
+        "id": "rerank-v3.5",
+        "name": "rerank-v3.5",
+        "type": "Rerank",
+        "input": [
+          "text"
+        ],
+        "context_window": 4096,
+        "source": "https://docs.cohere.com/docs/models#rerank"
       }
     ]
   }

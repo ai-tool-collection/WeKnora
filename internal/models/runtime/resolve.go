@@ -99,7 +99,7 @@ func blockedModelEndpoint(raw string) bool {
 	host := strings.ToLower(strings.TrimSuffix(u.Hostname(), "."))
 	for _, domain := range []string{
 		"aliyuncs.com", "deepseek.com", "volces.com", "volcengine.com",
-		"bigmodel.cn", "modelscope.cn", "moonshot.cn", "minimaxi.com",
+		"bigmodel.cn", "modelscope.cn", "moonshot.cn", "minimaxi.com", "minimax.cn", "minimax.io",
 		"siliconflow.cn", "qiniu.com", "baidu.com", "baidubce.com", "qq.com",
 		"tencentcloudapi.com", "myqcloud.com", "qcloud.com", "aliyun.com",
 		"weixin.qq.com", "larksuite.com", "feishu.cn", "dingtalk.com",
@@ -206,7 +206,9 @@ func resolveWithVendor(ref Ref, vendor *Provider) (*Resolved, error) {
 	); err != nil {
 		return nil, err
 	}
-	applyLegacyThinkingControl(&completions, ref.Extra[models.ExtraThinkingControl])
+	legacyThinkingControlApplied := applyLegacyThinkingControl(
+		&completions, ref.Extra[models.ExtraThinkingControl],
+	)
 	out.OpenAICompletions = completions
 
 	responses := api.DefaultOpenAIResponses()
@@ -250,9 +252,9 @@ func resolveWithVendor(ref Ref, vendor *Provider) (*Resolved, error) {
 		return nil, err
 	}
 	out.GoogleGenerativeAI = google
-	// An explicit legacy thinking_control is the operator saying "this row
-	// does think, send the switch this way", so it outranks the catalog.
-	if strings.TrimSpace(ref.Extra[models.ExtraThinkingControl]) == "" {
+	// A non-default legacy thinking_control is an explicit per-row override.
+	// An ignored provider default lets the catalog's reasoning metadata apply.
+	if !legacyThinkingControlApplied {
 		out.silenceThinkingForNonReasoningModel()
 	}
 
@@ -334,6 +336,12 @@ func (r *Resolved) Capabilities() Capabilities {
 		Input:           r.Spec.Input,
 		ContextWindow:   r.Spec.ContextWindow,
 		MaxOutputTokens: r.Spec.MaxOutputTokens,
+	}
+	// Embedding, rerank and ASR references resolve no chat protocol, and an
+	// empty level map reads as "every level supported"; they do not think.
+	if r.API == "" {
+		caps.ThinkingLevels = []api.ReasoningEffort{}
+		return caps
 	}
 	switch r.API {
 	case api.APIOpenAICompletions:
@@ -516,6 +524,11 @@ func resolveEmbeddings(
 		protocol = settings.API
 	}
 	settings.API = protocol
+	if !settings.ImageFormat.Known() {
+		return nil, fmt.Errorf(
+			"catalog: unknown embedding image_format %q on %s/%s (expected %q or %q)",
+			settings.ImageFormat, vendor.ID, spec.ID, api.EmbeddingImageObject, api.EmbeddingImageMessages)
+	}
 
 	out := &Resolved{
 		Vendor:       configcopy.Clone(vendor.Definition),

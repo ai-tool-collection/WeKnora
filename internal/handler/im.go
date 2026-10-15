@@ -295,7 +295,7 @@ func normalizeIMLocale(locale string) (string, error) {
 	if normalized := types.NormalizeSupportedLocale(locale); normalized != "" {
 		return normalized, nil
 	}
-	return "", errors.New("locale must be one of: 'en-US', 'ja-JP', 'ko-KR', 'ru-RU'")
+	return "", errors.New("locale must be one of: 'en-US', 'ja-JP', 'ko-KR', 'ru-RU', 'zh-TW'")
 }
 
 // DeleteIMChannel deletes an IM channel.

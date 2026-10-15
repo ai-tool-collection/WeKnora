@@ -7,15 +7,18 @@ func Builtins() []*Definition {
 	return configcopy.Clone([]*Definition{
 		newAnthropicProvider(),
 		newAzureOpenaiProvider(),
+		newCohereProvider(),
 		newGeminiProvider(),
 		newGenericProvider(),
 		newGpustackProvider(),
+		newHuggingFaceTEIProvider(),
 		newJinaProvider(),
 		newLitellmProvider(),
 		newNovitaProvider(),
 		newNvidiaProvider(),
 		newOpenaiProvider(),
 		newOpenrouterProvider(),
+		newPineconeProvider(),
 		newRequestyProvider(),
 	})
 }

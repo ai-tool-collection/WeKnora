@@ -97,6 +97,7 @@ const getSourceInfo = (item: KnowledgeItem): { icon: string; label: string } => 
   if (ch === 'notion') return { icon: 'cloud-download', label: t('knowledgeBase.channelNotion') };
   if (ch === 'confluence') return { icon: 'cloud-download', label: t('knowledgeBase.channelConfluence') };
   if (ch === 'gitlab') return { icon: 'cloud-download', label: t('knowledgeBase.channelGitLab') };
+  if (ch === 'seafile') return { icon: 'cloud-download', label: t('knowledgeBase.channelSeafile') };
   if (ch === 'slack') return { icon: 'cloud-download', label: t('knowledgeBase.channelSlack') };
   if (ch === 'im') return { icon: 'cloud-download', label: t('knowledgeBase.channelIm') };
   if (item.type === 'url') return { icon: 'link', label: t('knowledgeBase.channelUrl') };

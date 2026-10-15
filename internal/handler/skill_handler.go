@@ -6,6 +6,9 @@ import (
 
 	"github.com/ai-tool-collection/WeKnora/internal/application/access"
 	"github.com/ai-tool-collection/WeKnora/internal/application/service"
+	// Referenced only by the @Failure annotations (errors.AppError); swag
+	// resolves annotation types through the file's imports.
+	_ "github.com/ai-tool-collection/WeKnora/internal/errors"
 	"github.com/ai-tool-collection/WeKnora/internal/types"
 	"github.com/gin-gonic/gin"
 )

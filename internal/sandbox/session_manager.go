@@ -960,7 +960,7 @@ func (m *SessionBoundManager) SessionFileStore() SessionFileStore {
 
 // SessionTerminalManager advertises the interactive-terminal capability while
 // a real remote backend is active and the provider implements PTY streaming
-// (E2B and Cube do; Docker does not).
+// (E2B and Docker both do).
 func (m *SessionBoundManager) SessionTerminalManager() SessionTerminalManager {
 	if m == nil || m.remoteDisabled() {
 		return nil
@@ -977,7 +977,7 @@ func (m *SessionBoundManager) SessionTerminalManager() SessionTerminalManager {
 // entry point lacks the config-pin context that agent-driven creation
 // relies on. A bound sandbox that is not confirmed running returns
 // ErrSandboxPaused unless opts.AllowResume is set — Connect would wake a
-// paused instance. A backend that cannot stream PTYs (Docker) returns
+// paused instance. A backend that cannot stream PTYs returns
 // ErrTerminalUnsupported, not "no sandbox".
 func (m *SessionBoundManager) OpenSessionTerminal(
 	ctx context.Context,
@@ -1044,6 +1044,9 @@ func (m *SessionBoundManager) RequireRunningSessionSandbox(
 		return ErrNoLiveSessionSandbox
 	}
 	if state != RemoteStateRunning {
+		if m.client.Provider() == SandboxTypeDocker {
+			return ErrSandboxStopped
+		}
 		return ErrSandboxPaused
 	}
 	return nil
@@ -1569,9 +1572,10 @@ func buildSessionCreateRequest(provider RemoteProvider, cfg *Config) (RemoteCrea
 			ttl = DefaultE2BSandboxTTL
 		}
 		return RemoteCreateRequest{
-			TemplateID: cfg.E2BTemplate,
-			EnvVars:    envVars,
-			Network:    cfg.Network,
+			TemplateID:   cfg.E2BTemplate,
+			FromSnapshot: cfg.TemplateFromSnapshot,
+			EnvVars:      envVars,
+			Network:      cfg.Network,
 			Timeout: RemoteTimeoutPolicy{
 				Mode:       RemoteTimeoutExplicit,
 				Value:      ttl,

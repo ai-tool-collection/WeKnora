@@ -197,7 +197,8 @@ const outputOptions = [
   { value: 'stream', label: 'Stream' }, { value: 'full', label: 'Full' },
 ];
 const localeOptions = [
-  { value: '', label: 'Default' }, { value: 'en-US', label: 'English' },
+  { value: '', label: 'Default' }, { value: 'zh-TW', label: '繁體中文' },
+  { value: 'en-US', label: 'English' },
   { value: 'ja-JP', label: '日本語' }, { value: 'ko-KR', label: '한국어' },
   { value: 'ru-RU', label: 'Русский' },
 ];

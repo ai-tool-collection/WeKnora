@@ -398,6 +398,11 @@ func ClassifyHTTPError(err error) ErrorCode {
 		return ""
 	}
 	msg := err.Error()
+	var apiErr *sdk.APIError
+	if errors.As(err, &apiErr) {
+		// SDK and net/http wrap refresh failures; inspect the HTTP cause.
+		msg = apiErr.Error()
+	}
 	rest, ok := strings.CutPrefix(msg, "HTTP error ")
 	if !ok {
 		return CodeNetworkError

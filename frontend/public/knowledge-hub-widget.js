@@ -12,7 +12,7 @@
  *   KnowledgeHub.openWithQuery('How do I reset my password?')
  *     Opens the panel (if closed) and sends the query when the iframe is ready.
  *   KnowledgeHub.setLocale('en-US')
- *     Switch embed UI language (en-US | ko-KR | ja-JP | ru-RU).
+ *     Switch embed UI language (zh-TW | en-US | ko-KR | ja-JP | ru-RU).
  *
  * Secure mode (recommended): instead of `token`, pass `tokenEndpoint` — a URL on
  * your own backend that returns { token: "ems_...", expiresIn: 1800 }. Your

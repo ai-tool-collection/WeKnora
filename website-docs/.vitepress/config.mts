@@ -28,6 +28,7 @@ export default defineConfig({
         { text: 'Knowledge graph', link: '/03-features/09-knowledge-graph' },
         { text: 'Messaging', link: '/03-features/12-im-integration' },
         { text: 'Skills and sandbox', link: '/03-features/22-skills-sandbox' },
+        { text: 'Seafile data source', link: '/03-features/25-seafile' },
       ] },
       { text: 'API', items: [{ text: 'Overview', link: '/04-api/01-api-overview' }] },
       { text: 'Clients', items: [{ text: 'Web frontend', link: '/05-clients/01-frontend' }] },

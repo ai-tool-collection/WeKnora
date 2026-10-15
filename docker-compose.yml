@@ -86,6 +86,8 @@ services:
       - TZ=${TZ:-Asia/Shanghai}
       - WEKNORA_LANGUAGE=${WEKNORA_LANGUAGE:-}
       - WEKNORA_SANDBOX_DOCKER_ENABLED=${WEKNORA_SANDBOX_DOCKER_ENABLED:-false}
+      # Outbound dial timeout (Go duration, default 5s); empty keeps the default.
+      - WEKNORA_OUTBOUND_DIAL_TIMEOUT=${WEKNORA_OUTBOUND_DIAL_TIMEOUT:-}
       # - WEKNORA_TRUSTED_PROXIES=${WEKNORA_TRUSTED_PROXIES:-}
       - AUTO_MIGRATE=${AUTO_MIGRATE:-true}
       # - APP_EXTERNAL_URL=${APP_EXTERNAL_URL:-}
@@ -294,6 +296,8 @@ services:
       dockerfile: docker/Dockerfile.docreader
       args:
         - APT_MIRROR=${APT_MIRROR:-}
+        - PLAYWRIGHT_DOWNLOAD_HOST=${PLAYWRIGHT_DOWNLOAD_HOST:-}
+        - PLAYWRIGHT_WEBKIT_DOWNLOAD_HOST=${PLAYWRIGHT_WEBKIT_DOWNLOAD_HOST:-}
     container_name: knowledge-hub-docreader
     # docreader gRPC ships without auth/TLS and is only consumed by the app
     # container over the knowledge-hub-network (DOCREADER_ADDR defaults to
@@ -391,7 +395,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: paradedb/paradedb:v0.22.6-pg17
+    image: paradedb/paradedb:v0.25.11-pg17
     container_name: knowledge-hub-postgres
     environment:
       - POSTGRES_USER=${DB_USER}
@@ -643,7 +647,7 @@ services:
   # ---------------------------------------------------------------------------
 
   langfuse-db-init:
-    image: paradedb/paradedb:v0.22.6-pg17
+    image: paradedb/paradedb:v0.25.11-pg17
     container_name: knowledge-hub-langfuse-db-init
     depends_on:
       postgres:

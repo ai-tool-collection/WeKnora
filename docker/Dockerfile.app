@@ -11,7 +11,18 @@ FROM scratch AS browserskill-src
 FROM --platform=$TARGETPLATFORM node:24-bookworm-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e AS browserskill
 WORKDIR /build
 ARG WITH_BROWSERSKILL=0
+# Use the same optional Debian mirror as the Go builder and runtime stages.
+ARG APK_MIRROR_ARG
+# This base image has no CA certificates. When a mirror is set, install them
+# from the original HTTP Debian source first: a mirror that redirects apt to
+# HTTPS fails the handshake without a trust store.
 RUN if [ "$WITH_BROWSERSKILL" = "1" ]; then \
+        if [ -n "$APK_MIRROR_ARG" ]; then \
+            apt-get update && \
+            apt-get install -y --no-install-recommends ca-certificates && \
+            rm -rf /var/lib/apt/lists/* && \
+            sed -i "s@deb.debian.org@${APK_MIRROR_ARG}@g" /etc/apt/sources.list.d/debian.sources; \
+        fi && \
         apt-get update && \
         apt-get install -y --no-install-recommends git python3 ca-certificates curl build-essential cmake pkg-config && \
         rm -rf /var/lib/apt/lists/*; \

@@ -11,6 +11,8 @@ import (
 	"github.com/ai-tool-collection/WeKnora/internal/models/api"
 	"github.com/ai-tool-collection/WeKnora/internal/models/api/cohererank"
 	"github.com/ai-tool-collection/WeKnora/internal/models/api/nimrerank"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api/pineconerank"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api/teirank"
 	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
 
 	// modelruntime.Resolve answers from the vendor catalog, which is empty until
@@ -197,6 +199,10 @@ func newReranker(config *RerankerConfig) (Reranker, error) {
 		client = cohererank.New(cohererank.Config{Endpoint: endpoint, Settings: resolved.Rerank})
 	case api.RerankNIM:
 		client = nimrerank.New(nimrerank.Config{Endpoint: endpoint, Settings: resolved.Rerank})
+	case api.RerankPinecone:
+		client = pineconerank.New(pineconerank.Config{Endpoint: endpoint, Settings: resolved.Rerank})
+	case api.RerankTEI:
+		client = teirank.New(teirank.Config{Endpoint: endpoint, Settings: resolved.Rerank})
 	default:
 		return nil, fmt.Errorf("unsupported rerank api %q for provider %s", resolved.RerankAPI, vendor.ID)
 	}
@@ -204,8 +210,16 @@ func newReranker(config *RerankerConfig) (Reranker, error) {
 		return nil, err
 	}
 
+	// Images need both halves: the catalog saying the model scores them, and
+	// a protocol that can carry one to this vendor.
+	var images api.ImageReranker
+	if ir, ok := client.(api.ImageReranker); ok && ir.AcceptsImages() && resolved.Spec.AcceptsImages() {
+		images = ir
+	}
+
 	return &protocolReranker{
 		inner:     client,
+		images:    images,
 		settings:  resolved.Rerank,
 		endpoint:  resolved.BaseURL,
 		modelName: config.ModelName,

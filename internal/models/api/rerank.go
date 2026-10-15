@@ -19,12 +19,18 @@ const (
 	// array, and rankings carrying an unbounded logit instead of a
 	// probability.
 	RerankNIM RerankAPI = "nim-rerank"
+	// RerankPinecone is Pinecone Inference's standalone /rerank endpoint:
+	// documents are objects and results live under data with a score field.
+	RerankPinecone RerankAPI = "pinecone-rerank"
+	// RerankTEI is the native Text Embeddings Inference shape: POST /rerank
+	// with {query, texts}, answering a bare array of {index, score}.
+	RerankTEI RerankAPI = "tei-rerank"
 )
 
 // Known reports whether the value names a protocol this build implements.
 func (a RerankAPI) Known() bool {
 	switch a {
-	case RerankCohere, RerankNIM:
+	case RerankCohere, RerankNIM, RerankPinecone, RerankTEI:
 		return true
 	}
 	return false
@@ -34,7 +40,7 @@ func (a RerankAPI) Known() bool {
 // The supported protocols are implemented by their HTTP client packages.
 func (a RerankAPI) HTTPServed() bool {
 	switch a {
-	case RerankCohere, RerankNIM:
+	case RerankCohere, RerankNIM, RerankPinecone, RerankTEI:
 		return true
 	}
 	return false
@@ -68,4 +74,15 @@ type RerankResult struct {
 // Reranker is what every rerank protocol package implements.
 type Reranker interface {
 	Rerank(ctx context.Context, query string, documents []string) ([]RerankResult, error)
+}
+
+// ImageReranker is implemented by the rerank protocols that can carry an
+// image document. Whether a given model scores images is its catalog entry's
+// input, not the protocol's, so the caller checks that first. The images go
+// in a request of their own, at most RerankSettings.ImageBatchLimit of them;
+// result indices refer to the images slice.
+type ImageReranker interface {
+	// AcceptsImages reports whether this endpoint can carry an image at all.
+	AcceptsImages() bool
+	RerankImages(ctx context.Context, query string, images []EmbedImage) ([]RerankResult, error)
 }

@@ -19,6 +19,7 @@ import enUSConfig from 'tdesign-vue-next/esm/locale/en_US'
 import koKRConfig from 'tdesign-vue-next/esm/locale/ko_KR'
 import jaJPConfig from 'tdesign-vue-next/esm/locale/ja_JP'
 import ruRUConfig from 'tdesign-vue-next/esm/locale/ru_RU'
+import zhTWConfig from 'tdesign-vue-next/esm/locale/zh_TW'
 
 const { locale, t, tm } = useI18n()
 const { formatRole, roleIcon } = useRoleLabel()
@@ -28,6 +29,7 @@ const settingsStore = useSettingsStore()
 
 const tdLocaleMap: Record<string, object> = {
   'en-US': enUSConfig,
+  'zh-TW': zhTWConfig,
   'ko-KR': koKRConfig,
   'ja-JP': jaJPConfig,
   'ru-RU': ruRUConfig,

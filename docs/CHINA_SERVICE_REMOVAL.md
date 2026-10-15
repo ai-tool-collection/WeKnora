@@ -11,7 +11,7 @@
 | 中國營運的雲端模型、搜尋、通訊、儲存、文件解析與託管服務 | 移除註冊、實作、預設設定、前端選項、金鑰表單、說明和發行流程 | 不得再有可選用的服務或自動連線路徑 |
 | 中國服務的舊資料列與已存金鑰 | 保留必要的資料庫相容結構，但執行路徑必須拒絕已移除的 provider 與端點 | 尤其檢查通用 OpenAI 相容 provider 的回退行為 |
 | 自行部署的 Milvus、Apache Doris | 依使用者決定保留 | 不得暗中改用供應商託管端點；檢查預設位址與映像來源 |
-| 顯示品牌與簡體中文介面／文件 | 顯示 Knowledge Hub；移除 zh-CN 介面與舊品牌宣傳內容 | 新增功能須提供現有語系翻譯；檢查硬編碼文字與圖片資產 |
+| 顯示品牌與簡體中文介面／文件 | 顯示 Knowledge Hub；移除 zh-CN 介面與舊品牌宣傳內容；前端保留 en-US、ja-JP、ko-KR、ru-RU、zh-TW(台灣正體用語) | 新增功能須提供現有語系翻譯；zh-TW 須檢查中國用語；檢查硬編碼文字與圖片資產 |
 | 歷史技術識別字 | 必要時保留 fork Go module、環境變數、API、資料表或檔名以維持升級相容 | 保留須有具體原因，不能因此恢復舊服務 |
 | 著作權、授權與第三方聲明 | 保留真實權利人與原授權文字 | 不得為了品牌清理而刪除法定歸屬資訊 |
 
@@ -23,11 +23,11 @@
 
 | 功能面 | 允許／保留 | 已移除、不得恢復的例子 | 主要檢查位置 |
 | --- | --- | --- | --- |
-| 模型 provider | Anthropic、Azure OpenAI、Gemini、Generic、GPUStack、Jina、LiteLLM、Novita、NVIDIA、OpenAI、OpenRouter、Requesty | Aliyun／DashScope、DeepSeek、Hunyuan／LKEAP、LongCat、MiMo、MiniMax、ModelScope、Moonshot、Qianfan、Qiniu、SiliconFlow、Volcengine／Doubao、WeKnoraCloud、Zhipu 等 | `internal/models/providers/builtin.go`、`internal/models/catalog/data/`、`internal/models/runtime/resolve.go`、`internal/models/parity/catalog_test.go`、`frontend/src/` |
+| 模型 provider | Anthropic、Azure OpenAI、Cohere、Gemini、Generic、GPUStack、Hugging Face TEI、Jina、LiteLLM、Novita、NVIDIA、OpenAI、OpenRouter、Pinecone、Requesty | Aliyun／DashScope、DeepSeek、Hunyuan／LKEAP、LongCat、MiMo、MiniMax、ModelScope、Moonshot、Qianfan、Qiniu、SiliconFlow、Volcengine／Doubao、WeKnoraCloud、Zhipu 等 | `internal/models/providers/builtin.go`、`internal/models/catalog/data/`、`internal/models/runtime/resolve.go`、`internal/models/parity/catalog_test.go`、`frontend/src/` |
 | 模型協定與端點 | 上列 provider 所需協定、Ollama 與明確核准的自訂端點 | Tencent LKEAP、Ark、DashScope 特有客戶端及中國預設 API URL | `internal/models/api/`、`internal/models/chat/`、`embedding/`、`rerank/`、`asr/`、`vlm/`、`config/builtin_models.yaml.example` |
 | 網頁搜尋 | DuckDuckGo、Google、Bing、Tavily、Ollama、SearXNG、Keenable、Exa、Brave、Serply | Baidu、Bocha、Metaso、Zhipu | `internal/container/container.go` 的註冊、`internal/types/web_search_provider.go`、`internal/infrastructure/web_search/`、前端設定頁 |
 | 即時通訊 | Slack、Telegram、Mattermost | DingTalk、Feishu／Lark、QQ Bot、WeChat、WeCom、Yunzhijia | `internal/handler/im.go`、`internal/im/`、前端通道選項、設定及文件 |
-| 資料來源 connector | Confluence、GitLab、Notion、RSS | DingTalk、Feishu／Lark(含 Drive)、Tencent IMA、Yuque | `internal/datasource/connector/`、`internal/datasource/connector.go`、`frontend/src/views/knowledge/settings/DataSourceEditorDialog.vue`、datasource i18n |
+| 資料來源 connector | Confluence、GitLab、Notion、RSS、自架 Seafile | DingTalk、Feishu／Lark(含 Drive)、Tencent IMA、Yuque | `internal/datasource/connector/`、`internal/datasource/connector.go`、`frontend/src/views/knowledge/settings/DataSourceEditorDialog.vue`、datasource i18n |
 | 物件儲存 | local、MinIO、S3 相容儲存;Compose 的 MinIO 映像為 `cgr.dev/chainguard/minio`(可用 `MINIO_IMAGE` 覆寫) | COS、TOS、OSS、KS3、OBS 的專用實作與設定;上游改用的 `pgsty/minio` 社群映像 | `internal/application/service/file/`、`internal/storageallowlist/`、`.env*`、`docker-compose*.yml`、`helm/values.yaml` |
 | 向量儲存 | PostgreSQL／pgvector、Elasticsearch、OpenSearch、Qdrant、Weaviate，以及自架 Milvus、Doris | Tencent VectorDB | `internal/types/retriever.go`、`internal/types/vectorstore.go`、`internal/application/repository/retriever/`、Compose／Helm |
 | 文件解析 | DocReader builtin、simple、anydoc | MinerU、PaddleOCR-VL、WeKnoraCloud reader | `internal/infrastructure/docparser/engines.go`、`docreader/`、前端引擎選項、範例環境檔 |
@@ -41,13 +41,13 @@
 ## 3. 保留與未完成項目
 
 1. **Go module** 固定為 `github.com/ai-tool-collection/WeKnora`。變更它會影響大量 import、生成碼與使用者現有依賴；顯示品牌則使用 Knowledge Hub。`WEKNORA_*` 環境變數、部分 CLI／API 識別字、Redis key、資料庫欄位與歷史遷移也可能為相容性保留。新增舊識別字必須說明其必要性。
-2. **Milvus 與 Apache Doris** 是使用者明確核准的自架開源後端。不要因名稱來源而從更新中刪除；也不要把它們改接未審核的託管服務。
+2. **Milvus、Apache Doris 與 Seafile** 是使用者明確核准的自架開源後端(Seafile connector 於合併 089711f9 時核准)。不要因名稱來源而從更新中刪除；也不要把它們改接未審核的託管服務。generic provider 的 `*qwen3-vl-embedding*` catalog 規則只描述自架 vLLM 的請求格式,沒有預設端點,同樣保留。
 3. **TDesign** 元件與圖示套件目前仍在前端依賴中。圖示 sprite 由本地提供，`frontend/src/utils/tdesign-icon-offline.ts` 用來阻止套件嘗試載入其 CDN；正式產物可能仍含供應商 URL 字串。是否完整替換 TDesign 尚未決定，故嚴格「沒有中國來源依賴」檢查目前**不通過**。套件升級須重新驗證瀏覽器實際網路請求，不能只信任既有阻擋邏輯。
 4. **BrowserSkill** 是可選的本地整合。`scripts/build_browserskill.sh` 只接受經審查、符合 `scripts/browserskill-release.json` 指定 commit 的本地原始碼，不再自動 clone；其授權聲明仍須隨資產保存。若政策改成連這個來源也不得保留，必須一併移除功能、構建、UI、設定與文件。
 5. `go.mod` 仍有 ByteDance Sonic 相關的**間接依賴**，需追查引入鏈並評估替代方案。請勿把「服務已移除」寫成「供應鏈已完全排除中國來源」。
 6. 後端仍有歷史簡體中文註解、錯誤訊息、IM 文案與測試資料；部分發行檔名、腳本與範例仍有技術性舊品牌字串。清理尚未完成。翻譯使用者可見字串時，要同步更新測試及所有既有語系，並避免改動需要相容的儲存值。
 7. **MinIO 映像**:quay.io 自 2026-09-24 關閉 `minio/minio` 匿名拉取,上游改用 Pigsty 維護的 `pgsty/minio`;本 fork 改用 Chainguard 從原始碼建置的 `cgr.dev/chainguard/minio`。其免費版只提供 `latest` tag,需要固定版本時以 digest 釘選。映像預設以 uid 65532 執行且沒有 `curl`,Compose 因此設 `user: "0:0"` 相容舊版 root 寫入的 volume,healthcheck 改用 `mc ready local`。
-8. **Swagger 產物**:已提交的 `docs/swagger.*` 仍含已移除的 `/wechat/qrcode` 路由與 COS、TOS、OSS、KS3、OBS、Cube 定義,且缺少 `/wiki-search` 等新端點。以 swag v1.16.4/v1.16.6 執行 `make docs` 會改變所有 definition 命名並遺失 `ErrorCode` enum,導致 `go test ./docs` 失敗;需先確認上游使用的 swag 版本再重新生成。
+8. **Swagger 產物**:已提交的 `docs/swagger.*` 仍含已移除的 `/wechat/qrcode` 路由與 COS、TOS、OSS、KS3、OBS、Cube 定義,且缺少 `/wiki-search` 等新端點。過去 `make docs` 會改變所有 definition 命名並遺失 `ErrorCode` enum;上游 3206e15e 查明原因不是 swag 版本,而是 swag 走訪 `internal/localsandbox` 時重複載入 `core` 套件。`Makefile` 已加 `--exclude ./internal/localsandbox`,`internal/handler/skill_handler.go` 需保留對 `internal/errors` 的 blank import。合併 089711f9 時尚未在本 fork 以 swag v1.16.6 重新生成驗證;驗證通過後才可移除本項。
 9. 來源與 lockfile 掃描不能證明執行時絕無外連。自訂模型 URL、插件、MCP、網頁擷取與使用者設定的 S3 端點仍可產生對外流量；部署者應以 egress allowlist 和網路紀錄驗證實際目的地。
 
 ## 4. 每次更新上游的標準流程
@@ -73,6 +73,8 @@
 8. **共用 helper 與測試:**刪除整合檔案前確認其中沒有被保留功能共用的函式(例如 E2B 沙箱曾依賴 Cube 檔案內的 `parseProxyURL`),並同步修改引用已移除型別的測試;以具 CGO 的 `go vet ./...` 與 `go test ./...` 驗證,不能只編譯主程式。
 9. **文件站與 Swagger 衝突:**`website-docs/` 是 fork 自行維護的英文精簡版,上游刪除或改寫的中文頁面不直接合併;fork 已刪除的頁面維持刪除,仍存在的頁面只把行為變更改寫成英文。`docs/swagger.yaml` 在 fork 中與 `swagger.json` 內容相同(JSON 也是合法 YAML),衝突時先解 `swagger.json`,再複製成 `swagger.yaml`;`docs/docs.go` 保留 `//go:embed swagger.json`,不要換回上游的內嵌字串模板。
 10. **沙箱映像:**上游 workflow、`scripts/build_images.sh` 與 `docker/Dockerfile.sandbox` 的 `cube`/`desktop-cube` target 與 `cubesandbox-base` 映像一律不帶入;只吸收對 `runtime`/`desktop` 通用的建置修正。
+11. **建置鏡像參數:**`APK_MIRROR_ARG`、`APT_MIRROR`、`NPM_REGISTRY`、`PLAYWRIGHT_*_DOWNLOAD_HOST` 等參數機制可保留,但 `.env.example`、Compose 與 `scripts/build_images.sh` 的預設值必須留空或使用官方來源(例如 `GOPROXY` 預設 `https://proxy.golang.org,direct`);上游範例中的 `mirrors.tencent.com`、`goproxy.cn` 等中國鏡像不帶入。
+12. **截圖與圖片資產:**上游新增的簡中介面或舊品牌截圖(例如 `docs/images/` 下的設定頁截圖)若 fork 文件未引用,直接不帶入。
 
 ### C. 靜態搜尋與人工分類
 

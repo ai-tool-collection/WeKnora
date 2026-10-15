@@ -151,6 +151,7 @@ const channelLabelMap: Record<string, string> = {
   api: 'knowledgeBase.channelApi',
   browser_extension: 'knowledgeBase.channelBrowserExtension',
   gitlab: 'knowledgeBase.channelGitLab',
+  seafile: 'knowledgeBase.channelSeafile',
   confluence: 'knowledgeBase.channelConfluence',
   slack: 'knowledgeBase.channelSlack',
   im: 'knowledgeBase.channelIm',

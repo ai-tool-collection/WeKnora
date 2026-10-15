@@ -24,6 +24,7 @@ const (
 	ConnectorTypeIMAP        = "imap"
 	ConnectorTypeRSS         = "rss"
 	ConnectorTypeGitLab      = "gitlab"
+	ConnectorTypeSeafile     = "seafile"
 
 	// Sync modes
 	SyncModeIncremental = "incremental"

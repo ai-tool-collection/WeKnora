@@ -2,11 +2,13 @@ package providers_test
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/ai-tool-collection/WeKnora/internal/models"
 	"github.com/ai-tool-collection/WeKnora/internal/models/api"
+	"github.com/ai-tool-collection/WeKnora/internal/models/api/anthropicmessages"
 	"github.com/ai-tool-collection/WeKnora/internal/models/providers"
 	modelruntime "github.com/ai-tool-collection/WeKnora/internal/models/runtime"
 	"github.com/ai-tool-collection/WeKnora/internal/types"
@@ -14,14 +16,33 @@ import (
 
 // expectedIDs is every built-in vendor this package links.
 var expectedIDs = []string{
-	"generic", "openai", "azure_openai", "anthropic", "gemini",
-	"openrouter", "litellm", "requesty", "jina", "nvidia",
-	"novita", "gpustack",
+	"generic", "huggingface_tei",
+	"openai", "azure_openai", "anthropic", "gemini",
+	"openrouter", "litellm", "requesty", "pinecone",
+	"jina", "nvidia", "novita", "gpustack", "cohere",
+}
+
+func TestBuiltinDefaultURLsAcrossModelTypes(t *testing.T) {
+	for _, vendor := range modelruntime.List() {
+		for _, kind := range vendor.ModelTypes {
+			base := vendor.GetDefaultURL(kind)
+			// These connections have no hosted service to prefill.
+			if vendor.ID == "generic" || vendor.ID == "huggingface_tei" {
+				if base != "" {
+					t.Errorf("%s/%s should require an operator URL", vendor.ID, kind)
+				}
+				continue
+			}
+			if !strings.HasPrefix(base, "https://") && !strings.HasPrefix(base, "http://") {
+				t.Errorf("%s/%s has no absolute default URL: %q", vendor.ID, kind, base)
+			}
+		}
+	}
 }
 
 func TestAllVendorsRegistered(t *testing.T) {
-	if len(expectedIDs) != 12 {
-		t.Fatalf("expected 12 vendor ids in the spec, got %d", len(expectedIDs))
+	if len(expectedIDs) != 15 {
+		t.Fatalf("expected 15 vendor ids in the spec, got %d", len(expectedIDs))
 	}
 	for _, id := range expectedIDs {
 		v, ok := modelruntime.Get(id)
@@ -65,6 +86,21 @@ func TestAllVendorsRegistered(t *testing.T) {
 		if !found {
 			t.Errorf("unexpected vendor %q registered", v.ID)
 		}
+	}
+}
+
+func TestHuggingFaceTEIRequiresURLButNotAPIKey(t *testing.T) {
+	v, ok := modelruntime.Get(providers.HuggingFaceTEIID)
+	if !ok {
+		t.Fatal("Hugging Face TEI provider not registered")
+	}
+	if err := v.ValidateConfig(&providers.Config{
+		BaseURL: "http://tei.internal:8080", ModelName: "BAAI/bge-reranker-large",
+	}); err != nil {
+		t.Fatalf("a self-hosted TEI server should not require an API key: %v", err)
+	}
+	if err := v.ValidateConfig(&providers.Config{ModelName: "BAAI/bge-reranker-large"}); err == nil {
+		t.Fatal("TEI provider accepted a missing base URL")
 	}
 }
 
@@ -199,6 +235,11 @@ func TestOpenAIProtocolSelection(t *testing.T) {
 	}
 }
 
+// claudeNoSamplingModels reject non-default temperature/top_p/top_k values.
+var claudeNoSamplingModels = []string{
+	"claude-opus-4-7", "claude-opus-4-8", "claude-opus-5", "claude-sonnet-5", "claude-fable-5", "claude-fable-5-1",
+}
+
 func resolve(t *testing.T, provider, model string) *modelruntime.Resolved {
 	t.Helper()
 	r, err := modelruntime.Resolve(modelruntime.Ref{Provider: provider, Model: model})
@@ -220,6 +261,21 @@ func TestFamilyExpectations(t *testing.T) {
 	}
 	if r := resolve(t, "azure_openai", "gpt-5.4-prod"); r.OpenAICompletions.SupportsTemperature {
 		t.Error("azure gpt-5* deployment should not support temperature")
+	}
+	// Claude Opus 4.7 and later and Sonnet 5 reject non-default sampling
+	// values, so the internal pipelines that set a fixed temperature must not
+	// send temperature or top_p to these models.
+	for _, model := range claudeNoSamplingModels {
+		r := resolve(t, "anthropic", model)
+		if r.AnthropicMessages.SupportsTemperature {
+			t.Errorf("anthropic/%s should not support temperature", model)
+		}
+		if r.AnthropicMessages.SupportsTopP {
+			t.Errorf("anthropic/%s should not support top_p", model)
+		}
+	}
+	if r := resolve(t, "anthropic", "claude-sonnet-4-6"); !r.AnthropicMessages.SupportsTemperature {
+		t.Error("anthropic/claude-sonnet-4-6 should still support temperature")
 	}
 	// A deployment named exactly gpt-5 / gpt-5-mini / gpt-5-nano must agree
 	// with the openai vendor: the original GPT-5 trio rejects
@@ -327,5 +383,117 @@ func TestHooks(t *testing.T) {
 	gpustack, _ := modelruntime.Get("gpustack")
 	if err := gpustack.ValidateConfig(&providers.Config{APIKey: "k", ModelName: "m"}); err == nil {
 		t.Error("gpustack validate should require a base URL")
+	}
+}
+
+// TestClaudeNoSamplingRequestBody builds the request body the way NewRemoteChat
+// does, from the resolved catalog entry. With thinking off, the anthropic
+// adapter sends top_p when temperature is not supported, so both flags have to
+// be off for these models to receive neither field.
+func TestClaudeNoSamplingRequestBody(t *testing.T) {
+	build := func(t *testing.T, model string, effort api.ReasoningEffort) map[string]any {
+		t.Helper()
+		r := resolve(t, "anthropic", model)
+		c := anthropicmessages.New(anthropicmessages.Config{
+			Endpoint:       api.Endpoint{Model: r.RemoteModel},
+			Settings:       r.AnthropicMessages,
+			ThinkingLevels: r.ThinkingLevels,
+			Reasoning:      r.Spec.Reasoning,
+		})
+		body, err := c.BuildRequestBody(
+			[]api.Message{{Role: "user", Content: "Hi"}},
+			&api.Options{Temperature: 1, TopP: 0.9, ReasoningEffort: effort},
+			false,
+		)
+		if err != nil {
+			t.Fatalf("build %s: %v", model, err)
+		}
+		return body
+	}
+
+	for _, model := range claudeNoSamplingModels {
+		efforts := []api.ReasoningEffort{""}
+		if r := resolve(t, "anthropic", model); r.ThinkingLevels.Supports(api.ReasoningOff) {
+			efforts = append(efforts, api.ReasoningOff)
+		}
+		for _, effort := range efforts {
+			body := build(t, model, effort)
+			for _, field := range []string{"temperature", "top_p", "top_k"} {
+				if _, ok := body[field]; ok {
+					t.Errorf("anthropic/%s (reasoning %q) sent %s", model, effort, field)
+				}
+			}
+		}
+	}
+
+	if body := build(t, "claude-sonnet-4-6", api.ReasoningOff); body["temperature"] != 1.0 {
+		t.Errorf("anthropic/claude-sonnet-4-6 should still send temperature, got %v", body["temperature"])
+	}
+}
+
+// TestClaude55Models pins how the Claude 5.5 entries turn thinking off and
+// that none of them receives sampling parameters or budget_tokens: Opus 5.5
+// cannot turn thinking off, Sonnet 5.5 turns up-front thinking off with
+// "between_tools" (it rejects "disabled"), and Haiku 5.5 accepts "disabled".
+func TestClaude55Models(t *testing.T) {
+	build := func(t *testing.T, model string, effort api.ReasoningEffort) map[string]any {
+		t.Helper()
+		r := resolve(t, "anthropic", model)
+		c := anthropicmessages.New(anthropicmessages.Config{
+			Endpoint:       api.Endpoint{Model: r.RemoteModel},
+			Settings:       r.AnthropicMessages,
+			ThinkingLevels: r.ThinkingLevels,
+			Reasoning:      r.Spec.Reasoning,
+		})
+		body, err := c.BuildRequestBody(
+			[]api.Message{{Role: "user", Content: "Hi"}},
+			&api.Options{Temperature: 0.3, TopP: 0.9, ReasoningEffort: effort},
+			false,
+		)
+		if err != nil {
+			t.Fatalf("build %s: %v", model, err)
+		}
+		return body
+	}
+
+	offBody := map[string]any{
+		"claude-opus-5-5":   nil,
+		"claude-sonnet-5-5": map[string]any{"type": "between_tools"},
+		"claude-haiku-5-5":  map[string]any{"type": "disabled"},
+	}
+	for model, wantOff := range offBody {
+		r := resolve(t, "anthropic", model)
+		if !r.Cataloged {
+			t.Fatalf("anthropic/%s should be in the catalog", model)
+		}
+		if r.AnthropicMessages.ThinkingMode != api.AnthropicThinkingAdaptive {
+			t.Errorf("anthropic/%s should use adaptive thinking", model)
+		}
+		if got := r.ThinkingLevels.Supports(api.ReasoningOff); got != (wantOff != nil) {
+			t.Errorf("anthropic/%s supports thinking off = %v", model, got)
+		}
+		for _, level := range []api.ReasoningEffort{api.ReasoningXHigh, api.ReasoningMax} {
+			if !r.ThinkingLevels.Supports(level) {
+				t.Errorf("anthropic/%s should support %s effort", model, level)
+			}
+		}
+
+		for _, effort := range []api.ReasoningEffort{"", api.ReasoningOff, api.ReasoningHigh} {
+			body := build(t, model, effort)
+			for _, field := range []string{"temperature", "top_p", "top_k"} {
+				if _, ok := body[field]; ok {
+					t.Errorf("anthropic/%s (reasoning %q) sent %s", model, effort, field)
+				}
+			}
+			if thinking, ok := body["thinking"].(map[string]any); ok && thinking["type"] == "enabled" {
+				t.Errorf("anthropic/%s (reasoning %q) sent budget thinking", model, effort)
+			}
+		}
+		if wantOff != nil {
+			body := build(t, model, api.ReasoningOff)
+			if fmt.Sprint(body["thinking"]) != fmt.Sprint(wantOff) {
+				t.Errorf("anthropic/%s thinking off sent %v, want %v", model, body["thinking"], wantOff)
+			}
+		}
 	}
 }

@@ -358,7 +358,7 @@ export default {
       capabilityMessageHistory: '메시지 기록',
       capabilityMessageHistoryHint: '워크스페이스 채팅 기록 검색과 채팅 기록 통계 조회를 허용합니다. 워크스페이스 설정 권한은 부여하지 않습니다.',
       capabilityManageModels: '모델 관리',
-      capabilityManageModelsHint: '모델 설정, 자격 증명, 연결 테스트 및 Knowledge HubCloud 자격 증명을 관리합니다.',
+      capabilityManageModelsHint: '모델 설정, 자격 증명, 연결 테스트를 관리합니다.',
       capabilityManageMcpServices: 'MCP 서비스 관리',
       capabilityManageMcpServicesHint: 'MCP 서비스, 자격 증명, 도구 승인 정책 및 이 주체의 OAuth 상태를 관리합니다.',
       capabilityManageDatasources: '데이터 소스 관리',
@@ -682,12 +682,21 @@ export default {
     syncError: {
       deletion_lookup_failed: '삭제 전 항목 조회에 실패했습니다. 서버 로그를 확인하세요',
       deletion_failed: '삭제에 실패했습니다. 서버 로그를 확인하세요',
-      ingest_failed: '가져오기에 실패했습니다. 서버 로그를 확인하세요'
+      ingest_failed: '가져오기에 실패했습니다. 서버 로그를 확인하세요',
+      seafile_permission_denied: 'Seafile 파일에 접근할 수 없습니다. 토큰 소유자의 라이브러리 권한을 확인하세요.',
+      seafile_not_found: 'Seafile 파일이 존재하지 않거나 이동되었습니다. 다음 동기화에서 다시 시도합니다.',
+      seafile_file_too_large: 'Seafile 파일이 크기 제한을 초과합니다. MAX_FILE_SIZE_MB를 늘리거나 파일을 줄이세요.',
+      seafile_empty_file: 'Seafile 파일이 비어 있어 건너뛰었습니다.',
+      seafile_source_changed: '가져오는 동안 Seafile 파일이 변경되었습니다. 다음 동기화에서 다시 시도합니다.',
+      seafile_invalid_response: 'Seafile이 해석할 수 없는 응답을 반환했습니다. 서버 버전과 리버스 프록시 설정을 확인하세요.',
+      seafile_ssrf_blocked: 'Seafile 다운로드 URL이 SSRF 정책에 의해 차단되었습니다. fileserver 호스트를 SSRF_WHITELIST에 추가하세요.',
+      seafile_fetch_failed: 'Seafile에서 파일을 가져오지 못했습니다. 다음 동기화에서 다시 시도합니다.'
     },
     resourceType: {
       wikiSpace: '위키 공간',
       docCategory: '문서 태그',
-      book: 'Book'
+      book: 'Book',
+      library: 'Seafile 라이브러리'
     },
     scheduleHuman: {
       '30min': '30분마다',
@@ -717,13 +726,15 @@ export default {
       notion: 'Notion에서 페이지 및 데이터베이스 동기화',
       confluence: 'Confluence 스페이스와 페이지를 Markdown으로 동기화',
       rss: 'RSS / Atom 피드에서 글 동기화',
-      gitlab: 'GitLab 프로젝트의 파일 동기화'
+      gitlab: 'GitLab 프로젝트의 파일 동기화',
+      seafile: 'Seafile 라이브러리의 폴더와 파일 동기화'
     },
     connector: {
       notion: 'Notion',
       confluence: 'Confluence',
       rss: 'RSS / Atom 피드',
-      gitlab: 'GitLab'
+      gitlab: 'GitLab',
+      seafile: 'Seafile'
     },
     logDetail: {
       startTime: '시작 시간',
@@ -783,7 +794,18 @@ export default {
     syncMode: {
       incremental: '증분 동기화',
       full: '전체 동기화'
-    }
+    },
+    seafile: {
+      baseUrl: 'Seafile URL',
+      apiToken: 'API 토큰',
+      apiTokenHint: 'Seafile의 \'설정 → Web API 토큰\'에서 생성하세요. 계정에 선택한 라이브러리의 읽기 권한만 있으면 되며 토큰은 파일 다운로드 요청에 전송되지 않습니다.',
+      singleLibraryOnly: '데이터 소스 하나는 라이브러리 하나만 동기화합니다. 다른 라이브러리를 선택하기 전에 현재 선택을 해제하세요.',
+      selectionRequired: '라이브러리, 폴더 또는 파일을 하나 이상 선택하세요'
+    },
+    noResourcesDesc_seafile: '이 토큰으로 접근할 수 있는 라이브러리가 없거나 모두 암호화 라이브러리입니다(암호화 라이브러리는 동기화할 수 없음)',
+    guideStep1_seafile: 'Seafile에 로그인하여 계정이 암호화되지 않은 라이브러리를 하나 이상 읽을 수 있는지 확인하세요',
+    guideStep2_seafile: '\'설정 → Web API 토큰\'에서 토큰을 생성하거나 다시 생성하세요',
+    guideStep3_seafile: '여기로 돌아와 새 토큰을 입력하고 다시 시도를 클릭하세요'
   },
   ollama: {
     unknown: '알 수 없음',
@@ -2007,7 +2029,16 @@ export default {
         reasoningReturned: '추론 내용 반환',
         textChars: '전사 문자 수',
         segmentCount: '세그먼트 수'
-      }
+      },
+      imageFile: '이미지 파일',
+      similarityMode: '유사도',
+      similarityQuery: '쿼리',
+      similarityQueryPlaceholder: '쿼리를 입력하세요. 예: 잔디 위를 달리는 개',
+      similarityCandidates: '후보 텍스트',
+      similarityCandidatesPlaceholder: '한 줄에 하나의 후보 텍스트를 입력하세요',
+      similarityHint: '쿼리는 검색 쿼리로, 후보는 문서로 벡터화됩니다(실제 검색과 동일). 결과는 코사인 유사도가 높은 순으로 정렬됩니다',
+      similarityImage: '후보 이미지(선택)',
+      similarityImageCandidate: '이미지'
     },
     usage: {
       title: '모델을 삭제할 수 없습니다',
@@ -2336,7 +2367,8 @@ export default {
     selectLanguage: '언어 선택',
     language: '언어',
     languageDescription: '인터페이스 표시 언어 선택',
-    languageSaved: '언어 설정이 저장되었습니다'
+    languageSaved: '언어 설정이 저장되었습니다',
+    zhTW: '번체 중국어'
   },
   model: {
     modelName: '모델 이름',
@@ -2486,7 +2518,9 @@ export default {
         reasoning: '추론',
         vision: '비전',
         hint: '공급사 카탈로그에서 선택하거나 사용자 지정 모델 이름을 입력할 수 있습니다.'
-      }
+      },
+      embeddingImageInputLabel: '이미지 입력',
+      embeddingImageInputDesc: '모델이 이미지를 텍스트와 같은 벡터 공간에 임베딩할 수 있는지 여부. 카탈로그 모델은 자동으로 인식되며, 사용자 정의 모델은 직접 선언합니다'
     }
   },
   error: {
@@ -2660,8 +2694,6 @@ export default {
         failed: '모든 워크스페이스에 적용 실패'
       },
       createUser: {
-        label: '사용자 생성',
-        description: '새 로컬 사용자 계정을 개설합니다. 플랫폼의 기본 공간 모드가 "개인 공간 자동 생성"으로 설정된 경우, 스스로 가입한 사용자와 마찬가지로 개인 공간도 함께 만들어집니다.',
         action: '사용자 생성',
         dialogTitle: '새 사용자 생성',
         warning: '보안에 민감한 작업입니다. 새 사용자가 로그인할 때 사용할 사용자 이름과 이메일을 신중히 확인하세요.',
@@ -2699,13 +2731,9 @@ export default {
         }
       },
       passwordReset: {
-        label: '사용자 비밀번호 재설정',
-        description: '로그인할 수 없는 다른 사용자의 새 비밀번호를 설정합니다. 재설정하면 해당 사용자의 현재 로그인 세션이 모두 만료되며 새 비밀번호로 다시 로그인해야 합니다.',
-        action: '비밀번호 재설정',
         dialogTitle: '다른 사용자의 비밀번호 재설정',
         warning: '보안에 민감한 작업입니다. 사용자 이메일을 반드시 확인하세요. 여기서는 자신의 비밀번호를 재설정할 수 없습니다.',
         emailLabel: '사용자 이메일',
-        emailPlaceholder: '비밀번호를 재설정할 사용자의 이메일 입력',
         newPasswordLabel: '새 비밀번호',
         newPasswordPlaceholder: '새 비밀번호 입력',
         confirmPasswordLabel: '새 비밀번호 확인',
@@ -2713,26 +2741,6 @@ export default {
         confirmBtn: '재설정 확인',
         success: '비밀번호가 재설정되고 기존 세션이 만료되었습니다',
         failed: '비밀번호 재설정 실패'
-      },
-      admins: {
-        label: '시스템 관리자',
-        description: '플랫폼 수준 권한을 가진 사용자입니다. 오른쪽에 이메일을 입력하고 엔터를 누르면 해당 사용자를 관리자로 승격하고, 태그의 ×를 누르면 권한을 회수합니다. 본인은 관리자이지만 목록에 표시되지 않으며 자신의 권한을 회수할 수 없습니다.',
-        placeholder: '사용자 이메일을 입력하고 엔터를 누르세요',
-        loadFailed: '시스템 관리자 정보를 불러오지 못했습니다',
-        saveSuccess: '시스템 관리자가 업데이트되었습니다',
-        saveFailed: '시스템 관리자 업데이트 실패',
-        confirm: {
-          revoke: {
-            header: '시스템 관리자 권한 회수',
-            body: '{email} 사용자의 시스템 관리자 권한을 회수하시겠습니까? 회수 후에는 시스템 수준 기능에 더 이상 접근할 수 없습니다.',
-            confirmBtn: '회수 확인'
-          },
-          promote: {
-            header: '시스템 관리자로 승격',
-            body: '{email} 사용자를 시스템 관리자로 승격하시겠습니까? 이 사용자는 모든 워크스페이스 접근, 시스템 설정 변경, 관리자 명단 관리 등 플랫폼 수준의 권한을 갖게 됩니다.',
-            confirmBtn: '승격 확인'
-          }
-        }
       },
       reset: {
         label: '초기화',
@@ -3052,36 +3060,27 @@ export default {
           generic: '큐 상태를 불러오지 못했습니다'
         }
       },
-      runtimeTable: {
-        setting: '설정 및 용도',
-        value: '현재 값'
-      },
       sections: {
         other: {
-          tab: '기타 {count}',
           title: '기타 설정',
           description: '표준 제품 그룹에 포함되지 않은 현재 배포의 설정입니다.'
         },
         security: {
-          tab: '네트워크 보안 {count}',
           title: '네트워크 보안',
           description: 'SSRF 허용 목록과 Docker 샌드박스 허용 여부(로컬 docker.sock은 호스트 root와 같음)를 관리합니다.'
         },
         runtime: {
-          tab: '런타임 및 동시성 {count}',
           title: '런타임 및 동시성',
           description: '백그라운드 워커 풀과 모델 서비스의 동시 처리 용량을 설정합니다.',
           restartHint: '워커 설정은 재시작 후 적용'
         },
         tenant: {
-          tab: '워크스페이스 기본값 {count}',
           title: '워크스페이스 기본값',
           description: '기존 워크스페이스를 변경하지 않고 신규 워크스페이스의 초기 할당량과 호환 동작을 설정합니다.'
         },
         access: {
-          tab: '계정 및 액세스 {count}',
-          title: '계정 및 액세스',
-          description: '시스템 관리자, 공개 가입, 공간 생성 규칙을 관리합니다.'
+          title: '가입 및 액세스',
+          description: '가입 방식, 비밀번호 요구 사항, 공간 생성 규칙을 관리합니다.'
         }
       },
       priorityHint: {
@@ -3089,6 +3088,41 @@ export default {
         tier1: '이 페이지에서 저장한 항목("재정의됨" 배지가 붙은 항목)은 항상 우선 적용되며, 환경 변수는 무시됩니다.',
         tier2: '여기서 저장하지 않은 항목은 환경 변수를 따르며, 환경 변수도 없으면 내장 기본값을 사용합니다.',
         tier3: '특정 항목을 다시 환경 변수 기반으로 되돌리려면 해당 행의 "초기화" 버튼을 누르세요.'
+      },
+      userList: {
+        title: '플랫폼 사용자 목록',
+        rowLabel: '사용자 관리',
+        rowDesc: '워크스페이스 전체의 등록 사용자를 페이지네이션 및 사용자 이름/이메일 필터와 함께 표시합니다.',
+        searchPlaceholder: '사용자 이름 또는 이메일로 필터링(현재 페이지)',
+        refresh: '새로고침',
+        active: '활성',
+        inactive: '비활성',
+        colUsername: '사용자 이름',
+        colStatus: '상태',
+        colRole: '역할',
+        colCreated: '생성일',
+        colAction: '작업',
+        prev: '이전',
+        next: '다음',
+        pageCount: '{shown}개 표시 / 페이지 내 {total}',
+        enable: '활성화',
+        disable: '비활성화',
+        resetPassword: '비밀번호 재설정',
+        confirmDisable: '{name} 계정을 비활성화할까요? 활성 세션이 즉시 취소됩니다.',
+        confirmEnable: '{name} 계정을 활성화할까요?',
+        enabledMsg: '{name} 활성화됨',
+        disabledMsg: '{name} 비활성화됨',
+        actionFailed: '작업 실패',
+        loadFailed: '사용자 목록을 불러오지 못했습니다',
+        roleAdmin: '시스템 관리자',
+        roleUser: '일반 사용자',
+        confirmRevoke: '{name}의 시스템 관리자 권한을 취소할까요?',
+        confirmPromote: '{name}을(를) 시스템 관리자로 승격할까요?',
+        revokeBtn: '취소',
+        promoteBtn: '승격',
+        revokedMsg: '{name}의 관리자 권한을 취소했습니다',
+        promotedMsg: '{name}을(를) 시스템 관리자로 승격했습니다',
+        roleFailed: '역할 변경 실패'
       }
     },
     messages: {
@@ -3274,13 +3308,13 @@ export default {
     referenceSourceView: '원문 보기',
     referenceSourceRelocate: '다시 찾기',
     referenceSourceLocating: '인용 위치를 찾는 중…',
-    referenceSourceExact: "원문 구절을 정확히 찾았습니다",
-    referenceSourcePartial: "확인된 원문을 강조했습니다. 인용 일부는 아직 일치하지 않습니다",
-    referenceSourceBlock: "원문 영역을 찾았습니다. 정확한 텍스트 일치는 확인되지 않았습니다",
-    referenceSourceAmbiguous: "일치하는 구절이 여러 개여서 위치를 특정할 수 없습니다",
-    referenceSourceStale: "원문 또는 내용이 변경되어 정확히 찾을 수 없습니다",
-    referenceSourcePrevious: "이전 인용 위치",
-    referenceSourceNext: "다음 인용 위치",
+    referenceSourceExact: '원문 구절을 정확히 찾았습니다',
+    referenceSourcePartial: '확인된 원문을 강조했습니다. 인용 일부는 아직 일치하지 않습니다',
+    referenceSourceBlock: '원문 영역을 찾았습니다. 정확한 텍스트 일치는 확인되지 않았습니다',
+    referenceSourceAmbiguous: '일치하는 구절이 여러 개여서 위치를 특정할 수 없습니다',
+    referenceSourceStale: '원문 또는 내용이 변경되어 정확히 찾을 수 없습니다',
+    referenceSourcePrevious: '이전 인용 위치',
+    referenceSourceNext: '다음 인용 위치',
     referenceSourceFoundPage: '{page}페이지에서 찾았습니다',
     referenceSourceNotFound: '인용 위치를 정확히 찾지 못해 원문을 열었습니다',
     referenceSourceOpenWeb: '원본 웹페이지에서 해당 위치 열기',
@@ -3427,7 +3461,11 @@ export default {
       retry: '다시 연결',
       sessionEnded: '터미널 세션이 종료되었습니다',
       idleDisconnected: '터미널이 유휴 상태로 연결이 끊어졌습니다. 샌드박스는 TTL에 따라 일시 중지됩니다. 다시 연결할 수 있습니다.',
-      authRevoked: '로그인 상태가 더 이상 유효하지 않아 터미널 연결이 끊어졌습니다. 다시 로그인한 뒤 재연결하세요.'
+      authRevoked: '로그인 상태가 더 이상 유효하지 않아 터미널 연결이 끊어졌습니다. 다시 로그인한 뒤 재연결하세요.',
+      notStarted: '터미널이 아직 실행되지 않았습니다. 시작하면 이 대화의 샌드박스에 연결하며, 샌드박스가 없거나 일시 중지된 경우 생성하거나 다시 시작합니다.',
+      stopped: '이 대화의 샌드박스가 실행 중이 아닙니다. 중지되었거나 오랫동안 유휴 상태여서 회수되었을 수 있습니다. 터미널을 시작하면 다시 시작되며, 이미 회수된 경우 새 샌드박스가 만들어지고 이전 파일과 설치한 소프트웨어는 유지되지 않습니다.',
+      idleDisconnectedNewShell: '터미널이 유휴 상태로 연결이 끊어져 셸이 종료되었습니다(nohup으로 시작한 백그라운드 작업은 영향을 받지 않습니다). 다시 연결하면 새 셸이 열립니다.',
+      disconnectedNewShell: '연결이 끊어져 터미널의 셸이 종료되었습니다(nohup으로 시작한 백그라운드 작업은 영향을 받지 않습니다). 다시 연결하면 새 셸이 열립니다.'
     },
     conversationTime: {
       today: '오늘 {time}',
@@ -3453,7 +3491,19 @@ export default {
         descriptionLanguageAuto: '문서 언어 자동 사용',
         customInstructionsLabel: '이미지 처리 지침',
         customInstructionsDescription: 'OCR 및 Markdown 형식은 유지하면서 시각적 우선순위를 추가합니다',
-        customInstructionsPlaceholder: '예: 명판, 모델 번호, 경고 코드 및 표 단위를 중점적으로 인식…'
+        customInstructionsPlaceholder: '예: 명판, 모델 번호, 경고 코드 및 표 단위를 중점적으로 인식…',
+        imageAttrsLabel: '이미지 속성 관찰',
+        imageAttrsDescription: '켜면 각 이미지를 먼저 속성 관찰+설명한 뒤, 속성에 따라 이미지 내 텍스트에 OCR을 실행할지 결정합니다. 끄면 기본 모드: 모든 이미지를 하나씩 설명하고 모두 OCR합니다',
+        imageVectorLabel: '이미지 벡터 검색',
+        imageVectorDescription: '켜면 이미지 설명을 생성한 뒤 임베딩 모델로 이미지 자체도 인코딩하여, 설명에 없는 내용으로도 이미지를 검색할 수 있습니다. 이미지 입력을 지원하는 임베딩 모델이 필요하며, 이미지마다 임베딩 호출이 한 번 늘고 벡터 검색 후보 범위도 넓어집니다. 이후 수집하거나 다시 파싱한 문서에만 적용되며, 스캔 PDF 페이지는 제외됩니다',
+        imageVectorModelUnsupported: '현재 임베딩 모델은 이미지 입력을 선언하지 않아 이미지 벡터가 생성되거나 검색되지 않습니다',
+        imageAttrsSchemaLabel: '관찰 가능한 이미지 속성',
+        imageAttrsSchemaDescription: '모델은 아래 속성(백엔드 레지스트리 정의)을 관찰해 OCR 정책을 결정합니다',
+        imageAttrsOcrConditions: '관찰된 속성 조건에 따라 OCR 실행',
+        imageAttrsOcrConditionsDesc: '관찰된 속성이 아래 조건을 충족하면 해당 이미지에 OCR을 실행합니다',
+        imageAttrsOcrOnUnobserved: '이미지 속성 관찰에 실패해도 OCR 실행',
+        imageAttrsOcrOnUnobservedDesc: '모델이 이미지 속성을 올바르게 관찰하지 못하면 본문 텍스트 손실을 막기 위해 기본적으로 OCR을 실행합니다. 끄면 건너뜁니다. (4B 등 소형 비전 모델을 쓰거나, 사용자 지정 이미지 지시문이 시스템 프롬프트와 충돌할 때 관찰에 실패할 수 있습니다. 8B 이상은 실패 가능성이 낮아 끄지 않는 것을 권장합니다)',
+        imagePipelineKbNote: '기본값은 지식베이스 설정을 따르며 이번 작업에 맞게 조정할 수 있습니다'
       },
       tableMetadataInstructions: {
         label: '테이블 메타데이터 지침',
@@ -3921,8 +3971,65 @@ export default {
           builtin_is_enabled_description: '소유 문서 조각이 검색에 참여하는지 여부',
           builtin_is_enabled_value_true: '활성화',
           builtin_is_enabled_value_false: '비활성화'
-        }
-      }
+        },
+        title: '갤러리',
+        allImages: '모든 이미지',
+        count: '{count}장',
+        countFiltered: '{count}장 일치',
+        searchPlaceholder: '설명 또는 이미지 속 텍스트 검색',
+        filters: '필터',
+        clearFilters: '필터 지우기',
+        searchIn: '검색 범위',
+        searchInHint: '키워드는 체크한 내용에서만 일치 여부를 확인합니다',
+        attrSection: '이미지 속성',
+        attrHint: '"숨기기"는 해당 값을 가진 이미지를 제외하고, "항상 표시"는 다른 조건으로 숨겨져도 유지합니다',
+        verdictDefault: '전체',
+        verdictOff: '숨기기',
+        verdictOn: '항상 표시',
+        keywordsPlaceholder: '키워드는 쉼표로 구분',
+        noAttrs: '필터링할 속성이 없습니다',
+        sort: '정렬',
+        sortField: '정렬 기준',
+        sortOrder: '순서',
+        orderAsc: '오름차순',
+        orderDesc: '내림차순',
+        empty: '아직 볼 수 있는 이미지가 없습니다',
+        emptyHint: '문서 속 이미지는 파싱이 끝나면 여기에 표시됩니다',
+        emptyFiltered: '조건에 맞는 이미지가 없습니다',
+        imageLoadError: '이미지를 불러오지 못했습니다',
+        noCaption: '설명 없음',
+        noOcr: '인식된 텍스트 없음',
+        caption: '이미지 설명',
+        ocr: '이미지 속 텍스트',
+        attributes: '이미지 속성',
+        source: '원본 문서',
+        details: '기본 정보',
+        dimensions: '크기',
+        status: '상태',
+        openSource: '원본 문서 열기',
+        copy: '복사',
+        zoomIn: '확대 (+)',
+        zoomOut: '축소 (-)',
+        zoomReset: '창에 맞추기 (0)',
+        actualSize: '원본 크기',
+        rotate: '회전 (R)',
+        download: '다운로드',
+        openOriginal: '새 탭에서 열기',
+        toggleInfo: '이미지 정보 (I)',
+        viewerClose: '닫기 (Esc)',
+        prev: '이전 (←)',
+        next: '다음 (→)'
+      },
+      graphNavigationHint: '빈 공간을 드래그하여 이동 · 스크롤하여 확대/축소',
+      focusGroup: '이 그룹에 초점 맞추기',
+      focusGroupViewing: '보는 중: {name}',
+      focusGroupBack: '전체 그래프로 돌아가기',
+      focusGroupSwitch: '다른 그룹으로 전환',
+      unlinkedHidden: '연결 없는 페이지 {count}개 숨김',
+      unlinkedSection: '연결 없는 페이지 · {count}',
+      offscreenSection: '현재 화면에 연결 없음 (링크 있음) · {count}',
+      hideUnlinked: '연결 없는 페이지 숨기기 ({count})',
+      showUnlinked: '연결 없는 페이지 표시 ({count})'
     },
     indexing: {
       title: '인덱싱 전략',
@@ -4241,7 +4348,7 @@ export default {
     webhookUrlPlaceholder: 'https://your-server.example.com/weknora/embed-events',
     webhookUrlDesc: 'Optional. Knowledge Hub POSTs message_sent / message_received events to this HTTPS endpoint.',
     webhookSecret: 'Webhook secret',
-    webhookSecretPlaceholder: 'HMAC-SHA256 secret (X-Knowledge Hub-Signature header)',
+    webhookSecretPlaceholder: 'HMAC-SHA256 secret (X-WeKnora-Signature header)',
     webhookSecretKeep: 'Leave blank to keep the saved secret',
     webhookSecretDesc: 'Optional. When set, request bodies are signed for verification on your server.',
     agentWebSearchDisabledHint: '현재 에이전트에서 웹 검색이 활성화되지 않았습니다. 방문자에게 웹 검색 버튼이 표시되지 않습니다. 에이전트 설정에서 웹 검색을 먼저 활성화하세요.',
@@ -4639,7 +4746,7 @@ export default {
     usernameRequired: '사용자명을 입력해주세요',
     usernameMinLength: '사용자명은 최소 2자여야 합니다',
     usernameMaxLength: '사용자명은 20자를 초과할 수 없습니다',
-    usernameInvalid: '사용자명은 문자, 숫자, 밑줄, 한글만 포함할 수 있습니다',
+    usernameInvalid: '사용자명은 영문자, 숫자, 밑줄(_), 한자만 포함할 수 있습니다',
     confirmPasswordRequired: '비밀번호를 확인해주세요',
     passwordMismatch: '두 비밀번호가 일치하지 않습니다',
     loginError: '로그인 오류, 이메일 또는 비밀번호를 확인해주세요',
@@ -5115,7 +5222,7 @@ export default {
       createSubtitle: '파일과 이미지를 위한 새 스토리지 인스턴스를 추가합니다.',
       basicSection: '기본 정보',
       nameLabel: '이름',
-      namePlaceholder: '예: 프로덕션 COS, 아카이브 COS',
+      namePlaceholder: '예: 프로덕션 S3, 아카이브 S3',
       providerLabel: '스토리지 유형',
       modeLabel: '배포 모드',
       modeRemote: '원격 인스턴스',
@@ -5956,12 +6063,12 @@ export default {
     noActivity: '파싱 활동 없음',
     totalDuration: '총 소요시간: {d}',
     errorCode: {
-      DOCREADER_UNAVAILABLE: "문서 분석 서비스를 사용할 수 없습니다",
-      DOCREADER_UNAVAILABLE_SUGGESTION: "DocReader에 연결할 수 없거나 연결이 끊겼습니다. 서비스 상태, 반복 재시작, 네트워크를 확인한 후 다시 시도하세요. 파일을 다시 업로드할 필요는 없습니다.",
-      DOCREADER_TIMEOUT: "문서 분석 시간 초과",
-      DOCREADER_TIMEOUT_SUGGESTION: "DocReader 상태와 부하를 확인한 후 다시 시도하세요. 필요한 경우 큰 파일을 나누세요.",
-      DOCREADER_PARSE_FAILED: "문서 분석 실패",
-      DOCREADER_PARSE_FAILED_SUGGESTION: "파일 형식을 확인하고 관리자에게 이번 DocReader 로그 확인을 요청하세요.",
+      DOCREADER_UNAVAILABLE: '문서 분석 서비스를 사용할 수 없습니다',
+      DOCREADER_UNAVAILABLE_SUGGESTION: 'DocReader에 연결할 수 없거나 연결이 끊겼습니다. 서비스 상태, 반복 재시작, 네트워크를 확인한 후 다시 시도하세요. 파일을 다시 업로드할 필요는 없습니다.',
+      DOCREADER_TIMEOUT: '문서 분석 시간 초과',
+      DOCREADER_TIMEOUT_SUGGESTION: 'DocReader 상태와 부하를 확인한 후 다시 시도하세요. 필요한 경우 큰 파일을 나누세요.',
+      DOCREADER_PARSE_FAILED: '문서 분석 실패',
+      DOCREADER_PARSE_FAILED_SUGGESTION: '파일 형식을 확인하고 관리자에게 이번 DocReader 로그 확인을 요청하세요.',
       TASK_STALLED: '진행이 없어 자동 중단됨',
       TASK_STALLED_SUGGESTION: '임계 시간을 넘도록 진행이 없고 대기열에도 해당 작업이 없어 실패로 표시되었습니다. 「다시 시도」를 누르세요. 반복되면 이 단계가 의존하는 서비스(문서 파싱, 모델, 벡터 저장소)를 확인하세요.',
       UNKNOWN_SUGGESTION: '자세한 내용은 애플리케이션 로그를 확인하세요.'
@@ -6094,7 +6201,12 @@ export default {
     pdfForceScanned: {
       label: '스캔 PDF로 파싱',
       description: '웹 인쇄, 스캔본, 이미지 위주 PDF에 적합합니다. 모든 페이지를 이미지로 렌더링한 뒤 OCR/VLM으로 처리합니다. 처리 시간과 모델 호출 비용이 늘어날 수 있습니다.'
-    }
+    },
+    imageEmbeddingModel: '이미지 인덱싱 Embedding 모델',
+    imageIndexInherited: '이미지 인덱싱에는 지식 베이스에 연결된 Embedding 모델을 사용합니다. 변경하려면 지식 베이스 설정으로 이동하세요.',
+    imageVectorIndex: '이번 가져오기의 이미지 벡터 인덱싱',
+    imageVectorIndexHint: '이번 업로드 또는 재분석에서 이미지 벡터를 생성하며 지식 베이스 기본 설정은 변경하지 않습니다. 검색 사용 여부는 지식 베이스의 이미지 벡터 검색 설정을 따릅니다.',
+    imageVectorRequiresIndex: '먼저 지식 베이스 설정에서 벡터 인덱싱을 활성화하세요.'
   },
   knowledgeBase: {
     tagAddAction: '태그 추가',
@@ -6317,10 +6429,10 @@ export default {
     statusFailed: '실패',
     statusCancelled: '취소됨',
     statusDraft: '초안',
-    noDescription: '설명 없음',
+    noDescription: '아직 설명이 없습니다',
     emptyKnowledgeDragDrop: '지식이 비어 있음, 드래그 앤 드롭으로 업로드',
-    pdfDocFormat: 'pdf, doc 형식 파일, 최대 10MB',
-    textMarkdownFormat: 'text, markdown 형식 파일, 최대 200KB',
+    pdfDocFormat: 'pdf, doc 형식 파일, 최대 {size}MB',
+    textMarkdownFormat: 'text, markdown 형식 파일, 최대 {size}MB',
     dragFileNotText: '텍스트나 링크가 아닌 파일을 드래그하세요',
     searchPlaceholder: '지식베이스 검색...',
     docSearchPlaceholder: '문서 이름 검색...',
@@ -6428,7 +6540,8 @@ export default {
       fromOrg: '공유 공간에서',
       sharedAt: '공유일시',
       lastUpdated: '마지막 업데이트'
-    }
+    },
+    channelSeafile: 'Seafile'
   },
   resourceOrigin: {
     mine: '내 생성',

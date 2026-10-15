@@ -136,6 +136,41 @@ func newE2BRemoteClient(
 	}, nil
 }
 
+// stripSnapshotCreateOverrides removes the fields some E2B-compatible control
+// planes reject when the template is a snapshot. The snapshot already carries the env and function
+// config of the sandbox it was taken from. The returned text names what was
+// removed so the caller can log it; environment values are never included.
+func stripSnapshotCreateOverrides(config *e2b.SandboxConfig) string {
+	var dropped []string
+	if len(config.EnvVars) > 0 {
+		names := make([]string, 0, len(config.EnvVars))
+		for name := range config.EnvVars {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		dropped = append(dropped, "envVars ["+strings.Join(names, ", ")+"]")
+	}
+	config.EnvVars = nil
+	if len(config.VolumeMounts) > 0 {
+		dropped = append(dropped, fmt.Sprintf("volumeMounts (%d)", len(config.VolumeMounts)))
+	}
+	config.VolumeMounts = nil
+	if config.AutoPauseMemory != nil {
+		dropped = append(dropped, "autoPauseMemory")
+	}
+	config.AutoPauseMemory = nil
+	return strings.Join(dropped, ", ")
+}
+
+func snapshotOverrideRejected(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "does not allow envvars") ||
+		strings.Contains(msg, "creating from a snapshot does not allow")
+}
+
 // e2bRemoteHandle is the RemoteSandboxHandle E2B returns. It carries the
 // *e2b.Sandbox so subsequent envd calls can reuse its access token.
 type e2bRemoteHandle struct {
@@ -346,7 +381,7 @@ func normalizeE2BTemplateBuildStatus(status string) string {
 	switch strings.ToLower(strings.TrimSpace(status)) {
 	case "ready", "success", "succeeded", "complete", "completed":
 		return "ready"
-	case "building", "processing":
+	case "building", "processing", "in_progress":
 		return "building"
 	case "waiting", "queued", "pending", "uploaded":
 		return "waiting"
@@ -615,7 +650,19 @@ func (c *E2BRemoteClient) Create(
 		config.AutoPauseMemory = &autoPauseMemory
 		config.AutoResume = &e2b.AutoResumeConfig{Enabled: true}
 	}
+	// Some E2B-compatible control planes store env and function config inside
+	// the snapshot and answer 400 when a create request resends them. Official
+	// E2B accepts the fields, so they are only dropped after such a rejection.
 	sandbox, err := c.client.NewSandbox(ctx, config)
+	if err != nil && request.FromSnapshot && snapshotOverrideRejected(err) &&
+		(config.EnvVars != nil || len(config.VolumeMounts) > 0 || config.AutoPauseMemory != nil) {
+		dropped := stripSnapshotCreateOverrides(&config)
+		logger.Infof(ctx,
+			"e2b snapshot create rejected overrides; retrying without %s: template %s",
+			dropped, template,
+		)
+		sandbox, err = c.client.NewSandbox(ctx, config)
+	}
 	if err != nil {
 		return nil, normalizeE2BError("Create", err)
 	}

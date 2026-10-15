@@ -62,6 +62,7 @@ import (
 	gitlabConnector "github.com/ai-tool-collection/WeKnora/internal/datasource/connector/gitlab"
 	notionConnector "github.com/ai-tool-collection/WeKnora/internal/datasource/connector/notion"
 	rssConnector "github.com/ai-tool-collection/WeKnora/internal/datasource/connector/rss"
+	seafileConnector "github.com/ai-tool-collection/WeKnora/internal/datasource/connector/seafile"
 	"github.com/ai-tool-collection/WeKnora/internal/event"
 	"github.com/ai-tool-collection/WeKnora/internal/handler"
 	"github.com/ai-tool-collection/WeKnora/internal/handler/session"
@@ -1314,36 +1315,16 @@ func initRetrieveEngineRegistry(
 	}
 
 	if slices.Contains(retrieveDriver, "qdrant") {
-		qdrantHost := os.Getenv("QDRANT_HOST")
-		if qdrantHost == "" {
-			qdrantHost = "localhost"
-		}
+		store := types.FindEnvVectorStore("qdrant", os.Getenv, "__env_qdrant__")
+		cc := store.ConnectionConfig
 
-		qdrantPort := 6334 // Default port
-		if portStr := os.Getenv("QDRANT_PORT"); portStr != "" {
-			if port, err := strconv.Atoi(portStr); err == nil {
-				qdrantPort = port
-			}
-		}
+		log.Infof("Connecting to Qdrant at %s:%d (TLS: %v)", cc.Host, cc.Port, cc.UseTLS)
 
-		// API key for authentication (optional)
-		qdrantAPIKey := os.Getenv("QDRANT_API_KEY")
-
-		// TLS configuration (optional, defaults to false)
-		// Enable TLS unless explicitly set to "false" or "0" (case insensitive)
-		qdrantUseTLS := false
-		if useTLSStr := os.Getenv("QDRANT_USE_TLS"); useTLSStr != "" {
-			useTLSLower := strings.ToLower(strings.TrimSpace(useTLSStr))
-			qdrantUseTLS = useTLSLower != "false" && useTLSLower != "0"
-		}
-
-		log.Infof("Connecting to Qdrant at %s:%d (TLS: %v)", qdrantHost, qdrantPort, qdrantUseTLS)
-
-		client, err := newEnvQdrantClient(qdrantHost, qdrantPort, qdrantAPIKey, qdrantUseTLS)
+		client, err := newEnvQdrantClient(cc.Host, cc.Port, cc.APIKey, cc.UseTLS)
 		if err != nil {
 			log.Errorf("Create qdrant client failed: %v", err)
 		} else {
-			qdrantRepository := qdrantRepo.NewQdrantRetrieveEngineRepository(client, nil)
+			qdrantRepository := qdrantRepo.NewQdrantRetrieveEngineRepository(client, &store.IndexConfig)
 			if err := registry.Register(
 				retriever.NewKVHybridRetrieveEngine(
 					qdrantRepository, types.QdrantRetrieverEngineType,
@@ -1740,6 +1721,9 @@ func initConnectorRegistry() (*datasource.ConnectorRegistry, error) {
 	}
 	if err := registry.Register(gitlabConnector.NewConnector()); err != nil {
 		errs = errors.Join(errs, fmt.Errorf("register gitlab connector: %w", err))
+	}
+	if err := registry.Register(seafileConnector.NewConnector()); err != nil {
+		errs = errors.Join(errs, fmt.Errorf("register seafile connector: %w", err))
 	}
 
 	// Future connectors will be registered here:

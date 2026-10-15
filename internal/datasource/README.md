@@ -238,7 +238,7 @@ GET    /api/v1/datasource/types             # Available connectors
 
 1. **Webhook Support**: Real-time push from platforms that support webhooks
 2. **Conflict Resolution**: Advanced merge/conflict strategies for overlapping content
-3. **Rate Limiting**: Per-connector rate limiting and backoff strategies
+3. **Rate Limiting**: Extend request pacing to other connectors and coordinate quotas across backend instances
 4. **Scheduling**: Full cron scheduler with time zone support
 5. **Monitoring**: Metrics, alerting, and sync health dashboards
 6. **Filtering**: User-defined filters for selective syncing (by title, date, tags, etc)
