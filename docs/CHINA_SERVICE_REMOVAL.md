@@ -49,6 +49,26 @@
 7. **MinIO 映像**:quay.io 自 2026-09-24 關閉 `minio/minio` 匿名拉取,上游改用 Pigsty 維護的 `pgsty/minio`;本 fork 改用 Chainguard 從原始碼建置的 `cgr.dev/chainguard/minio`。其免費版只提供 `latest` tag,需要固定版本時以 digest 釘選。映像預設以 uid 65532 執行且沒有 `curl`,Compose 因此設 `user: "0:0"` 相容舊版 root 寫入的 volume,healthcheck 改用 `mc ready local`。
 8. **Swagger 產物**:已提交的 `docs/swagger.*` 仍含已移除的 `/wechat/qrcode` 路由與 COS、TOS、OSS、KS3、OBS、Cube 定義,且缺少 `/wiki-search` 等新端點。過去 `make docs` 會改變所有 definition 命名並遺失 `ErrorCode` enum;上游 3206e15e 查明原因不是 swag 版本,而是 swag 走訪 `internal/localsandbox` 時重複載入 `core` 套件。`Makefile` 已加 `--exclude ./internal/localsandbox`,`internal/handler/skill_handler.go` 需保留對 `internal/errors` 的 blank import。合併 089711f9 時尚未在本 fork 以 swag v1.16.6 重新生成驗證;驗證通過後才可移除本項。
 9. 來源與 lockfile 掃描不能證明執行時絕無外連。自訂模型 URL、插件、MCP、網頁擷取與使用者設定的 S3 端點仍可產生對外流量；部署者應以 egress allowlist 和網路紀錄驗證實際目的地。
+10. **2026-10-15 稽核發現的待清理項目**(都沒有預設外連,也不會送出金鑰):
+    - `docreader/parser/web_parser.py` 對 trafilatura 的 WeChat 公眾號文章修補(`mmbiz.qpic.cn` 圖片規則與正文 XPath)。只在使用者匯入該類 URL 時生效。
+    - `docreader/parser/web_parser.py` 的 `__main__` 除錯區塊預設 URL 為 `cloud.tencent.com`。只在手動執行該檔時使用。
+    - `internal/types/knowledgebase.go` 的 `InferStorageFromFilePath` 與 `ParseProviderScheme` 仍辨識 `cos`、`tos`、`oss`、`ks3`、`obs` 舊路徑。屬歷史相容;`file/factory.go` 對這些 provider 回傳錯誤。
+    - `internal/application/service/storagebackend.go` 的 `validateStorageBackendEndpoint` 對 `cos` 跳過 SSRF 檢查。該 provider 已無實作,此分支為死碼。
+    - `internal/datasource/CONNECTOR_IMPLEMENTATION_GUIDE.md`、`internal/datasource/README.md` 仍以 Feishu 為範例,並引用已刪除的 `internal/im/feishu/`。
+
+### 中國來源自架元件紀錄
+
+下列元件源自中國公司或開發者,依第 1 節「自行部署」原則核准保留。它們只連往部署者自行設定的位址;不得改接供應商託管服務(例如 Zilliz Cloud、SelectDB Cloud、seafile.com 託管版)。
+
+| 元件 | 形式與版本 | 來源 | 預設連線行為 | 核准紀錄 |
+| --- | --- | --- | --- | --- |
+| Milvus | 容器 `milvusdb/milvus:v2.6.11`(standalone,內嵌 etcd);Go SDK `milvus-io/milvus/client/v2` | Zilliz | Compose profile 選用;`MILVUS_ADDRESS` 預設 `milvus:19530`(本機容器) | 第 3 節第 2 點 |
+| Apache Doris | 容器 `apache/doris:fe-4.1.0`、`apache/doris:be-4.1.0` | 源自 Baidu,現為 Apache 專案 | Compose profile 選用;`DORIS_ADDR` 預設空值 | 第 3 節第 2 點 |
+| Seafile | Connector(`internal/datasource/connector/seafile/`),不含容器 | Seafile Ltd. | 沒有預設伺服器位址;下載 URL 經 SSRF 檢查 | 第 3 節第 2 點,合併 089711f9 |
+
+Compose、Helm 中的其他映像(paradedb、redis、busybox、searxng、chainguard minio、neo4j、qdrant、weaviate、opensearch、dex、clickhouse、langfuse)與 Dockerfile 基底映像都不是中國來源。
+
+以下是中國開發者維護的**離線函式庫**,不連往任何服務,與第 3 節第 5 點 ByteDance Sonic／CloudWeGo 間接依賴同列供應鏈追蹤:`github.com/yanyiwu/gojieba`(中文分詞,內含字典)、`github.com/xuri/excelize/v2`、`github.com/panjf2000/ants/v2`、前端 `@vue-office/pptx`。
 
 ## 4. 每次更新上游的標準流程
 
